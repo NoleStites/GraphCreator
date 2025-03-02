@@ -7,6 +7,27 @@ var edge_thickness = Number(css_styles.getPropertyValue("--edge-thickness").slic
 var node_size = css_styles.getPropertyValue("--node-size").slice(0,-2); // Includes border
 var node_zIndex = Number(css_styles.getPropertyValue("--node-z-index"));
 
+// Converts the given value into a string of letters.
+// Values above 26 start at 'AA', then 'AB', etc.
+// value 1 -> A, 2 -> B, ...
+// Can support up to 'ZZ', which is value=702 nodes
+function getLetterLabel(value) {
+    if (value > 702) {return `${value}`;}
+    
+    let alphaLabels = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    value = value - 1;
+    let label = "";
+    
+    let first_index = value % 26;
+    label += alphaLabels[first_index];
+    let second_index = Math.floor(value / 26) - 1;
+    if (second_index > -1) {
+        label = alphaLabels[second_index] + label;
+    }
+
+    return label;
+}
+
 // Functions for showing and hidding the side panel mask. When toggling on, provide message to display.
 function toggleSidePanelMaskOff() {
     document.getElementById("side_panel_mask").style.display = "none";
@@ -19,7 +40,7 @@ function toggleSidePanelMaskOn(message) {
 
 // "Create button" event listener
 document.getElementById("create_node_btn").addEventListener("click", function(event) {
-    toggleSidePanelMaskOn("&quotESC&quot to cancel");
+    toggleSidePanelMaskOn("Click in preview section to place a node.<br>&quotESC&quot to cancel");
 
     // Create and add a new node to the page
     let new_node = document.createElement("div");
@@ -66,8 +87,8 @@ document.getElementById("create_node_btn").addEventListener("click", function(ev
         placed_node = new_node.cloneNode("deep");
         placed_node.id = `node${num_nodes}`;
         placed_node.classList.add(`label_for_${placed_node.id}`);
-        placed_node.innerHTML = num_nodes;
         num_nodes += 1;
+        placed_node.innerHTML = getLetterLabel(num_nodes);
         let top = event.layerY - node_size/2;
         let left = event.layerX - node_size/2;
 
@@ -573,6 +594,7 @@ function promptUserYesNo(new_graph_type, message) {
 }
 
 // What happens when the user selects a new graph type
+document.getElementById(`radio_undirected`).checked = true; // default
 function changeGraphType(event) {
     promptUserYesNo(event.target.value, "Changing graph types will delete your current graph. Are you sure that you want to continue?");
 }

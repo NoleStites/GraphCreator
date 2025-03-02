@@ -131,6 +131,17 @@ td {
     border: 1px solid black;
 }
 
+#graph_type_fieldset {
+    padding: 10px;
+}
+#graph_type_fieldset > legend {
+    font-size: 18pt;
+    font-weight: bold;
+}
+#graph_type_fieldset > label {
+    font-size: 16pt;
+}
+
 /* Preview Section Styles */
 .node {
     width: var(--node-size);
@@ -157,7 +168,7 @@ td {
     background-color: var(--edge-color);
     position: absolute;
     height: var(--edge-thickness);
-    z-index: 2;
+    z-index: 1;
     transform-origin: center;
 }
 .edge:hover {
