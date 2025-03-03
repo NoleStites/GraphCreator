@@ -226,6 +226,19 @@ function moveWeightLabel(node1, node2) {
     weight.style.transform = `RotateZ(${-angle}rad)`;
 }
 
+// Will reposition the arrow to be at the end of the edge in the direction it is going (towards node2)
+function moveArrow(node1, node2) {
+    let edge = document.getElementById(`edge_${createMinMaxNodeID(node1.id, node2.id)}`);
+    let edge_length = edge.offsetWidth;
+    let arrow = document.getElementById(`arrow_${createMinMaxNodeID(node1.id, node2.id)}`);
+    let translate_x = edge_length - arrow.offsetWidth - node_size/2;
+    let translate_y = arrow.offsetWidth/-2 + edge_thickness/2;
+    arrow.style.left = translate_x + 'px';
+    arrow.style.top = translate_y + 'px';
+    // let angle = Number(edge.style.transform.slice(8, -4));
+    // arrow.style.transform = `RotateZ(${angle}rad)`;
+}
+
 // Will move the edge between the two given nodes (called when either node is repostioned)
 function moveEdge(node1, node2) {
     // Get the edge element
@@ -263,8 +276,10 @@ function moveEdge(node1, node2) {
     edge.style.left = centerX_offset + 'px';
     edge.style.transform = `RotateZ(${angle}rad)`;
 
-    // Reposition the weight labels
+    // Reposition the weight labels and arrow ends
     moveWeightLabel(node1, node2);
+    console.log(node1.id, node2.id);
+    moveArrow(node1, node2);
 }
 
 // Given two node IDs (node0, node1, etc.), will a string of the format
@@ -307,6 +322,12 @@ function createEdge(node1, node2) {
     weight.addEventListener("input", handleWeightLabelChange); // Called when label is editted
     weight.contentEditable = true;
     new_edge.appendChild(weight);
+
+    // Create arrow (directed graphs)
+    let arrow = document.createElement("div");
+    arrow.classList.add("arrow");
+    arrow.id = `arrow_${createMinMaxNodeID(node1.id, node2.id)}`; // Ex: 'arrow_node0_node1'
+    new_edge.appendChild(arrow);
 
     preview_box.appendChild(new_edge);
     
