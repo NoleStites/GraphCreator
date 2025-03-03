@@ -155,56 +155,79 @@ function standardNodeSelect(event) {
 
 // Make the DIV element draggable:
 function dragElement(elmnt) {
-  var pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
-  let preview_box = document.getElementById("preview_section").getBoundingClientRect();
-  let elmnt_props = elmnt.getBoundingClientRect();
-  var adjacent_nodes;
+    var pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+    let preview_box = document.getElementById("preview_section").getBoundingClientRect();
+    let elmnt_props = elmnt.getBoundingClientRect();
+    //   var adjacent_nodes;
+    var edge_IDs_to_move;
 
-  elmnt.onmousedown = dragMouseDown;
+    elmnt.onmousedown = dragMouseDown;
 
-  function dragMouseDown(e) {
-    adjacent_nodes = adj_lists[e.target.id];
-    document.getElementById(e.target.id).style.zIndex = node_zIndex+1; // Resolve issues with cursor detecting different node when on it
-    e.preventDefault();
-    // get the mouse cursor position at startup:
-    pos3 = e.clientX;
-    pos4 = e.clientY;
-    document.onmouseup = closeDragElement;
-    // call a function whenever the cursor moves:
-    document.onmousemove = elementDrag;
-  }
+    function dragMouseDown(e) {
+        // adjacent_nodes = adj_lists[e.target.id];
+        edge_IDs_to_move = [];
 
-  function elementDrag(e) {
-    e.preventDefault();
-    // calculate the new cursor position:
-    pos1 = pos3 - e.clientX;
-    pos2 = pos4 - e.clientY;
-    pos3 = e.clientX;
-    pos4 = e.clientY;
-    // set the element's new position:
-    let new_top = elmnt.offsetTop - pos2;
-    let new_left = elmnt.offsetLeft - pos1;
+        // Get IDs of all edges to move
+        // 1. Outgoing edges from dragging node
+        let outgoing_nodes = adj_lists[e.target.id];
+        for (let i = 0; i < outgoing_nodes.length; i++) {
+            edge_IDs_to_move.push(`edge_${e.target.id}_${outgoing_nodes[i]}`);
+        }
+        // 2. Incoming edges to dragged node
+        let all_node_ids = Object.keys(adj_lists);
+        for (let i = 0; i < all_node_ids.length; i++) {
+            let curr_node_adj_list = adj_lists[all_node_ids[i]];
+            if (curr_node_adj_list.includes(e.target.id)) { // Found incoming edge
+                edge_IDs_to_move.push(`edge_${all_node_ids[i]}_${e.target.id}`);
+            }
+        }
 
-    // Do not let the node leave the preview area
-    if (new_top < 0) {new_top = 0;}
-    else if (new_top > preview_box.height - elmnt_props.width) {new_top = preview_box.height - elmnt_props.width;}
-    if (new_left < 0) {new_left = 0;}
-    else if (new_left > preview_box.width - elmnt_props.width) {new_left = preview_box.width - elmnt_props.width;}
-
-    elmnt.style.top = new_top + "px";
-    elmnt.style.left = new_left + "px";
-
-    for (let i = 0; i < adjacent_nodes.length; i++) {
-        moveEdge(elmnt, document.getElementById(adjacent_nodes[i]));
+        document.getElementById(e.target.id).style.zIndex = node_zIndex+1; // Resolve issues with cursor detecting different node when on it
+        e.preventDefault();
+        // get the mouse cursor position at startup:
+        pos3 = e.clientX;
+        pos4 = e.clientY;
+        document.onmouseup = closeDragElement;
+        // call a function whenever the cursor moves:
+        document.onmousemove = elementDrag;
     }
-  }
 
-  function closeDragElement(e) {
-    // stop moving when mouse button is released:
-    document.onmouseup = null;
-    document.onmousemove = null;
-    document.getElementById(e.target.id).style.zIndex = node_zIndex;
-  }
+    function elementDrag(e) {
+        e.preventDefault();
+        // calculate the new cursor position:
+        pos1 = pos3 - e.clientX;
+        pos2 = pos4 - e.clientY;
+        pos3 = e.clientX;
+        pos4 = e.clientY;
+        // set the element's new position:
+        let new_top = elmnt.offsetTop - pos2;
+        let new_left = elmnt.offsetLeft - pos1;
+
+        // Do not let the node leave the preview area
+        if (new_top < 0) {new_top = 0;}
+        else if (new_top > preview_box.height - elmnt_props.width) {new_top = preview_box.height - elmnt_props.width;}
+        if (new_left < 0) {new_left = 0;}
+        else if (new_left > preview_box.width - elmnt_props.width) {new_left = preview_box.width - elmnt_props.width;}
+
+        elmnt.style.top = new_top + "px";
+        elmnt.style.left = new_left + "px";
+
+        // for (let i = 0; i < adjacent_nodes.length; i++) {
+        //     moveEdge(elmnt, document.getElementById(adjacent_nodes[i]));
+        // }
+        for (let i = 0; i < edge_IDs_to_move.length; i++) {
+            let node_ids = edge_IDs_to_move[i].slice(5);
+            let node1_node2 = node_ids.split('_');
+            moveEdge(document.getElementById(node1_node2[0]), document.getElementById(node1_node2[1]));
+        }
+    }
+
+    function closeDragElement(e) {
+        // stop moving when mouse button is released:
+        document.onmouseup = null;
+        document.onmousemove = null;
+        document.getElementById(e.target.id).style.zIndex = node_zIndex;
+    }
 }
 
 
@@ -215,9 +238,20 @@ function calculateDistance(x1, y1, x2, y2) {
 
 // Will reposition the weight label between the given nodes to be centered
 function moveWeightLabel(node1, node2) {
-    let edge = document.getElementById(`edge_${createMinMaxNodeID(node1.id, node2.id)}`);
+    // Node ID order to append to end of new element ID
+    let node_order_id; // Either 'nodeX_nodeY' or 'nodeY_nodeX'
+    switch (graph_type) {
+        case "undirected": // Create id with smallest node listed first
+            node_order_id = `${createMinMaxNodeID(node1.id, node2.id)}`;
+            break;
+        case "directed": // Enforce order of selected nodes in ID
+            node_order_id = `${node1.id}_${node2.id}`;
+            break;
+    }
+
+    let edge = document.getElementById(`edge_${node_order_id}`);
     let edge_length = edge.offsetWidth;
-    let weight = document.getElementById(`weight_${createMinMaxNodeID(node1.id, node2.id)}`);
+    let weight = document.getElementById(`weight_${node_order_id}`);
     let translate_x = edge_length/2 - weight.offsetWidth/2;
     let translate_y = weight.offsetHeight/-2 + edge_thickness/2;
     weight.style.left = translate_x + 'px';
@@ -228,9 +262,20 @@ function moveWeightLabel(node1, node2) {
 
 // Will reposition the arrow to be at the end of the edge in the direction it is going (towards node2)
 function moveArrow(node1, node2) {
-    let edge = document.getElementById(`edge_${createMinMaxNodeID(node1.id, node2.id)}`);
+    // Node ID order to append to end of new element ID
+    let node_order_id; // Either 'nodeX_nodeY' or 'nodeY_nodeX'
+    switch (graph_type) {
+        case "undirected": // Create id with smallest node listed first
+            node_order_id = `${createMinMaxNodeID(node1.id, node2.id)}`;
+            break;
+        case "directed": // Enforce order of selected nodes in ID
+            node_order_id = `${node1.id}_${node2.id}`;
+            break;
+    }
+
+    let edge = document.getElementById(`edge_${node_order_id}`);
     let edge_length = edge.offsetWidth;
-    let arrow = document.getElementById(`arrow_${createMinMaxNodeID(node1.id, node2.id)}`);
+    let arrow = document.getElementById(`arrow_${node_order_id}`);
     let translate_x = edge_length - arrow.offsetWidth - node_size/2;
     let translate_y = arrow.offsetWidth/-2 + edge_thickness/2;
     arrow.style.left = translate_x + 'px';
@@ -241,8 +286,19 @@ function moveArrow(node1, node2) {
 
 // Will move the edge between the two given nodes (called when either node is repostioned)
 function moveEdge(node1, node2) {
+    // Node ID order to append to end of new element ID
+    let node_order_id; // Either 'nodeX_nodeY' or 'nodeY_nodeX'
+    switch (graph_type) {
+        case "undirected": // Create id with smallest node listed first
+            node_order_id = `${createMinMaxNodeID(node1.id, node2.id)}`;
+            break;
+        case "directed": // Enforce order of selected nodes in ID
+            node_order_id = `${node1.id}_${node2.id}`;
+            break;
+    }
+
     // Get the edge element
-    let edge = document.getElementById(`edge_${createMinMaxNodeID(node1.id, node2.id)}`);
+    let edge = document.getElementById(`edge_${node_order_id}`);
 
     let node1_props = node1.getBoundingClientRect();
     let node2_props = node2.getBoundingClientRect();
@@ -278,8 +334,9 @@ function moveEdge(node1, node2) {
 
     // Reposition the weight labels and arrow ends
     moveWeightLabel(node1, node2);
-    console.log(node1.id, node2.id);
-    moveArrow(node1, node2);
+    if (graph_type === "directed") {
+        moveArrow(node1, node2);
+    }
 }
 
 // Given two node IDs (node0, node1, etc.), will a string of the format
@@ -297,7 +354,9 @@ function handleWeightLabelChange(event) {
     let node_ids = node_ids_str.split('_');
     moveWeightLabel(document.getElementById(node_ids[0]), document.getElementById(node_ids[1]));
     matrixEditEdge(node_ids[0], node_ids[1], label.innerHTML);
-    matrixEditEdge(node_ids[1], node_ids[0], label.innerHTML);
+    if (graph_type === "undirected") {
+        matrixEditEdge(node_ids[1], node_ids[0], label.innerHTML);
+    }
 }
 
 // Given two node elements, this function will create an edge between them
@@ -307,31 +366,43 @@ function createEdge(node1, node2) {
     let node1_props = node1.getBoundingClientRect();
     let node2_props = node2.getBoundingClientRect();
 
+    // Node ID order to append to end of new element ID
+    let node_order_id; // Either 'nodeX_nodeY' or 'nodeY_nodeX'
+    switch (graph_type) {
+        case "undirected": // Create id with smallest node listed first
+            node_order_id = `${createMinMaxNodeID(node1.id, node2.id)}`;
+            break;
+        case "directed": // Enforce order of selected nodes in ID
+            node_order_id = `${node1.id}_${node2.id}`;
+            break;
+    }
+
     // Create the new edge (div) element
     let preview_box = document.getElementById("preview_section");
     let new_edge = document.createElement("div");
     new_edge.classList.add("edge");
-    // Create id with smallest node listed first
-    new_edge.id = `edge_${createMinMaxNodeID(node1.id, node2.id)}`;
+    new_edge.id = `edge_${node_order_id}`; // Ex: 'edge_node0_node1'
 
     // Create weight label
     let weight = document.createElement("div");
     weight.classList.add("weight_label");
-    weight.id = `weight_${createMinMaxNodeID(node1.id, node2.id)}`; // Ex: 'weight_node0_node1'
+    weight.id = `weight_${node_order_id}`; // Ex: 'weight_node0_node1'
     weight.innerHTML = '1';
     weight.addEventListener("input", handleWeightLabelChange); // Called when label is editted
     weight.contentEditable = true;
     new_edge.appendChild(weight);
 
     // Create arrow (directed graphs)
-    let arrow = document.createElement("div");
-    arrow.classList.add("arrow");
-    arrow.id = `arrow_${createMinMaxNodeID(node1.id, node2.id)}`; // Ex: 'arrow_node0_node1'
-    new_edge.appendChild(arrow);
+    if (graph_type === "directed") {
+        let arrow = document.createElement("div");
+        arrow.classList.add("arrow");
+        arrow.id = `arrow_${node_order_id}`; // Ex: 'arrow_node0_node1'
+        new_edge.appendChild(arrow);
+    }
 
     preview_box.appendChild(new_edge);
     
-    // Size, translate,  and rotate edge to fit between nodes
+    // Size, translate, and rotate edge to fit between nodes
     moveEdge(node1, node2);
 
     // Add the edge to the document and return its ID
@@ -408,10 +479,12 @@ document.getElementById("create_edge_btn").addEventListener("click", function(ev
             selected_node.classList.remove("create_edge_end");
 
             // Remove each node from each other's adjacency lists
-            let index = adj_lists[selected_node.id].indexOf(start_node);
-            adj_lists[selected_node.id].splice(index, 1);
-            index = adj_lists[start_node].indexOf(selected_node.id);
+            let index = adj_lists[start_node].indexOf(selected_node.id);
             adj_lists[start_node].splice(index, 1);
+            if (graph_type === "undirected") { // Remove other direction too
+                index = adj_lists[selected_node.id].indexOf(start_node);
+                adj_lists[selected_node.id].splice(index, 1);
+            }
 
             let edge = document.getElementById(`edge_${start_node}_${selected_node.id}`);
             if (edge === null) {
@@ -420,17 +493,23 @@ document.getElementById("create_edge_btn").addEventListener("click", function(ev
             edge.remove();
             let value = hasWeightLabels ? 0 : 0; // Different value based on weights on/off
             matrixEditEdge(start_node, selected_node.id, value);
-            matrixEditEdge(selected_node.id, start_node, value);
+            if (graph_type === "undirected") {
+                matrixEditEdge(selected_node.id, start_node, value);
+            }
         }
         else { // Add edge
             selected_node.classList.add("create_edge_end");
-            adj_lists[selected_node.id].push(start_node);
             adj_lists[start_node].push(selected_node.id);
+            if (graph_type === "undirected") {
+                adj_lists[selected_node.id].push(start_node);
+            }
             createEdge(document.getElementById(start_node), selected_node);
             
             // Edit edge values in matrix 
             matrixEditEdge(start_node, selected_node.id, 1);
-            matrixEditEdge(selected_node.id, start_node, 1);
+            if (graph_type === "undirected") {
+                matrixEditEdge(selected_node.id, start_node, 1);
+            }
         }
     }
 
@@ -586,8 +665,6 @@ function matrixRemoveNode(node_id) {
 // (node1, node2) and again with (node2, node1)
 function matrixEditEdge(node1_id, node2_id, new_value) {
     let cell = document.getElementById(`data_${node1_id}_${node2_id}`);
-    // if (cell.innerHTML === "0") {cell.innerHTML = "1";}
-    // else {cell.innerHTML = "0";}
     cell.innerHTML = `${new_value}`;
 }
 

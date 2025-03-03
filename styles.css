@@ -168,8 +168,7 @@ label {
     background-color: var(--edge-color);
     position: absolute;
     height: var(--edge-thickness);
-    /* z-index: 1; */
-    z-index: 10;
+    z-index: 1;
     transform-origin: center;
 }
 
@@ -209,10 +208,10 @@ label {
 .arrow {
     width: calc(var(--edge-thickness)*5);
     aspect-ratio: 1/1;
-    background-color: rgba(50, 205, 50, 0.671);
-    /* clip-path: polygon(0 100%, 50% 0, 100% 100%); */
+    background-color: var(--edge-color);
     clip-path: polygon(0 0, 100% 50%, 0 100%);
     position: absolute;
+    z-index: 2;
 }
 
 /* Prompt Section Styles */
