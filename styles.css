@@ -131,14 +131,14 @@ td {
     border: 1px solid black;
 }
 
-#graph_type_fieldset {
+fieldset {
     padding: 10px;
 }
-#graph_type_fieldset > legend {
+legend {
     font-size: 18pt;
     font-weight: bold;
 }
-#graph_type_fieldset > label {
+label {
     font-size: 16pt;
 }
 
@@ -171,9 +171,6 @@ td {
     z-index: 1;
     transform-origin: center;
 }
-.edge:hover {
-    background-color: red;
-}
 
 /* Style applied to the start node of edge creation */
 .create_edge_start {
@@ -201,6 +198,12 @@ td {
     z-index: 3;
     border-radius: 3px;
 }  
+.weight_label:hover {
+    cursor: pointer;
+}
+.weight_label:focus {
+    background-color: black;
+}
 
 /* Prompt Section Styles */
 #prompt_section {

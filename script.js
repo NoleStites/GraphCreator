@@ -1,6 +1,7 @@
 var num_nodes = 0; // used for creating unique IDs for nodes
 var adj_lists = {}; // Maps node IDs to a list of node IDs they are connected to
 var graph_type = "undirected";
+var hasWeightLabels = true;
 
 const css_styles = getComputedStyle(document.documentElement); // Or any specific element
 var edge_thickness = Number(css_styles.getPropertyValue("--edge-thickness").slice(0,-2)); // px
@@ -274,6 +275,16 @@ function createMinMaxNodeID(node_id1, node_id2) {
     return `${smallest_id}_${largest_id}`;
 }
 
+// Functionality of changing a weight label
+function handleWeightLabelChange(event) {
+    let label = event.target;
+    let node_ids_str = label.id.slice(7); // Ex: 'weight_nodeX_nodeY' => 'nodeX_nodeY'
+    let node_ids = node_ids_str.split('_');
+    moveWeightLabel(document.getElementById(node_ids[0]), document.getElementById(node_ids[1]));
+    matrixEditEdge(node_ids[0], node_ids[1], label.innerHTML);
+    matrixEditEdge(node_ids[1], node_ids[0], label.innerHTML);
+}
+
 // Given two node elements, this function will create an edge between them
 // Returns the ID of the edge (in the form 'edge_nodeX_nodeY')
 function createEdge(node1, node2) {
@@ -292,7 +303,9 @@ function createEdge(node1, node2) {
     let weight = document.createElement("div");
     weight.classList.add("weight_label");
     weight.id = `weight_${createMinMaxNodeID(node1.id, node2.id)}`; // Ex: 'weight_node0_node1'
-    weight.innerHTML = "0.12";
+    weight.innerHTML = '1';
+    weight.addEventListener("input", handleWeightLabelChange); // Called when label is editted
+    weight.contentEditable = true;
     new_edge.appendChild(weight);
 
     preview_box.appendChild(new_edge);
@@ -384,8 +397,9 @@ document.getElementById("create_edge_btn").addEventListener("click", function(ev
                 edge = document.getElementById(`edge_${selected_node.id}_${start_node}`);
             }
             edge.remove();
-            matrixEditEdge(start_node, selected_node.id);
-            matrixEditEdge(selected_node.id, start_node);
+            let value = hasWeightLabels ? 0 : 0; // Different value based on weights on/off
+            matrixEditEdge(start_node, selected_node.id, value);
+            matrixEditEdge(selected_node.id, start_node, value);
         }
         else { // Add edge
             selected_node.classList.add("create_edge_end");
@@ -394,9 +408,8 @@ document.getElementById("create_edge_btn").addEventListener("click", function(ev
             createEdge(document.getElementById(start_node), selected_node);
             
             // Edit edge values in matrix 
-            // (currently programmed for undirected graphs; TODO make dynamic for other types)
-            matrixEditEdge(start_node, selected_node.id);
-            matrixEditEdge(selected_node.id, start_node);
+            matrixEditEdge(start_node, selected_node.id, 1);
+            matrixEditEdge(selected_node.id, start_node, 1);
         }
     }
 
@@ -487,7 +500,7 @@ function matrixAddNode(node_id) {
     new_label.classList.add(`label_for_${node_id}`);
     new_label.innerHTML = node_label;
     let new_data = document.createElement("td");
-    // new_data.id = `col_${node_id}`; // Ex: 'col_num0'
+    new_data.classList.add("matrix_data_cell");
     new_data.innerHTML = 0;
 
     // Add new column (label and data) at the end of every row so far
@@ -550,10 +563,11 @@ function matrixRemoveNode(node_id) {
 // edge from node1 -> node2 (order of given params matters)
 // Undirected graphs need to call this function twice, once with 
 // (node1, node2) and again with (node2, node1)
-function matrixEditEdge(node1_id, node2_id) {
+function matrixEditEdge(node1_id, node2_id, new_value) {
     let cell = document.getElementById(`data_${node1_id}_${node2_id}`);
-    if (cell.innerHTML === "0") {cell.innerHTML = "1";}
-    else {cell.innerHTML = "0";}
+    // if (cell.innerHTML === "0") {cell.innerHTML = "1";}
+    // else {cell.innerHTML = "0";}
+    cell.innerHTML = `${new_value}`;
 }
 
 // Brings up a prompt box when changing graph type and applies logic to changing it
@@ -603,6 +617,41 @@ let graph_type_radios = document.getElementsByName("graph_type_radio");
 for (let i = 0; i < graph_type_radios.length; i++) {
     graph_type_radios[i].addEventListener("change", changeGraphType);
 }
+
+// Will either display (true) or hide (false) the weights and labels
+function toggleWeightsAndLabels(on_off) {
+    let weight_labels = document.getElementsByClassName("weight_label");
+    let display_val = on_off ? "block" : "none";
+
+    // Show/hide the weight labels in the preview section
+    for (let i = 0; i < weight_labels.length; i++) {
+        let label = weight_labels[i];
+        label.style.display = display_val;
+        label.innerHTML = "1"; // Reset label
+    }
+
+    // Update adjacency matrix by removing/adding weights and setting all to '1'
+    let data_cells = document.getElementsByClassName("matrix_data_cell");
+    for (let i = 0; i < data_cells.length; i++) {
+        let cell = data_cells[i];
+        let value = Number(cell.innerHTML);
+        if (value != 0) {
+            cell.innerHTML = '1';
+        }
+    }
+}
+
+// What happens when a user checks or unchecks the weight checkbox
+function handleWeightCheckbox(event) {
+    if (event.target.checked) {
+        toggleWeightsAndLabels(true);
+    }
+    else {
+        toggleWeightsAndLabels(false);
+    }
+}
+document.getElementById("checkbox_weights").checked = true;
+document.getElementById("checkbox_weights").addEventListener("change", handleWeightCheckbox);
 
 
 
