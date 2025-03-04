@@ -271,7 +271,8 @@ function moveWeightLabel(node1, node2) {
     let translate_y = weight.offsetHeight/-2 + edge_thickness/2;
     weight.style.left = translate_x + 'px';
     weight.style.top = translate_y + 'px';
-    let angle = Number(edge.style.transform.slice(8, -4));
+    let tranform_props = edge.style.transform.split(' ');
+    let angle = Number(tranform_props[0].slice(8, -4));
     weight.style.transform = `RotateZ(${-angle}rad)`;
 }
 
@@ -345,7 +346,14 @@ function moveEdge(node1, node2) {
     // Translate and rotate the edge into position
     edge.style.top = centerY_offset + 'px';
     edge.style.left = centerX_offset + 'px';
-    edge.style.transform = `RotateZ(${angle}rad)`;
+
+    let double_edge_offset = 30; // px
+    if (graph_type === "directed" && adj_lists[node2.id].includes(node1.id)) {
+        edge.style.transform = `RotateZ(${angle}rad) TranslateY(${-1*double_edge_offset}px)`;        
+    }
+    else {
+        edge.style.transform = `RotateZ(${angle}rad)`;
+    }
 
     // Reposition the weight labels and arrow ends
     moveWeightLabel(node1, node2);
@@ -418,7 +426,13 @@ function createEdge(node1, node2) {
     preview_box.appendChild(new_edge);
     
     // Size, translate, and rotate edge to fit between nodes
-    moveEdge(node1, node2);
+    if (graph_type === "directed" && adj_lists[node2.id].includes(node1.id)) {
+        moveEdge(node1, node2);
+        moveEdge(node2, node1);
+    }
+    else {
+        moveEdge(node1, node2);
+    }
 
     // Add the edge to the document and return its ID
     return new_edge.id;
@@ -509,6 +523,11 @@ document.getElementById("create_edge_btn").addEventListener("click", function(ev
             matrixEditEdge(start_node, selected_node.id, value);
             if (graph_type === "undirected") {
                 matrixEditEdge(selected_node.id, start_node, value);
+            }
+
+            // There are two edges between nodes, so removing one should reposition the other to be center
+            if (graph_type === "directed" && adj_lists[selected_node.id].includes(start_node)) {
+                moveEdge(selected_node, document.getElementById(start_node));
             }
         }
         else { // Add edge
