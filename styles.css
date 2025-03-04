@@ -3,6 +3,7 @@
     --node-z-index: 3;
     --edge-thickness: 5px;
     --edge-color: purple;
+    --weight-label-opacity: 0;
 }
 
 * {
@@ -197,6 +198,7 @@ label {
     position: absolute;
     z-index: 3;
     border-radius: 3px;
+    opacity: var(--weight-label-opacity);
 }  
 .weight_label:hover {
     cursor: pointer;
