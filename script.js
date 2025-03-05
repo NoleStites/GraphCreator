@@ -1,7 +1,7 @@
 var num_nodes = 0; // used for creating unique IDs for nodes
 var adj_lists = {}; // Maps node IDs to a list of node IDs they are connected to
-var graph_type = "undirected";
-var hasWeightLabels = true;
+var graph_type = "undirected"; // Default
+var hasWeightLabels = false; // Default
 
 const css_styles = getComputedStyle(document.documentElement); // Or any specific element
 const cssSetVars = document.documentElement; // To use: cssSetVars.style.setProperty('--var-name', 'new_value')
@@ -9,6 +9,60 @@ var edge_thickness = Number(css_styles.getPropertyValue("--edge-thickness").slic
 var node_size = css_styles.getPropertyValue("--node-size").slice(0,-2); // Includes border
 var node_zIndex = Number(css_styles.getPropertyValue("--node-z-index"));
 
+// Import graph from file
+var import_str;
+function importGraph() {
+    let fields = import_str.split('\n');
+    graph_type = fields[0].slice(6, -2);
+    hasWeightLabels = Boolean(fields[1].slice(8, -2));
+    
+    let rows = fields[2].split(';'); // 'A':0|0|1|1
+    for (let i = 0; i < rows.length-1; i++) {
+        let row_fields = rows[i].split(':');
+        let label = row_fields[0].slice(1,-1); // A
+        let values = row_fields[1].split('|'); // [0, 0, 1, 1]
+    }
+}
+document.getElementById("import_btn").addEventListener("click", importGraph);
+
+// Export graph as file
+// Syntax:
+/*
+    type='undirected';\n
+    weights=false;\n
+    'A':0|0|1|1;'B':1|0|1|0; ...
+*/
+function exportGraph() {
+    let export_str = "";
+
+    // Append graph properties
+    export_str += `type='${graph_type}';\n`;
+    export_str += `weights=${hasWeightLabels};\n`;
+
+    // Append graph vertex/edge data
+    let keys = Object.keys(adj_lists);
+    for (let i = 0; i < keys.length; i++) {
+        let key = keys[i];
+        let node_label = document.getElementsByClassName(`label_for_${key}`)[0].innerHTML;
+
+        // Fetch value from every cell in adjacency matrix row of current node
+        let node_adjacencies = adj_lists[key];
+        let cell_values = [];
+        for (let j = 0; j < keys.length; j++) {
+            let data_cell = document.getElementById(`data_${key}_${keys[j]}`)
+            cell_values.push(data_cell.innerHTML);
+        }
+        let cell_values_str = cell_values.join('|');
+
+        // Append new node data to the export string
+        export_str += `'${node_label}':${cell_values_str};`
+    }
+    console.log(export_str);
+    import_str = export_str;
+}
+document.getElementById("export_btn").addEventListener("click", exportGraph);
+
+// A helper function to visualize the adjacency list contents
 function printAdjacencyLists(prepend="") {
     let keys = Object.keys(adj_lists);
     let output = "";
@@ -100,8 +154,8 @@ document.getElementById("create_node_btn").addEventListener("click", function(ev
         placed_node.id = `node${num_nodes}`;
         placed_node.classList.add(`label_for_${placed_node.id}`);
         num_nodes += 1;
-        // placed_node.innerHTML = getLetterLabel(num_nodes);
-        placed_node.innerHTML = num_nodes-1;
+        placed_node.innerHTML = getLetterLabel(num_nodes);
+        // placed_node.innerHTML = num_nodes-1;
         let top = event.layerY - node_size/2;
         let left = event.layerX - node_size/2;
 
@@ -807,9 +861,8 @@ function handleWeightCheckbox(event) {
         toggleWeightsAndLabels(false);
     }
 }
-let weight_label_default = false;
-document.getElementById("checkbox_weights").checked = weight_label_default;
-let default_weight_label_opacity = weight_label_default ? '1' : '0';
+document.getElementById("checkbox_weights").checked = hasWeightLabels;
+let default_weight_label_opacity = hasWeightLabels ? '1' : '0';
 cssSetVars.style.setProperty("--weight-label-opacity", default_weight_label_opacity);
 document.getElementById("checkbox_weights").addEventListener("change", handleWeightCheckbox);
 

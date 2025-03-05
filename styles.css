@@ -58,6 +58,8 @@ body {
     background-color: white;
     overflow: hidden;
     position: relative;
+    background: radial-gradient(rgb(224, 224, 224) 5%, white 8%);
+    background-size: 50px 50px;
 }
 
 /* side Panel Styles */
@@ -78,6 +80,7 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
+    flex-wrap: wrap;
     gap: 10px;
 }
 
@@ -86,6 +89,10 @@ body {
     border: 1px solid black;
     text-align: center;
 }
+.ctrl_btn:hover {
+    background-color: yellow;
+    cursor: pointer;
+}
 
 #create_node_btn, #delete_node_btn {
     width: 50px;
@@ -93,18 +100,10 @@ body {
     aspect-ratio: 1/1;
     font-size: 30pt;
 }
-#create_node_btn:hover, #delete_node_btn:hover {
-    background-color: yellow;
-    cursor: pointer;
-}
 
-#create_edge_btn {
+#create_edge_btn, #export_btn, #import_btn {
     font-size: 25pt;
     padding: 10px;
-}
-#create_edge_btn:hover {
-    background-color: yellow;
-    cursor: pointer;
 }
 
 #node_info_section {
