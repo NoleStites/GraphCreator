@@ -387,7 +387,7 @@ function moveEdge(node1, node2) {
         edge.style.transform = `RotateZ(${angle}rad)`;
     }
 
-    // Test edge mask movement
+    // Edge mask movement
     let edge_mask = document.getElementById(`edge_mask_${node_order_id}`);
     if (graph_type === "directed") {
         // The line below should only run if there will be a double edge; offset should be 0 for one edge
@@ -399,7 +399,7 @@ function moveEdge(node1, node2) {
             double_edge_offset_to_circle = 0;            
         }
         let edge_mask_width = edge_length - node_size/2 - arrow_width - arrow_space_to_node + double_edge_offset_to_circle;
-        edge_mask.style.width = edge_mask_width + 'px'; // 2/3 lets the edge go into the arrow to avoid a gap between the two
+        edge_mask.style.width = edge_mask_width + 'px';
     } else {
         edge_mask.style.width = "100%";
     }
@@ -865,21 +865,3 @@ document.getElementById("checkbox_weights").checked = hasWeightLabels;
 let default_weight_label_opacity = hasWeightLabels ? '1' : '0';
 cssSetVars.style.setProperty("--weight-label-opacity", default_weight_label_opacity);
 document.getElementById("checkbox_weights").addEventListener("change", handleWeightCheckbox);
-
-
-
-
-
-
-// Edge canvas
-let canvas = document.getElementById("edge_canvas");
-
-// Set canvas size to fill preview space (cannot use css or else warp)
-let preview_box = document.getElementById("preview_section").getBoundingClientRect();
-canvas.width = preview_box.width;
-canvas.height = preview_box.height;
-
-// const ctx = canvas.getContext('2d');
-// ctx.beginPath(); // Start a new drawing path
-// ctx.arc(100, 100, 50, 0, 2*Math.PI); // Create the circle arc
-// ctx.stroke();
