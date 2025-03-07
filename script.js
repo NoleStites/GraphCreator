@@ -1,11 +1,100 @@
 var num_nodes = 0; // used for creating unique IDs for nodes
 var adj_lists = {}; // Maps node IDs to a list of node IDs they are connected to
-var graph_type = "undirected";
+var graph_type = "undirected"; // Default
+var hasWeightLabels = false; // Default
 
 const css_styles = getComputedStyle(document.documentElement); // Or any specific element
+const cssSetVars = document.documentElement; // To use: cssSetVars.style.setProperty('--var-name', 'new_value')
 var edge_thickness = Number(css_styles.getPropertyValue("--edge-thickness").slice(0,-2)); // px
 var node_size = css_styles.getPropertyValue("--node-size").slice(0,-2); // Includes border
 var node_zIndex = Number(css_styles.getPropertyValue("--node-z-index"));
+var arrow_width = edge_thickness * Number(css_styles.getPropertyValue("--arrow-width-factor"));
+var arrow_space_to_node = 0; // Number of pixels of spacing between arrow tip and node it points to
+
+// Import graph from file
+var import_str;
+function importGraph() {
+    let fields = import_str.split('\n');
+    graph_type = fields[0].slice(6, -2);
+    hasWeightLabels = Boolean(fields[1].slice(8, -2));
+    
+    let rows = fields[2].split(';'); // 'A':0|0|1|1
+    for (let i = 0; i < rows.length-1; i++) {
+        let row_fields = rows[i].split(':');
+        let label = row_fields[0].slice(1,-1); // A
+        let values = row_fields[1].split('|'); // [0, 0, 1, 1]
+    }
+}
+document.getElementById("import_btn").addEventListener("click", importGraph);
+
+// Export graph as file
+// Syntax:
+/*
+    type='undirected';\n
+    weights=false;\n
+    'A':0|0|1|1;'B':1|0|1|0; ...
+*/
+function exportGraph() {
+    let export_str = "";
+
+    // Append graph properties
+    export_str += `type='${graph_type}';\n`;
+    export_str += `weights=${hasWeightLabels};\n`;
+
+    // Append graph vertex/edge data
+    let keys = Object.keys(adj_lists);
+    for (let i = 0; i < keys.length; i++) {
+        let key = keys[i];
+        let node_label = document.getElementsByClassName(`label_for_${key}`)[0].innerHTML;
+
+        // Fetch value from every cell in adjacency matrix row of current node
+        let node_adjacencies = adj_lists[key];
+        let cell_values = [];
+        for (let j = 0; j < keys.length; j++) {
+            let data_cell = document.getElementById(`data_${key}_${keys[j]}`)
+            cell_values.push(data_cell.innerHTML);
+        }
+        let cell_values_str = cell_values.join('|');
+
+        // Append new node data to the export string
+        export_str += `'${node_label}':${cell_values_str};`
+    }
+    console.log(export_str);
+    import_str = export_str;
+}
+document.getElementById("export_btn").addEventListener("click", exportGraph);
+
+// A helper function to visualize the adjacency list contents
+function printAdjacencyLists(prepend="") {
+    let keys = Object.keys(adj_lists);
+    let output = "";
+    if (prepend !== "") {output += prepend + '\n';}
+    for (let i = 0; i < keys.length; i++) {
+        output += `${keys[i]}: ${adj_lists[keys[i]]}\n`;
+    }
+    console.log(output);
+}
+
+// Converts the given value into a string of letters.
+// Values above 26 start at 'AA', then 'AB', etc.
+// value 1 -> A, 2 -> B, ...
+// Can support up to 'ZZ', which is value=702 nodes
+function getLetterLabel(value) {
+    if (value > 702) {return `${value}`;}
+    
+    let alphaLabels = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    value = value - 1;
+    let label = "";
+    
+    let first_index = value % 26;
+    label += alphaLabels[first_index];
+    let second_index = Math.floor(value / 26) - 1;
+    if (second_index > -1) {
+        label = alphaLabels[second_index] + label;
+    }
+
+    return label;
+}
 
 // Functions for showing and hidding the side panel mask. When toggling on, provide message to display.
 function toggleSidePanelMaskOff() {
@@ -19,7 +108,7 @@ function toggleSidePanelMaskOn(message) {
 
 // "Create button" event listener
 document.getElementById("create_node_btn").addEventListener("click", function(event) {
-    toggleSidePanelMaskOn("&quotESC&quot to cancel");
+    toggleSidePanelMaskOn("Click in preview section to place a node.<br>&quotESC&quot to cancel");
 
     // Create and add a new node to the page
     let new_node = document.createElement("div");
@@ -66,8 +155,9 @@ document.getElementById("create_node_btn").addEventListener("click", function(ev
         placed_node = new_node.cloneNode("deep");
         placed_node.id = `node${num_nodes}`;
         placed_node.classList.add(`label_for_${placed_node.id}`);
-        placed_node.innerHTML = num_nodes;
         num_nodes += 1;
+        placed_node.innerHTML = getLetterLabel(num_nodes);
+        // placed_node.innerHTML = num_nodes-1;
         let top = event.layerY - node_size/2;
         let left = event.layerX - node_size/2;
 
@@ -131,60 +221,86 @@ function standardNodeSelect(event) {
     toggleInfoPanelOn(event.target.id);
 }
 
-// Make the DIV element draggable:
-function dragElement(elmnt) {
-  var pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
-  let preview_box = document.getElementById("preview_section").getBoundingClientRect();
-  let elmnt_props = elmnt.getBoundingClientRect();
-  var adjacent_nodes;
-
-  elmnt.onmousedown = dragMouseDown;
-
-  function dragMouseDown(e) {
-    adjacent_nodes = adj_lists[e.target.id];
-    document.getElementById(e.target.id).style.zIndex = node_zIndex+1; // Resolve issues with cursor detecting different node when on it
-    e.preventDefault();
-    // get the mouse cursor position at startup:
-    pos3 = e.clientX;
-    pos4 = e.clientY;
-    document.onmouseup = closeDragElement;
-    // call a function whenever the cursor moves:
-    document.onmousemove = elementDrag;
-  }
-
-  function elementDrag(e) {
-    e.preventDefault();
-    // calculate the new cursor position:
-    pos1 = pos3 - e.clientX;
-    pos2 = pos4 - e.clientY;
-    pos3 = e.clientX;
-    pos4 = e.clientY;
-    // set the element's new position:
-    let new_top = elmnt.offsetTop - pos2;
-    let new_left = elmnt.offsetLeft - pos1;
-
-    // Do not let the node leave the preview area
-    if (new_top < 0) {new_top = 0;}
-    else if (new_top > preview_box.height - elmnt_props.width) {new_top = preview_box.height - elmnt_props.width;}
-    if (new_left < 0) {new_left = 0;}
-    else if (new_left > preview_box.width - elmnt_props.width) {new_left = preview_box.width - elmnt_props.width;}
-
-    elmnt.style.top = new_top + "px";
-    elmnt.style.left = new_left + "px";
-
-    for (let i = 0; i < adjacent_nodes.length; i++) {
-        moveEdge(elmnt, document.getElementById(adjacent_nodes[i]));
+// Used for directed graphs
+// Returns a list of edge IDs that are either leaving or entering a node
+function getIncomingAndOutgoingEdges(node_id) {
+    let edge_IDs = [];
+    // 1. Outgoing edges from  node
+    let outgoing_nodes = adj_lists[node_id];
+    for (let i = 0; i < outgoing_nodes.length; i++) {
+        edge_IDs.push(`edge_${node_id}_${outgoing_nodes[i]}`);
     }
-  }
+    // 2. Incoming edges to dragged node
+    let all_node_ids = Object.keys(adj_lists);
+    for (let i = 0; i < all_node_ids.length; i++) {
+        let curr_node_adj_list = adj_lists[all_node_ids[i]];
+        if (curr_node_adj_list.includes(node_id)) { // Found incoming edge
+            edge_IDs.push(`edge_${all_node_ids[i]}_${node_id}`);
+        }
+    }
 
-  function closeDragElement(e) {
-    // stop moving when mouse button is released:
-    document.onmouseup = null;
-    document.onmousemove = null;
-    document.getElementById(e.target.id).style.zIndex = node_zIndex;
-  }
+    return edge_IDs;
 }
 
+// Make the DIV element draggable:
+function dragElement(elmnt) {
+    var pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+    let preview_box = document.getElementById("preview_section").getBoundingClientRect();
+    let elmnt_props = elmnt.getBoundingClientRect();
+    var edge_IDs_to_move;
+
+    elmnt.onmousedown = dragMouseDown;
+
+    function dragMouseDown(e) {
+        edge_IDs_to_move = getIncomingAndOutgoingEdges(e.target.id);
+
+        document.getElementById(e.target.id).style.zIndex = node_zIndex+1; // Resolve issues with cursor detecting different node when on it
+        e.preventDefault();
+        // Get the mouse cursor position at startup:
+        pos3 = e.clientX;
+        pos4 = e.clientY;
+        document.onmouseup = closeDragElement;
+        // Call a function whenever the cursor moves:
+        document.onmousemove = elementDrag;
+    }
+
+    function elementDrag(e) {
+        e.preventDefault();
+        // calculate the new cursor position:
+        pos1 = pos3 - e.clientX;
+        pos2 = pos4 - e.clientY;
+        pos3 = e.clientX;
+        pos4 = e.clientY;
+        // set the element's new position:
+        let new_top = elmnt.offsetTop - pos2;
+        let new_left = elmnt.offsetLeft - pos1;
+
+        // Do not let the node leave the preview area
+        if (new_top < 0) {new_top = 0;}
+        else if (new_top > preview_box.height - elmnt_props.width) {new_top = preview_box.height - elmnt_props.width;}
+        if (new_left < 0) {new_left = 0;}
+        else if (new_left > preview_box.width - elmnt_props.width) {new_left = preview_box.width - elmnt_props.width;}
+
+        elmnt.style.top = new_top + "px";
+        elmnt.style.left = new_left + "px";
+
+        // for (let i = 0; i < adjacent_nodes.length; i++) {
+        //     moveEdge(elmnt, document.getElementById(adjacent_nodes[i]));
+        // }
+        for (let i = 0; i < edge_IDs_to_move.length; i++) {
+            let node_ids = edge_IDs_to_move[i].slice(5);
+            let node1_node2 = node_ids.split('_');
+            moveEdge(document.getElementById(node1_node2[0]), document.getElementById(node1_node2[1]));
+        }
+    }
+
+    function closeDragElement(e) {
+        // stop moving when mouse button is released:
+        document.onmouseup = null;
+        document.onmousemove = null;
+        document.getElementById(e.target.id).style.zIndex = node_zIndex;
+    }
+}
 
 // Returns the distance between two points
 function calculateDistance(x1, y1, x2, y2) {
@@ -193,21 +309,44 @@ function calculateDistance(x1, y1, x2, y2) {
 
 // Will reposition the weight label between the given nodes to be centered
 function moveWeightLabel(node1, node2) {
-    let edge = document.getElementById(`edge_${createMinMaxNodeID(node1.id, node2.id)}`);
+    // Node ID order to append to end of new element ID
+    let node_order_id; // Either 'nodeX_nodeY' or 'nodeY_nodeX'
+    switch (graph_type) {
+        case "undirected": // Create id with smallest node listed first
+            node_order_id = `${createMinMaxNodeID(node1.id, node2.id)}`;
+            break;
+        case "directed": // Enforce order of selected nodes in ID
+            node_order_id = `${node1.id}_${node2.id}`;
+            break;
+    }
+
+    let edge = document.getElementById(`edge_${node_order_id}`);
     let edge_length = edge.offsetWidth;
-    let weight = document.getElementById(`weight_${createMinMaxNodeID(node1.id, node2.id)}`);
+    let weight = document.getElementById(`weight_${node_order_id}`);
     let translate_x = edge_length/2 - weight.offsetWidth/2;
     let translate_y = weight.offsetHeight/-2 + edge_thickness/2;
     weight.style.left = translate_x + 'px';
     weight.style.top = translate_y + 'px';
-    let angle = Number(edge.style.transform.slice(8, -4));
+    let tranform_props = edge.style.transform.split(' ');
+    let angle = Number(tranform_props[0].slice(8, -4));
     weight.style.transform = `RotateZ(${-angle}rad)`;
 }
 
 // Will move the edge between the two given nodes (called when either node is repostioned)
 function moveEdge(node1, node2) {
+    // Node ID order to append to end of new element ID
+    let node_order_id; // Either 'nodeX_nodeY' or 'nodeY_nodeX'
+    switch (graph_type) {
+        case "undirected": // Create id with smallest node listed first
+            node_order_id = `${createMinMaxNodeID(node1.id, node2.id)}`;
+            break;
+        case "directed": // Enforce order of selected nodes in ID
+            node_order_id = `${node1.id}_${node2.id}`;
+            break;
+    }
+
     // Get the edge element
-    let edge = document.getElementById(`edge_${createMinMaxNodeID(node1.id, node2.id)}`);
+    let edge = document.getElementById(`edge_${node_order_id}`);
 
     let node1_props = node1.getBoundingClientRect();
     let node2_props = node2.getBoundingClientRect();
@@ -239,7 +378,31 @@ function moveEdge(node1, node2) {
     // Translate and rotate the edge into position
     edge.style.top = centerY_offset + 'px';
     edge.style.left = centerX_offset + 'px';
-    edge.style.transform = `RotateZ(${angle}rad)`;
+
+    let double_edge_offset = 30; // px
+    if (graph_type === "directed" && adj_lists[node2.id].includes(node1.id)) {
+        edge.style.transform = `RotateZ(${angle}rad) TranslateY(${-1*double_edge_offset}px)`;        
+    }
+    else {
+        edge.style.transform = `RotateZ(${angle}rad)`;
+    }
+
+    // Edge mask movement
+    let edge_mask = document.getElementById(`edge_mask_${node_order_id}`);
+    if (graph_type === "directed") {
+        // The line below should only run if there will be a double edge; offset should be 0 for one edge
+        let double_edge_offset_to_circle;
+        if (adj_lists[node2.id].includes(node1.id)) {
+            double_edge_offset_to_circle = node_size/2 - Math.sqrt((node_size/2)**2 - (double_edge_offset)**2);
+        }
+        else {
+            double_edge_offset_to_circle = 0;            
+        }
+        let edge_mask_width = edge_length - node_size/2 - arrow_width - arrow_space_to_node + double_edge_offset_to_circle;
+        edge_mask.style.width = edge_mask_width + 'px';
+    } else {
+        edge_mask.style.width = "100%";
+    }
 
     // Reposition the weight labels
     moveWeightLabel(node1, node2);
@@ -253,6 +416,18 @@ function createMinMaxNodeID(node_id1, node_id2) {
     return `${smallest_id}_${largest_id}`;
 }
 
+// Functionality of changing a weight label
+function handleWeightLabelChange(event) {
+    let label = event.target;
+    let node_ids_str = label.id.slice(7); // Ex: 'weight_nodeX_nodeY' => 'nodeX_nodeY'
+    let node_ids = node_ids_str.split('_');
+    moveWeightLabel(document.getElementById(node_ids[0]), document.getElementById(node_ids[1]));
+    matrixEditEdge(node_ids[0], node_ids[1], label.innerHTML);
+    if (graph_type === "undirected") {
+        matrixEditEdge(node_ids[1], node_ids[0], label.innerHTML);
+    }
+}
+
 // Given two node elements, this function will create an edge between them
 // Returns the ID of the edge (in the form 'edge_nodeX_nodeY')
 function createEdge(node1, node2) {
@@ -260,24 +435,58 @@ function createEdge(node1, node2) {
     let node1_props = node1.getBoundingClientRect();
     let node2_props = node2.getBoundingClientRect();
 
+    // Node ID order to append to end of new element ID
+    let node_order_id; // Either 'nodeX_nodeY' or 'nodeY_nodeX'
+    switch (graph_type) {
+        case "undirected": // Create id with smallest node listed first
+            node_order_id = `${createMinMaxNodeID(node1.id, node2.id)}`;
+            break;
+        case "directed": // Enforce order of selected nodes in ID
+            node_order_id = `${node1.id}_${node2.id}`;
+            break;
+    }
+
     // Create the new edge (div) element
     let preview_box = document.getElementById("preview_section");
     let new_edge = document.createElement("div");
     new_edge.classList.add("edge");
-    // Create id with smallest node listed first
-    new_edge.id = `edge_${createMinMaxNodeID(node1.id, node2.id)}`;
+    new_edge.id = `edge_${node_order_id}`; // Ex: 'edge_node0_node1'
+
+    // Testing edge mask
+    let edge_mask = document.createElement("div");
+    edge_mask.classList.add("edge_mask");
+    edge_mask.id = `edge_mask_${node_order_id}`;
+    new_edge.appendChild(edge_mask);
 
     // Create weight label
     let weight = document.createElement("div");
     weight.classList.add("weight_label");
-    weight.id = `weight_${createMinMaxNodeID(node1.id, node2.id)}`; // Ex: 'weight_node0_node1'
-    weight.innerHTML = "0.12";
+    weight.id = `weight_${node_order_id}`; // Ex: 'weight_node0_node1'
+    weight.innerHTML = '1';
+    weight.addEventListener("input", handleWeightLabelChange); // Called when label is editted
+    if (hasWeightLabels) { weight.contentEditable = true; }
     new_edge.appendChild(weight);
+
+    // Create arrow (directed graphs)
+    if (graph_type === "directed") {
+        let arrow = document.createElement("div");
+        arrow.classList.add("arrow");
+        arrow.id = `arrow_${node_order_id}`; // Ex: 'arrow_node0_node1'
+        let translate_y = arrow_width/-2 + edge_thickness/2;
+        arrow.style.top = translate_y + 'px';
+        edge_mask.appendChild(arrow);
+    }
 
     preview_box.appendChild(new_edge);
     
-    // Size, translate,  and rotate edge to fit between nodes
-    moveEdge(node1, node2);
+    // Size, translate, and rotate edge to fit between nodes
+    if (graph_type === "directed" && adj_lists[node2.id].includes(node1.id)) {
+        moveEdge(node1, node2);
+        moveEdge(node2, node1);
+    }
+    else {
+        moveEdge(node1, node2);
+    }
 
     // Add the edge to the document and return its ID
     return new_edge.id;
@@ -348,34 +557,47 @@ document.getElementById("create_edge_btn").addEventListener("click", function(ev
 
         // Toggle clicked node ON or OFF (connected or not connected)
         let selected_node = event.target;
-        let adjacencies = adj_lists[selected_node.id];
         if (selected_node.classList.contains("create_edge_end")) { // Remove edge
             selected_node.classList.remove("create_edge_end");
 
             // Remove each node from each other's adjacency lists
-            let index = adj_lists[selected_node.id].indexOf(start_node);
-            adj_lists[selected_node.id].splice(index, 1);
-            index = adj_lists[start_node].indexOf(selected_node.id);
+            let index = adj_lists[start_node].indexOf(selected_node.id);
             adj_lists[start_node].splice(index, 1);
+            if (graph_type === "undirected") { // Remove other direction too
+                index = adj_lists[selected_node.id].indexOf(start_node);
+                adj_lists[selected_node.id].splice(index, 1);
+            }
 
             let edge = document.getElementById(`edge_${start_node}_${selected_node.id}`);
             if (edge === null) {
                 edge = document.getElementById(`edge_${selected_node.id}_${start_node}`);
             }
             edge.remove();
-            matrixEditEdge(start_node, selected_node.id);
-            matrixEditEdge(selected_node.id, start_node);
+            let value = hasWeightLabels ? 0 : 0; // Different value based on weights on/off
+            matrixEditEdge(start_node, selected_node.id, value);
+            if (graph_type === "undirected") {
+                matrixEditEdge(selected_node.id, start_node, value);
+            }
+
+            // There are two edges between nodes, so removing one should reposition the other to be center
+            if (graph_type === "directed" && adj_lists[selected_node.id].includes(start_node)) {
+                moveEdge(selected_node, document.getElementById(start_node));
+            }
         }
         else { // Add edge
             selected_node.classList.add("create_edge_end");
-            adj_lists[selected_node.id].push(start_node);
             adj_lists[start_node].push(selected_node.id);
+            if (graph_type === "undirected") {
+                adj_lists[selected_node.id].push(start_node);
+            }
+            
             createEdge(document.getElementById(start_node), selected_node);
             
             // Edit edge values in matrix 
-            // (currently programmed for undirected graphs; TODO make dynamic for other types)
-            matrixEditEdge(start_node, selected_node.id);
-            matrixEditEdge(selected_node.id, start_node);
+            matrixEditEdge(start_node, selected_node.id, 1);
+            if (graph_type === "undirected") {
+                matrixEditEdge(selected_node.id, start_node, 1);
+            }
         }
     }
 
@@ -413,6 +635,12 @@ function applyClickEventOnNodes(func, doApply) {
     }
 }
 
+// Removes the edge going from node1 => node2 from the adjacency list
+function removeEdgeFromAdjacencyList(node1_id, node2_id) {
+    let index = adj_lists[node1_id].indexOf(node2_id);
+    adj_lists[node1_id].splice(index, 1); 
+}
+
 // Deletes the given node ID from the adjacency matrix and list of all nodes and removes its own entry
 // Can be later called by other methods used to delete nodes (not necessarily a click event)
 function propagateDeleteNode(node_id) {
@@ -420,14 +648,30 @@ function propagateDeleteNode(node_id) {
     matrixRemoveNode(node_id);
 
     // Remove existence of node in other adjacency lists and also edge elements
-    let adj_nodes = adj_lists[node_id];
-    for (let i = 0; i < adj_nodes.length; i++) {
-        let index = adj_lists[adj_nodes[i]].indexOf(node_id);
-        adj_lists[adj_nodes[i]].splice(index, 1); 
+    let edge_IDs_to_remove = [];
+    switch (graph_type) {
+        case "undirected":
+            for (let i = 0; i < adj_lists[node_id].length; i++) {
+                edge_IDs_to_remove.push(`edge_${createMinMaxNodeID(node_id, adj_lists[node_id][i])}`);
+            }
+            break;
+        case "directed":
+            edge_IDs_to_remove = getIncomingAndOutgoingEdges(node_id);
+            break;
+    }
 
-        let edge_id = `edge_${createMinMaxNodeID(node_id, adj_nodes[i])}`;
+    // Remove edges from adjacency list
+    for (let i = 0; i < edge_IDs_to_remove.length; i++) {
+        let edge_id = edge_IDs_to_remove[i];
+        let node_ids = edge_id.slice(5).split('_');
+
+        removeEdgeFromAdjacencyList(node_ids[0], node_ids[1]);
+        if (graph_type === "undirected") {
+            removeEdgeFromAdjacencyList(node_ids[1], node_ids[0]);
+        }
         document.getElementById(edge_id).remove();
     }
+
     delete adj_lists[node_id];
 }
 
@@ -466,7 +710,7 @@ function matrixAddNode(node_id) {
     new_label.classList.add(`label_for_${node_id}`);
     new_label.innerHTML = node_label;
     let new_data = document.createElement("td");
-    // new_data.id = `col_${node_id}`; // Ex: 'col_num0'
+    new_data.classList.add("matrix_data_cell");
     new_data.innerHTML = 0;
 
     // Add new column (label and data) at the end of every row so far
@@ -529,10 +773,9 @@ function matrixRemoveNode(node_id) {
 // edge from node1 -> node2 (order of given params matters)
 // Undirected graphs need to call this function twice, once with 
 // (node1, node2) and again with (node2, node1)
-function matrixEditEdge(node1_id, node2_id) {
+function matrixEditEdge(node1_id, node2_id, new_value) {
     let cell = document.getElementById(`data_${node1_id}_${node2_id}`);
-    if (cell.innerHTML === "0") {cell.innerHTML = "1";}
-    else {cell.innerHTML = "0";}
+    cell.innerHTML = `${new_value}`;
 }
 
 // Brings up a prompt box when changing graph type and applies logic to changing it
@@ -543,15 +786,16 @@ function promptUserYesNo(new_graph_type, message) {
 
     function promptButtonClick(event) {
         if (event.target.innerHTML === "Yes") {
-            graph_type = new_graph_type; // "undirected", "directed", ...
-
             // Reset the screen (delete all nodes, edges, and matrix entries)
+            // console.log("Inside of prompt box:");
+            // printAdjacencyLists();
             let node_ids = Object.keys(adj_lists);
             for (let i = 0; i < node_ids.length; i++) {
                 propagateDeleteNode(node_ids[i]);
-            }
+            }       
             num_nodes = 0;
             toggleInfoPanelOff();
+            graph_type = new_graph_type; // "undirected", "directed", ...
         }
         else {
             document.getElementById(`radio_${graph_type}`).checked = true; // return radios to previous state
@@ -573,26 +817,51 @@ function promptUserYesNo(new_graph_type, message) {
 }
 
 // What happens when the user selects a new graph type
+document.getElementById(`radio_undirected`).checked = true; // default
 function changeGraphType(event) {
     promptUserYesNo(event.target.value, "Changing graph types will delete your current graph. Are you sure that you want to continue?");
 }
-
 let graph_type_radios = document.getElementsByName("graph_type_radio");
 for (let i = 0; i < graph_type_radios.length; i++) {
     graph_type_radios[i].addEventListener("change", changeGraphType);
 }
 
+// Will either display (true) or hide (false) the weights and labels
+function toggleWeightsAndLabels(on_off) {
+    hasWeightLabels = on_off;
+    let weight_labels = document.getElementsByClassName("weight_label");
+    let opacity_val = on_off ? "1" : "0";
 
+    cssSetVars.style.setProperty("--weight-label-opacity", opacity_val);
 
-// Edge canvas
-let canvas = document.getElementById("edge_canvas");
+    // Reset all label weights to 1 and make them uneditable 
+    for (let i = 0; i < weight_labels.length; i++) {
+        let label = weight_labels[i];
+        label.innerHTML = "1"; // Reset label
+        label.contentEditable = hasWeightLabels;
+    }
 
-// Set canvas size to fill preview space (cannot use css or else warp)
-let preview_box = document.getElementById("preview_section").getBoundingClientRect();
-canvas.width = preview_box.width;
-canvas.height = preview_box.height;
+    // Update adjacency matrix by removing/adding weights and setting all to '1'
+    let data_cells = document.getElementsByClassName("matrix_data_cell");
+    for (let i = 0; i < data_cells.length; i++) {
+        let cell = data_cells[i];
+        let value = Number(cell.innerHTML);
+        if (value != 0) {
+            cell.innerHTML = '1';
+        }
+    }
+}
 
-// const ctx = canvas.getContext('2d');
-// ctx.beginPath(); // Start a new drawing path
-// ctx.arc(100, 100, 50, 0, 2*Math.PI); // Create the circle arc
-// ctx.stroke();
+// What happens when a user checks or unchecks the weight checkbox
+function handleWeightCheckbox(event) {
+    if (event.target.checked) {
+        toggleWeightsAndLabels(true);
+    }
+    else {
+        toggleWeightsAndLabels(false);
+    }
+}
+document.getElementById("checkbox_weights").checked = hasWeightLabels;
+let default_weight_label_opacity = hasWeightLabels ? '1' : '0';
+cssSetVars.style.setProperty("--weight-label-opacity", default_weight_label_opacity);
+document.getElementById("checkbox_weights").addEventListener("change", handleWeightCheckbox);
