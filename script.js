@@ -1,5 +1,23 @@
 function tester() {
-    let list = new AdjacencyList();
+    let matrix = new AdjacencyMatrix();
+    matrix.printAdjacencyMatrix("Before");
+    matrix.addNode("a");
+    matrix.printAdjacencyMatrix("Added a");
+    matrix.addNode("b");
+    matrix.printAdjacencyMatrix("Added b");
+    matrix.updateEdgeValue("a", "b", 1);
+    matrix.printAdjacencyMatrix("Updated a -> b");
+    matrix.addNode("c");
+    matrix.printAdjacencyMatrix("Added c");
+    matrix.updateEdgeValue("b", "a", 1);
+    matrix.printAdjacencyMatrix("Updated b -> a");
+    matrix.updateEdgeValue("c", "b", 2);
+    matrix.updateEdgeValue("c", "a", 2);
+    matrix.printAdjacencyMatrix("Updated c -> everything");
+    matrix.removeNode("b");
+    matrix.printAdjacencyMatrix("Removed b");
+    matrix.removeNode("a");
+    matrix.printAdjacencyMatrix("Removed a");
 }
 
 class AdjacencyList {
@@ -104,21 +122,82 @@ class AdjacencyList {
 
 class AdjacencyMatrix {
     constructor() {
+        this.nodes = [] // List of node IDs, in order, within the matrix
+        this.adj_matrix = []
+    }
 
-    }
     // Adds a new node with the given node ID to the matrix, initializing entries to 0
+    // Returns 0 if successfully added and an error otherwise
     addNode(node_id) {
-        return;
-    }
+        if (this.nodes.includes(node_id)) {
+            throw new Error(`Cannot add node ${node_id} to AdjMatrix. Already exists.`);
+        }
+        else {
+            // Append new column to each already-existing matrix entry and build up new row
+            let new_row = [0];
+            for (let i = 0; i < this.adj_matrix.length; i++) {
+                this.adj_matrix[i].push(0);
+                new_row.push(0);
+            }
+            this.adj_matrix.push(new_row);
+            this.nodes.push(node_id);
+            return 0;
+        }
+    } // END addNode
+
     // Removes given node ID from matrix
+    // Returns 0 if successfully removes and an error otherwise
     removeNode(node_id) {
-        return;
-    }
+        if (!this.nodes.includes(node_id)) {
+            throw new Error(`Cannot remove node from AdjMatrix. Node ${node_id} does not exist.`);
+        }
+        else {
+            let node_index = this.nodes.indexOf(node_id);
+            this.nodes.splice(node_index, 1);
+            this.adj_matrix.splice(node_index, 1);
+
+            // Remove the corresponding column from every other row
+            for (let i = 0; i < this.adj_matrix.length; i++) {
+                this.adj_matrix[i].splice(node_index, 1);
+            }
+            return 0;
+        }
+    } // END removeNode
+
     // Updates the matrix entry (edge value) at the intersection of the node1 ID and node2 ID
+    // Returns 0 if successfully updated and an error otherwise
     updateEdgeValue(node1_id, node2_id, new_value) {
-        return;
-    }
-}
+        if (!this.nodes.includes(node1_id)) {
+            throw new Error(`Cannot update edge value in AdjMatrix. Node ${node1_id} does not exist.`);
+        }
+        else if (!this.nodes.includes(node2_id)) {
+            throw new Error(`Cannot update edge value in AdjMatrix. Node ${node2_id} does not exist.`);
+        }
+        else {
+            let node1_index = this.nodes.indexOf(node1_id);
+            let node2_index = this.nodes.indexOf(node2_id);
+            this.adj_matrix[node1_index][node2_index] = new_value;
+            return 0;
+        }
+    } // END updateEdgeValue
+
+    // Completely clears the adjacency matrix and node list of all its contents (resets object)
+    clearMatrix() {
+        this.nodes = [];
+        this.adj_matrix = [];
+        return 0;
+    } // END clearMatrix
+
+    // Prints the adjacency matrix and node ID of each row to the console
+    printAdjacencyMatrix(prepend="") {
+        let output = ""
+        if (prepend !== "") {output += prepend + '\n';}
+        for (let i = 0; i < this.adj_matrix.length; i++) {
+            output += `${this.nodes[i]} : ${this.adj_matrix[i].toString()}\n`;
+        }
+        console.log(output);
+    } // END printAdjacencyMatrix
+} // END AdjacencyMatrix
 
 class Graph {
     constructor() {
@@ -156,6 +235,119 @@ var node_size = css_styles.getPropertyValue("--node-size").slice(0,-2); // Inclu
 var node_zIndex = Number(css_styles.getPropertyValue("--node-z-index"));
 var arrow_width = edge_thickness * Number(css_styles.getPropertyValue("--arrow-width-factor"));
 var arrow_space_to_node = 0; // Number of pixels of spacing between arrow tip and node it points to
+
+// "Create button" event listener
+document.getElementById("create_node_btn").addEventListener("click", function(event) {
+    // For all nodes on the page, either allow or disallow pointer events
+    function setNodePointerEvents(value) {
+        let nodes = document.getElementsByClassName("node");
+        for (let i = 0; i < nodes.length; i++) {
+            nodes[i].style.pointerEvents = value;
+        }
+    }
+
+    // Have node follow cursor for placing
+    function mousemove(event) {
+        const mouseX = event.clientX;
+        const mouseY = event.clientY;
+
+        new_node.style.top = mouseY - node_size/2 + 'px';
+        new_node.style.left = mouseX - node_size/2 + 'px';
+    }
+
+    // Disable create node action
+    function resetCreateAction() {
+        document.removeEventListener("keydown", keydown);
+        document.removeEventListener("mousemove", mousemove);
+        document.getElementById("preview_section").removeEventListener("click", click);
+        toggleSidePanelMaskOff();
+        setNodePointerEvents("all");
+        new_node.remove();
+    }
+
+    // Make preview section clickable
+    let placed_node;
+    function click(event) {
+        placed_node = new_node.cloneNode("deep");
+        placed_node.id = `node${num_nodes}`;
+        placed_node.classList.add(`label_for_${placed_node.id}`);
+        num_nodes += 1;
+        placed_node.innerHTML = getLetterLabel(num_nodes);
+        // placed_node.innerHTML = num_nodes-1;
+        let top = event.layerY - node_size/2;
+        let left = event.layerX - node_size/2;
+
+        // Enforce upper and lower bounds (keep node in box)
+        let preview_box = document.getElementById("preview_section").getBoundingClientRect();
+        if (event.layerX < node_size/2) {left = 0;}
+        else if (event.layerX > (preview_box.width - node_size)) {left = preview_box.width - node_size;}
+        if (event.layerY < node_size/2) {top = 0;}
+        else if (event.layerY > (preview_box.height - node_size)) {top = preview_box.height - node_size;}
+
+        placed_node.style.top = top + 'px';
+        placed_node.style.left = left + 'px';
+        placed_node.addEventListener("click", standardNodeSelect);
+        document.getElementById("preview_section").appendChild(placed_node);
+        dragElement(placed_node); // make node draggable
+        adj_lists[placed_node.id] = []; // Add node to adjacency lists with default no edges
+        matrixAddNode(placed_node.id);
+    }
+
+    // Listen for cancel "ESC"
+    function keydown(event) {
+        if (event.key === "Escape") {
+            resetCreateAction();
+        }
+    }
+
+    toggleSidePanelMaskOn("Click in preview section to place a node.<br>&quotESC&quot to cancel");
+
+    // Create and add a new node cursor to the page
+    let new_node = document.createElement("div");
+    new_node.classList.add("node");
+    document.getElementById("page").appendChild(new_node);
+
+    // Set default node position to be on cursor
+    let node_size = new_node.clientWidth;
+    new_node.style.top = event.clientY - node_size/2 + 'px';
+    new_node.style.left = event.clientX - node_size/2 + 'px';
+
+    // Don't allow any nodes to be clickable at the moment
+    setNodePointerEvents("none");
+
+    // Apply event listeners
+    document.addEventListener("mousemove", mousemove); // Listen for mouse movement
+    document.getElementById("preview_section").addEventListener("click", click); // Listen for node placement
+    document.addEventListener("keydown", keydown); // Listen for ESC
+});
+
+document.getElementById("delete_node_btn").addEventListener("click", function(event) {
+    // Defines the functionality of deleting when a node is clicked
+    function deleteOnClick(event) {
+        propagateDeleteNode(event.target.id);
+    }
+
+    // Listen for cancel "ESC"
+    function keydown(event) {
+        if (event.key === "Escape") {
+            toggleSidePanelMaskOff();
+            applyClassOnNodes("delete_node", false);
+            applyClickEventOnNodes(standardNodeSelect, true);
+            applyClickEventOnNodes(deleteOnClick, false);
+        }
+    }
+    
+    // Prep screen for delete mode
+    toggleSidePanelMaskOn("&quotESC&quot to quit");
+    applyClassOnNodes("delete_node", true);
+    document.getElementById("node_info_section").style.display = "none";
+    applyClickEventOnNodes(standardNodeSelect, false);
+    applyClickEventOnNodes(deleteOnClick, true);
+
+    
+    document.addEventListener("keydown", keydown);
+});
+
 
 // Import graph from file
 var import_str;
@@ -251,87 +443,6 @@ function toggleSidePanelMaskOn(message) {
     document.getElementById("side_panel_mask").style.display = "flex";
     document.getElementById("mask_text").innerHTML = message;
 }
-
-// "Create button" event listener
-document.getElementById("create_node_btn").addEventListener("click", function(event) {
-    toggleSidePanelMaskOn("Click in preview section to place a node.<br>&quotESC&quot to cancel");
-
-    // Create and add a new node to the page
-    let new_node = document.createElement("div");
-    new_node.classList.add("node");
-    document.getElementById("page").appendChild(new_node);
-
-    // Set default node position to be on button
-    let node_size = new_node.clientWidth;
-    new_node.style.top = event.clientY - node_size/2 + 'px';
-    new_node.style.left = event.clientX - node_size/2 + 'px';
-
-    // For all nodes on the page, either allow or disallow pointer events
-    function setNodePointerEvents(value) {
-        let nodes = document.getElementsByClassName("node");
-        for (let i = 0; i < nodes.length; i++) {
-            nodes[i].style.pointerEvents = value;
-        }
-    }
-    // Don't allow any nodes to be clickable at the moment
-    setNodePointerEvents("none");
-
-    // Have node follow cursor for placing
-    function mousemove(event) {
-        const mouseX = event.clientX;
-        const mouseY = event.clientY;
-
-        new_node.style.top = mouseY - node_size/2 + 'px';
-        new_node.style.left = mouseX - node_size/2 + 'px';
-    }
-    document.addEventListener("mousemove", mousemove);
-
-    // Disable create node action
-    function resetCreateAction() {
-        document.removeEventListener("keydown", keydown);
-        document.removeEventListener("mousemove", mousemove);
-        document.getElementById("preview_section").removeEventListener("click", click);
-        toggleSidePanelMaskOff();
-        setNodePointerEvents("all");
-        new_node.remove();
-    }
-    // Make preview section clickable
-    let placed_node;
-    function click(event) {
-        placed_node = new_node.cloneNode("deep");
-        placed_node.id = `node${num_nodes}`;
-        placed_node.classList.add(`label_for_${placed_node.id}`);
-        num_nodes += 1;
-        placed_node.innerHTML = getLetterLabel(num_nodes);
-        // placed_node.innerHTML = num_nodes-1;
-        let top = event.layerY - node_size/2;
-        let left = event.layerX - node_size/2;
-
-        // Enforce upper and lower bounds (keep node in box)
-        let preview_box = document.getElementById("preview_section").getBoundingClientRect();
-        if (event.layerX < node_size/2) {left = 0;}
-        else if (event.layerX > (preview_box.width - node_size)) {left = preview_box.width - node_size;}
-        if (event.layerY < node_size/2) {top = 0;}
-        else if (event.layerY > (preview_box.height - node_size)) {top = preview_box.height - node_size;}
-
-        placed_node.style.top = top + 'px';
-        placed_node.style.left = left + 'px';
-        placed_node.addEventListener("click", standardNodeSelect);
-        document.getElementById("preview_section").appendChild(placed_node);
-        dragElement(placed_node); // make node draggable
-        adj_lists[placed_node.id] = []; // Add node to adjacency lists with default no edges
-        matrixAddNode(placed_node.id);
-    }
-    document.getElementById("preview_section").addEventListener("click", click);
-
-    // Listen for cancel "ESC"
-    function keydown(event) {
-        if (event.key === "Escape") {
-            resetCreateAction();
-        }
-    }
-    document.addEventListener("keydown", keydown);
-});
 
 // Displays, in the side panel, info for the given node
 // All elements with class 'label_for_nodeX' will be changed
@@ -820,31 +931,6 @@ function propagateDeleteNode(node_id) {
 
     delete adj_lists[node_id];
 }
-
-document.getElementById("delete_node_btn").addEventListener("click", function(event) {
-    // Defines the functionality of deleting when a node is clicked
-    function deleteOnClick(event) {
-        propagateDeleteNode(event.target.id);
-    }
-    
-    // Prep screen for delete mode
-    toggleSidePanelMaskOn("&quotESC&quot to quit");
-    applyClassOnNodes("delete_node", true);
-    document.getElementById("node_info_section").style.display = "none";
-    applyClickEventOnNodes(standardNodeSelect, false);
-    applyClickEventOnNodes(deleteOnClick, true);
-
-    // Listen for cancel "ESC"
-    function keydown(event) {
-        if (event.key === "Escape") {
-            toggleSidePanelMaskOff();
-            applyClassOnNodes("delete_node", false);
-            applyClickEventOnNodes(standardNodeSelect, true);
-            applyClickEventOnNodes(deleteOnClick, false);
-        }
-    }
-    document.addEventListener("keydown", keydown);
-});
 
 // Given a node ID, will add an entry in the adjacency matrix with all values set to 0
 function matrixAddNode(node_id) {
