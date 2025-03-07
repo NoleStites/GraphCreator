@@ -120,6 +120,88 @@ class AdjacencyList {
     } // END printAdjacencyLists
 } // END AdjacencyList
 
+class AdjacencyMatrixVisual {
+    constructor() {
+        this.temp = 0;
+    }
+
+    // Given a node ID, will add an entry in the adjacency matrix with all values set to 0
+    addNode(node_id) {
+        let node_label = document.getElementById(node_id).innerHTML;
+        let matrix = document.getElementById("adj_matrix");
+
+        // Create new label and data elements
+        let new_label = document.createElement("th");
+        new_label.classList.add(`label_for_${node_id}`);
+        new_label.innerHTML = node_label;
+        let new_data = document.createElement("td");
+        new_data.classList.add("matrix_data_cell");
+        new_data.innerHTML = 0;
+
+        // Add new column (label and data) at the end of every row so far
+        let rows = document.getElementsByClassName("matrix_row");
+        for (let i = 0; i < rows.length; i++) {
+            if (i === 0) { // Label row
+                rows[i].appendChild(new_label.cloneNode("deep"));
+            }
+            else {
+                let data_clone = new_data.cloneNode("deep");
+                let row_node = rows[i].id.slice(4); // Remove the 'row_' in 'row_nodeX'
+                data_clone.id = `data_${row_node}_${node_id}`;
+                rows[i].appendChild(data_clone);
+            }
+        }
+
+        // Create the new row for this node
+        let new_row = document.createElement("tr");
+        new_row.classList.add("matrix_row");
+        new_row.id = `row_${node_id}`; // Ex: 'row_node0'
+        new_row.appendChild(new_label.cloneNode("deep"));
+        for (let i = 1; i < rows.length+1; i++) { // Default row values to 0
+            let data_clone = new_data.cloneNode("deep");
+            let row_node;
+            if (i < rows.length) {
+                row_node = rows[i].id.slice(4); // Remove the 'row_' in 'row_nodeX'
+            } else {
+                row_node = node_id; // The last column is an exception
+            }
+            data_clone.id = `data_${node_id}_${row_node}`;
+            new_row.appendChild(data_clone);
+        }
+        matrix.appendChild(new_row);
+    } // END addNode
+
+    // Given a node ID, will remove an entry in the adjacency matrix
+    removeNode(node_id) {
+        let matrix = document.getElementById("adj_matrix");
+
+        // Get row (and corresponding column) number of node to delete
+        let column_num;
+        let rows = document.getElementsByClassName("matrix_row");
+        for (let i = 0; i < rows.length; i++) {
+            if (rows[i].id === `row_${node_id}`) {
+                column_num = i;
+                rows[i].remove(); // Delete row 
+                break;
+            }
+        }
+
+        // Delete corresponding column in remaining rows
+        for (let i = 0; i < rows.length; i++) {
+            let row = rows[i];
+            let column = row.children[column_num];
+            column.remove();
+        }
+    } // END removeNode
+
+    // Given the ID of node1 (start) and node2 (end), will edit the edge value from node1 -> node2 (order of given params matters)
+    // Undirected graphs need to call this function twice, once with (node1, node2) and again with (node2, node1)
+    editEdgeValue(node1_id, node2_id, new_value) {
+        let cell = document.getElementById(`data_${node1_id}_${node2_id}`);
+        cell.innerHTML = `${new_value}`;
+    } // END editEdgeValue
+} // END AdjacencyMatrixVisual
+
 class AdjacencyMatrix {
     constructor() {
         this.nodes = [] // List of node IDs, in order, within the matrix
@@ -228,6 +310,8 @@ var adj_lists = {}; // Maps node IDs to a list of node IDs they are connected to
 var graph_type = "undirected"; // Default
 var hasWeightLabels = false; // Default
 
+var adjMatrixVisual = new AdjacencyMatrixVisual();
+
 const css_styles = getComputedStyle(document.documentElement); // Or any specific element
 const cssSetVars = document.documentElement; // To use: cssSetVars.style.setProperty('--var-name', 'new_value')
 var edge_thickness = Number(css_styles.getPropertyValue("--edge-thickness").slice(0,-2)); // px
@@ -290,7 +374,8 @@ document.getElementById("create_node_btn").addEventListener("click", function(ev
         document.getElementById("preview_section").appendChild(placed_node);
         dragElement(placed_node); // make node draggable
         adj_lists[placed_node.id] = []; // Add node to adjacency lists with default no edges
-        matrixAddNode(placed_node.id);
+        // matrixAddNode(placed_node.id);
+        adjMatrixVisual.addNode(placed_node.id);
     }
 
     // Listen for cancel "ESC"
@@ -679,9 +764,9 @@ function handleWeightLabelChange(event) {
     let node_ids_str = label.id.slice(7); // Ex: 'weight_nodeX_nodeY' => 'nodeX_nodeY'
     let node_ids = node_ids_str.split('_');
     moveWeightLabel(document.getElementById(node_ids[0]), document.getElementById(node_ids[1]));
-    matrixEditEdge(node_ids[0], node_ids[1], label.innerHTML);
+    adjMatrixVisual.editEdgeValue(node_ids[0], node_ids[1], label.innerHTML);
     if (graph_type === "undirected") {
-        matrixEditEdge(node_ids[1], node_ids[0], label.innerHTML);
+        adjMatrixVisual.editEdgeValue(node_ids[1], node_ids[0], label.innerHTML);
     }
 }
 
@@ -831,9 +916,9 @@ document.getElementById("create_edge_btn").addEventListener("click", function(ev
             }
             edge.remove();
             let value = hasWeightLabels ? 0 : 0; // Different value based on weights on/off
-            matrixEditEdge(start_node, selected_node.id, value);
+            adjMatrixVisual.editEdgeValue(start_node, selected_node.id, value);
             if (graph_type === "undirected") {
-                matrixEditEdge(selected_node.id, start_node, value);
+                adjMatrixVisual.editEdgeValue(selected_node.id, start_node, value);
             }
 
             // There are two edges between nodes, so removing one should reposition the other to be center
@@ -851,9 +936,9 @@ document.getElementById("create_edge_btn").addEventListener("click", function(ev
             createEdge(document.getElementById(start_node), selected_node);
             
             // Edit edge values in matrix 
-            matrixEditEdge(start_node, selected_node.id, 1);
+            adjMatrixVisual.editEdgeValue(start_node, selected_node.id, 1);
             if (graph_type === "undirected") {
-                matrixEditEdge(selected_node.id, start_node, 1);
+                adjMatrixVisual.editEdgeValue(selected_node.id, start_node, 1);
             }
         }
     }
@@ -902,7 +987,7 @@ function removeEdgeFromAdjacencyList(node1_id, node2_id) {
 // Can be later called by other methods used to delete nodes (not necessarily a click event)
 function propagateDeleteNode(node_id) {
     document.getElementById(node_id).remove(); // Remove the node element
-    matrixRemoveNode(node_id);
+    adjMatrixVisual.removeNode(node_id);
 
     // Remove existence of node in other adjacency lists and also edge elements
     let edge_IDs_to_remove = [];
@@ -930,84 +1015,6 @@ function propagateDeleteNode(node_id) {
     }
 
     delete adj_lists[node_id];
-}
-
-// Given a node ID, will add an entry in the adjacency matrix with all values set to 0
-function matrixAddNode(node_id) {
-    let node_label = document.getElementById(node_id).innerHTML;
-    let matrix = document.getElementById("adj_matrix");
-
-    // Create new label and data elements
-    let new_label = document.createElement("th");
-    new_label.classList.add(`label_for_${node_id}`);
-    new_label.innerHTML = node_label;
-    let new_data = document.createElement("td");
-    new_data.classList.add("matrix_data_cell");
-    new_data.innerHTML = 0;
-
-    // Add new column (label and data) at the end of every row so far
-    let rows = document.getElementsByClassName("matrix_row");
-    for (let i = 0; i < rows.length; i++) {
-        if (i === 0) { // Label row
-            rows[i].appendChild(new_label.cloneNode("deep"));
-        }
-        else {
-            let data_clone = new_data.cloneNode("deep");
-            let row_node = rows[i].id.slice(4); // Remove the 'row_' in 'row_nodeX'
-            data_clone.id = `data_${row_node}_${node_id}`;
-            rows[i].appendChild(data_clone);
-        }
-    }
-
-    // Create the new row for this node
-    let new_row = document.createElement("tr");
-    new_row.classList.add("matrix_row");
-    new_row.id = `row_${node_id}`; // Ex: 'row_node0'
-    new_row.appendChild(new_label.cloneNode("deep"));
-    for (let i = 1; i < rows.length+1; i++) { // Default row values to 0
-        let data_clone = new_data.cloneNode("deep");
-        let row_node;
-        if (i < rows.length) {
-            row_node = rows[i].id.slice(4); // Remove the 'row_' in 'row_nodeX'
-        } else {
-            row_node = node_id; // The last column is an exception
-        }
-        data_clone.id = `data_${node_id}_${row_node}`;
-        new_row.appendChild(data_clone);
-    }
-    matrix.appendChild(new_row);
-}
-
-// Given a node ID, will remove an entry in the adjacency matrix
-function matrixRemoveNode(node_id) {
-    let matrix = document.getElementById("adj_matrix");
-
-    // Get row (and corresponding column) number of node to delete
-    let column_num;
-    let rows = document.getElementsByClassName("matrix_row");
-    for (let i = 0; i < rows.length; i++) {
-        if (rows[i].id === `row_${node_id}`) {
-            column_num = i;
-            rows[i].remove(); // Delete row 
-            break;
-        }
-    }
-
-    // Delete corresponding column in remaining rows
-    for (let i = 0; i < rows.length; i++) {
-        let row = rows[i];
-        let column = row.children[column_num];
-        column.remove();
-    }
-}
-
-// Given the ID of node1 (start) and node2 (end), will remove the
-// edge from node1 -> node2 (order of given params matters)
-// Undirected graphs need to call this function twice, once with 
-// (node1, node2) and again with (node2, node1)
-function matrixEditEdge(node1_id, node2_id, new_value) {
-    let cell = document.getElementById(`data_${node1_id}_${node2_id}`);
-    cell.innerHTML = `${new_value}`;
 }
 
 // Brings up a prompt box when changing graph type and applies logic to changing it
