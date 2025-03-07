@@ -4,6 +4,8 @@
     --edge-thickness: 5px;
     --edge-color: purple;
     --weight-label-opacity: 0;
+    --arrow-width-factor: 5;
+    --arrow-width: calc(var(--edge-thickness)*var(--arrow-width-factor));
 }
 
 * {
@@ -165,11 +167,19 @@ label {
 }
 
 .edge {
-    background-color: var(--edge-color);
+    /* background-color: var(--edge-color); */
     position: absolute;
     height: var(--edge-thickness);
     z-index: 1;
     transform-origin: center;
+}
+
+.edge_mask {
+    height: 100%;
+    z-index: 2;
+    position: relative;
+    background-color: var(--edge-color);
+    border-right: 1px solid var(--edge-color); /* To remove tiny, impure space between edge end and arrow start */
 }
 
 /* Style applied to the start node of edge creation */
@@ -207,11 +217,12 @@ label {
 }
 
 .arrow {
-    width: calc(var(--edge-thickness)*5);
+    width: var(--arrow-width);
     aspect-ratio: 1/1;
     background-color: var(--edge-color);
     clip-path: polygon(0 0, 100% 50%, 0 100%);
     position: absolute;
+    left: 100%;
     z-index: 2;
 }
 

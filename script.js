@@ -8,6 +8,8 @@ const cssSetVars = document.documentElement; // To use: cssSetVars.style.setProp
 var edge_thickness = Number(css_styles.getPropertyValue("--edge-thickness").slice(0,-2)); // px
 var node_size = css_styles.getPropertyValue("--node-size").slice(0,-2); // Includes border
 var node_zIndex = Number(css_styles.getPropertyValue("--node-z-index"));
+var arrow_width = edge_thickness * Number(css_styles.getPropertyValue("--arrow-width-factor"));
+var arrow_space_to_node = 0; // Number of pixels of spacing between arrow tip and node it points to
 
 // Import graph from file
 var import_str;
@@ -330,30 +332,6 @@ function moveWeightLabel(node1, node2) {
     weight.style.transform = `RotateZ(${-angle}rad)`;
 }
 
-// Will reposition the arrow to be at the end of the edge in the direction it is going (towards node2)
-function moveArrow(node1, node2) {
-    // Node ID order to append to end of new element ID
-    let node_order_id; // Either 'nodeX_nodeY' or 'nodeY_nodeX'
-    switch (graph_type) {
-        case "undirected": // Create id with smallest node listed first
-            node_order_id = `${createMinMaxNodeID(node1.id, node2.id)}`;
-            break;
-        case "directed": // Enforce order of selected nodes in ID
-            node_order_id = `${node1.id}_${node2.id}`;
-            break;
-    }
-
-    let edge = document.getElementById(`edge_${node_order_id}`);
-    let edge_length = edge.offsetWidth;
-    let arrow = document.getElementById(`arrow_${node_order_id}`);
-    let translate_x = edge_length - arrow.offsetWidth - node_size/2;
-    let translate_y = arrow.offsetWidth/-2 + edge_thickness/2;
-    arrow.style.left = translate_x + 'px';
-    arrow.style.top = translate_y + 'px';
-    // let angle = Number(edge.style.transform.slice(8, -4));
-    // arrow.style.transform = `RotateZ(${angle}rad)`;
-}
-
 // Will move the edge between the two given nodes (called when either node is repostioned)
 function moveEdge(node1, node2) {
     // Node ID order to append to end of new element ID
@@ -409,11 +387,25 @@ function moveEdge(node1, node2) {
         edge.style.transform = `RotateZ(${angle}rad)`;
     }
 
-    // Reposition the weight labels and arrow ends
-    moveWeightLabel(node1, node2);
+    // Test edge mask movement
+    let edge_mask = document.getElementById(`edge_mask_${node_order_id}`);
     if (graph_type === "directed") {
-        moveArrow(node1, node2);
+        // The line below should only run if there will be a double edge; offset should be 0 for one edge
+        let double_edge_offset_to_circle;
+        if (adj_lists[node2.id].includes(node1.id)) {
+            double_edge_offset_to_circle = node_size/2 - Math.sqrt((node_size/2)**2 - (double_edge_offset)**2);
+        }
+        else {
+            double_edge_offset_to_circle = 0;            
+        }
+        let edge_mask_width = edge_length - node_size/2 - arrow_width - arrow_space_to_node + double_edge_offset_to_circle;
+        edge_mask.style.width = edge_mask_width + 'px'; // 2/3 lets the edge go into the arrow to avoid a gap between the two
+    } else {
+        edge_mask.style.width = "100%";
     }
+
+    // Reposition the weight labels
+    moveWeightLabel(node1, node2);
 }
 
 // Given two node IDs (node0, node1, etc.), will a string of the format
@@ -460,6 +452,12 @@ function createEdge(node1, node2) {
     new_edge.classList.add("edge");
     new_edge.id = `edge_${node_order_id}`; // Ex: 'edge_node0_node1'
 
+    // Testing edge mask
+    let edge_mask = document.createElement("div");
+    edge_mask.classList.add("edge_mask");
+    edge_mask.id = `edge_mask_${node_order_id}`;
+    new_edge.appendChild(edge_mask);
+
     // Create weight label
     let weight = document.createElement("div");
     weight.classList.add("weight_label");
@@ -474,7 +472,9 @@ function createEdge(node1, node2) {
         let arrow = document.createElement("div");
         arrow.classList.add("arrow");
         arrow.id = `arrow_${node_order_id}`; // Ex: 'arrow_node0_node1'
-        new_edge.appendChild(arrow);
+        let translate_y = arrow_width/-2 + edge_thickness/2;
+        arrow.style.top = translate_y + 'px';
+        edge_mask.appendChild(arrow);
     }
 
     preview_box.appendChild(new_edge);
