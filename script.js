@@ -1,23 +1,5 @@
 function tester() {
-    let matrix = new AdjacencyMatrix();
-    matrix.printAdjacencyMatrix("Before");
-    matrix.addNode("a");
-    matrix.printAdjacencyMatrix("Added a");
-    matrix.addNode("b");
-    matrix.printAdjacencyMatrix("Added b");
-    matrix.updateEdgeValue("a", "b", 1);
-    matrix.printAdjacencyMatrix("Updated a -> b");
-    matrix.addNode("c");
-    matrix.printAdjacencyMatrix("Added c");
-    matrix.updateEdgeValue("b", "a", 1);
-    matrix.printAdjacencyMatrix("Updated b -> a");
-    matrix.updateEdgeValue("c", "b", 2);
-    matrix.updateEdgeValue("c", "a", 2);
-    matrix.printAdjacencyMatrix("Updated c -> everything");
-    matrix.removeNode("b");
-    matrix.printAdjacencyMatrix("Removed b");
-    matrix.removeNode("a");
-    matrix.printAdjacencyMatrix("Removed a");
+    return;
 }
 
 class AdjacencyList {
@@ -100,6 +82,16 @@ class AdjacencyList {
             return true;
         }
     } // END checkForAdjacency
+
+    // Returns an array of keys in the dictionary
+    getKeys() {
+        return Object.keys(this.adj_lists);
+    } // END getKeys
+
+    // Returns the list of adjacent nodes associated with the given node ID
+    getAdjacencies(node_id) {
+        return this.adj_lists[node_id];
+    } // END getAdjacencies
 
     // Completely clears the adjacency list of all its contents
     clearList() {
@@ -310,6 +302,7 @@ var adj_lists = {}; // Maps node IDs to a list of node IDs they are connected to
 var graph_type = "undirected"; // Default
 var hasWeightLabels = false; // Default
 
+var adjList = new AdjacencyList();
 var adjMatrixVisual = new AdjacencyMatrixVisual();
 
 const css_styles = getComputedStyle(document.documentElement); // Or any specific element
@@ -319,6 +312,7 @@ var node_size = css_styles.getPropertyValue("--node-size").slice(0,-2); // Inclu
 var node_zIndex = Number(css_styles.getPropertyValue("--node-z-index"));
 var arrow_width = edge_thickness * Number(css_styles.getPropertyValue("--arrow-width-factor"));
 var arrow_space_to_node = 0; // Number of pixels of spacing between arrow tip and node it points to
+var double_edge_offset = 20; // px
 
 // "Create button" event listener
 document.getElementById("create_node_btn").addEventListener("click", function(event) {
@@ -373,7 +367,8 @@ document.getElementById("create_node_btn").addEventListener("click", function(ev
         placed_node.addEventListener("click", standardNodeSelect);
         document.getElementById("preview_section").appendChild(placed_node);
         dragElement(placed_node); // make node draggable
-        adj_lists[placed_node.id] = []; // Add node to adjacency lists with default no edges
+        // adj_lists[placed_node.id] = []; // Add node to adjacency lists with default no edges
+        adjList.addNode(placed_node.id);
         // matrixAddNode(placed_node.id);
         adjMatrixVisual.addNode(placed_node.id);
     }
@@ -465,13 +460,13 @@ function exportGraph() {
     export_str += `weights=${hasWeightLabels};\n`;
 
     // Append graph vertex/edge data
-    let keys = Object.keys(adj_lists);
+    // let keys = Object.keys(adj_lists);
+    let keys = adjList.getKeys();
     for (let i = 0; i < keys.length; i++) {
         let key = keys[i];
         let node_label = document.getElementsByClassName(`label_for_${key}`)[0].innerHTML;
 
         // Fetch value from every cell in adjacency matrix row of current node
-        let node_adjacencies = adj_lists[key];
         let cell_values = [];
         for (let j = 0; j < keys.length; j++) {
             let data_cell = document.getElementById(`data_${key}_${keys[j]}`)
@@ -488,15 +483,16 @@ function exportGraph() {
 document.getElementById("export_btn").addEventListener("click", exportGraph);
 
 // A helper function to visualize the adjacency list contents
-function printAdjacencyLists(prepend="") {
-    let keys = Object.keys(adj_lists);
-    let output = "";
-    if (prepend !== "") {output += prepend + '\n';}
-    for (let i = 0; i < keys.length; i++) {
-        output += `${keys[i]}: ${adj_lists[keys[i]]}\n`;
-    }
-    console.log(output);
-}
+// function printAdjacencyLists(prepend="") {
+//     // let keys = Object.keys(adj_lists);
+//     let keys = adjList.getKeys();
+//     let output = "";
+//     if (prepend !== "") {output += prepend + '\n';}
+//     for (let i = 0; i < keys.length; i++) {
+//         output += `${keys[i]}: ${adj_lists[keys[i]]}\n`;
+//     }
+//     console.log(output);
+// }
 
 // Converts the given value into a string of letters.
 // Values above 26 start at 'AA', then 'AB', etc.
@@ -568,14 +564,17 @@ function standardNodeSelect(event) {
 function getIncomingAndOutgoingEdges(node_id) {
     let edge_IDs = [];
     // 1. Outgoing edges from  node
-    let outgoing_nodes = adj_lists[node_id];
+    // let outgoing_nodes = adj_lists[node_id];
+    let outgoing_nodes = adjList.getAdjacencies(node_id);
     for (let i = 0; i < outgoing_nodes.length; i++) {
         edge_IDs.push(`edge_${node_id}_${outgoing_nodes[i]}`);
     }
     // 2. Incoming edges to dragged node
-    let all_node_ids = Object.keys(adj_lists);
+    // let all_node_ids = Object.keys(adj_lists);
+    let all_node_ids = adjList.getKeys();
     for (let i = 0; i < all_node_ids.length; i++) {
-        let curr_node_adj_list = adj_lists[all_node_ids[i]];
+        // let curr_node_adj_list = adj_lists[all_node_ids[i]];
+        let curr_node_adj_list = adjList.getAdjacencies(all_node_ids[i]);
         if (curr_node_adj_list.includes(node_id)) { // Found incoming edge
             edge_IDs.push(`edge_${all_node_ids[i]}_${node_id}`);
         }
@@ -721,8 +720,8 @@ function moveEdge(node1, node2) {
     edge.style.top = centerY_offset + 'px';
     edge.style.left = centerX_offset + 'px';
 
-    let double_edge_offset = 30; // px
-    if (graph_type === "directed" && adj_lists[node2.id].includes(node1.id)) {
+    // if (graph_type === "directed" && adj_lists[node2.id].includes(node1.id)) {
+    if (graph_type === "directed" && adjList.checkForAdjacency(node2.id, node1.id)) {
         edge.style.transform = `RotateZ(${angle}rad) TranslateY(${-1*double_edge_offset}px)`;        
     }
     else {
@@ -734,7 +733,8 @@ function moveEdge(node1, node2) {
     if (graph_type === "directed") {
         // The line below should only run if there will be a double edge; offset should be 0 for one edge
         let double_edge_offset_to_circle;
-        if (adj_lists[node2.id].includes(node1.id)) {
+        // if (adj_lists[node2.id].includes(node1.id)) {
+        if (adjList.checkForAdjacency(node2.id, node1.id)) {
             double_edge_offset_to_circle = node_size/2 - Math.sqrt((node_size/2)**2 - (double_edge_offset)**2);
         }
         else {
@@ -822,7 +822,8 @@ function createEdge(node1, node2) {
     preview_box.appendChild(new_edge);
     
     // Size, translate, and rotate edge to fit between nodes
-    if (graph_type === "directed" && adj_lists[node2.id].includes(node1.id)) {
+    // if (graph_type === "directed" && adj_lists[node2.id].includes(node1.id)) {
+    if (graph_type === "directed" && adjList.checkForAdjacency(node2.id, node1.id)) {
         moveEdge(node1, node2);
         moveEdge(node2, node1);
     }
@@ -857,7 +858,8 @@ document.getElementById("create_edge_btn").addEventListener("click", function(ev
             return;
         }
         node.classList.remove("create_edge_start");
-        let end_nodes = adj_lists[node_id];
+        // let end_nodes = adj_lists[node_id];
+        let end_nodes = adjList.getAdjacencies(node_id);
         for (let i = 0; i < end_nodes.length; i++) {
             let curr_node = document.getElementById(end_nodes[i]);
             curr_node.classList.remove("create_edge_end");
@@ -869,7 +871,8 @@ document.getElementById("create_edge_btn").addEventListener("click", function(ev
         start_node = node_id;
         let node = document.getElementById(node_id);
         node.classList.add("create_edge_start");
-        let adjacencies = adj_lists[node.id];
+        // let adjacencies = adj_lists[node.id];
+        let adjacencies = adjList.getAdjacencies(node.id);
         for (let i = 0; i < adjacencies.length; i++) { // Iterate through all already-connected nodes
             let curr_node = document.getElementById(adjacencies[i]);
             curr_node.classList.add("create_edge_end");
@@ -903,11 +906,13 @@ document.getElementById("create_edge_btn").addEventListener("click", function(ev
             selected_node.classList.remove("create_edge_end");
 
             // Remove each node from each other's adjacency lists
-            let index = adj_lists[start_node].indexOf(selected_node.id);
-            adj_lists[start_node].splice(index, 1);
+            // let index = adj_lists[start_node].indexOf(selected_node.id);
+            // adj_lists[start_node].splice(index, 1);
+            adjList.removeAdjacencyFromNode(start_node, selected_node.id);
             if (graph_type === "undirected") { // Remove other direction too
-                index = adj_lists[selected_node.id].indexOf(start_node);
-                adj_lists[selected_node.id].splice(index, 1);
+                // index = adj_lists[selected_node.id].indexOf(start_node);
+                // adj_lists[selected_node.id].splice(index, 1);
+                adjList.removeAdjacencyFromNode(selected_node.id, start_node);
             }
 
             let edge = document.getElementById(`edge_${start_node}_${selected_node.id}`);
@@ -922,15 +927,18 @@ document.getElementById("create_edge_btn").addEventListener("click", function(ev
             }
 
             // There are two edges between nodes, so removing one should reposition the other to be center
-            if (graph_type === "directed" && adj_lists[selected_node.id].includes(start_node)) {
+            // if (graph_type === "directed" && adj_lists[selected_node.id].includes(start_node)) {
+            if (graph_type === "directed" && adjList.checkForAdjacency(selected_node.id, start_node)) {
                 moveEdge(selected_node, document.getElementById(start_node));
             }
         }
         else { // Add edge
             selected_node.classList.add("create_edge_end");
-            adj_lists[start_node].push(selected_node.id);
+            // adj_lists[start_node].push(selected_node.id);
+            adjList.addAdjacencyToNode(start_node, selected_node.id);
             if (graph_type === "undirected") {
-                adj_lists[selected_node.id].push(start_node);
+                // adj_lists[selected_node.id].push(start_node);
+                adjList.addAdjacencyToNode(selected_node.id, start_node);
             }
             
             createEdge(document.getElementById(start_node), selected_node);
@@ -978,10 +986,10 @@ function applyClickEventOnNodes(func, doApply) {
 }
 
 // Removes the edge going from node1 => node2 from the adjacency list
-function removeEdgeFromAdjacencyList(node1_id, node2_id) {
-    let index = adj_lists[node1_id].indexOf(node2_id);
-    adj_lists[node1_id].splice(index, 1); 
-}
+// function removeEdgeFromAdjacencyList(node1_id, node2_id) {
+//     let index = adj_lists[node1_id].indexOf(node2_id);
+//     adj_lists[node1_id].splice(index, 1); 
+// }
 
 // Deletes the given node ID from the adjacency matrix and list of all nodes and removes its own entry
 // Can be later called by other methods used to delete nodes (not necessarily a click event)

@@ -23,125 +23,9 @@ body {
     width: 100%;
     height: 100%;
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     position: relative;
 }
-
-/* MENU STYLES */
-#menu {
-    width: 100%;
-    height: 8%;
-    flex-grow: 0;
-    background-color: white;
-    box-shadow: 0px 2px 12px 0px black;
-    z-index: 99;
-    display: flex;
-    flex-direction: row;
-    justify-content: flex-start;
-    align-items: center;
-}
-
-.menu_item {
-    width: fit-content;
-    height: 100%;
-    padding: 10px;
-    box-sizing: border-box;
-}
-
-.no_flex {
-    flex: 0 0 fit-content;
-}
-
-.menu_divider {
-    width: 0px;
-    height: 50%;
-    box-shadow: 0px 0px 1px 0.3px grey;
-    margin: 20px;
-}
-
-#hamburger {
-    aspect-ratio: 1/1;
-    background-image: url("./assets/hamburger.svg");
-    background-size: 50% 50%;
-    background-repeat: no-repeat;
-    background-position: center;
-}
-
-#page_title {
-    display: flex;
-    align-items: center;
-}
-#page_title > h1 {
-    font-size: 25pt;
-}
-
-.menu_section {
-    display: flex;
-    flex-direction: column;
-}
-.menu_section_title {
-    font-size: 18pt;
-}
-.menu_section_bottom {
-    text-align: center;
-}
-#graph_features_section_bottom, #algorithms_section_bottom {
-    width: 100%;
-    height: 100%;
-    background-image: url("./assets/down_arrow.svg");
-    background-size: 80% 80%;
-    background-repeat: no-repeat;
-    background-position: center;
-}
-
-#graph_buttons {
-    width: 100%;
-    display: flex;
-    flex-direction: row;
-    justify-content: center;
-    align-items: center;
-    gap: 20px;
-}
-.graph_btn {
-    height: 85%;
-    aspect-ratio: 1/1;
-    border: 1px solid black;
-    border-radius: 10px;
-    background-color: white;
-}
-
-#add_node_btn {
-    background-image: url("./assets/node.svg");
-    background-size: 70% 70%;
-    background-repeat: no-repeat;
-    background-position: center;
-}
-#add_edge_btn {
-    background-image: url("./assets/edge.svg");
-    background-size: 80% 80%;
-    background-repeat: no-repeat;
-    background-position: center;
-}
-#delete_btn {
-    background-image: url("./assets/delete.svg");
-    background-size: 100% 100%;
-    background-repeat: no-repeat;
-    background-position: center;
-}
-
-/* PREVIEW SECTION STYLES */
-#preview_section {
-    width: 100%;
-    height: 100%;
-    background-color: white;
-    overflow: hidden;
-    position: relative;
-    background: radial-gradient(rgb(224, 224, 224) 5%, white 8%);
-    background-size: 50px 50px;
-}
-
-
-
 
 #side_panel {
     width: 25%;
@@ -168,6 +52,16 @@ body {
     font-size: 20pt;
     padding: 20px;
     box-shadow: 0 0 3px 0 white;
+}
+
+#preview_section {
+    width: 100%;
+    height: 100%;
+    background-color: white;
+    overflow: hidden;
+    position: relative;
+    background: radial-gradient(rgb(224, 224, 224) 5%, white 8%);
+    background-size: 50px 50px;
 }
 
 /* side Panel Styles */
