@@ -9,22 +9,77 @@
     <body>
         <div id="page">
             <div id="menu">
-                <div id="hamburger" class="menu_item no_flex"></div>
+                <div id="hamburger" class="menu_item menu_section no_flex">
+                    <div class="menu_dropdown">
+                        <div class="dropdown_item">
+                            <label>Import</label>
+                        </div>
+                        <div class="dropdown_item">
+                            <label>Export</label>
+                        </div>
+                        <div class="dropdown_item">
+                            <label>Clear</label>
+                        </div>
+                    </div>
+                </div>
                 <div id="page_title" class="menu_item no_flex"><h1>Graph Creator</h1></div>
                 <div class="menu_divider"></div>
                 <div id="graph_type" class="menu_item menu_section no_flex">
                     <h2 class="menu_section_title">Graph Type</h2>
                     <div class="menu_section_bottom">Directed</div>
+                    <div id="graph_type_dropdown" class="menu_dropdown">
+                        <div class="dropdown_item">
+                            <input id="undirected_radio" type="radio" name="graph_type">
+                            <label for="undirected_radio">Undirected</label>
+                        </div>
+                        <div class="dropdown_item">
+                            <input id="directed_radio" type="radio" name="graph_type">
+                            <label for="directed_radio">Directed</label>
+                        </div>
+                        <div class="dropdown_item">
+                            <input id="dfa_radio" type="radio" name="graph_type">
+                            <label for="dfa_radio">DFA</label>
+                        </div>
+                        <div class="dropdown_item">
+                            <input id="nfa_radio" type="radio" name="graph_type">
+                            <label for="nfa_radio">NFA</label>
+                        </div>
+                    </div>
                 </div>
                 <div class="menu_divider"></div>
                 <div id="graph_features" class="menu_item menu_section no_flex">
                     <h2 class="menu_section_title">Graph Features</h2>
                     <div id="graph_features_section_bottom" class="menu_section_bottom"></div>
+                    <div id="graph_features_dropdown" class="menu_dropdown">
+                        <div class="dropdown_item">
+                            <input id="weights_checkbox" type="checkbox">
+                            <label for="weights_checkbox">Weights</label>
+                        </div>
+                        <div class="dropdown_item">
+                            <input id="adj_matrix_checkbox" type="checkbox">
+                            <label for="adj_matrix_checkbox">Adj. Matrix</label>
+                        </div>
+                        <div class="dropdown_item">
+                            <input id="adj_list_checkbox" type="checkbox">
+                            <label for="adj_list_checkbox">Adj. List</label>
+                        </div>
+                    </div>
                 </div>
                 <div class="menu_divider"></div>
                 <div id="algorithms" class="menu_item menu_section no_flex">
                     <h2 class="menu_section_title">Algorithms</h2>
                     <div id="algorithms_section_bottom" class="menu_section_bottom"></div>
+                    <div id="algorithms_dropdown" class="menu_dropdown">
+                        <div class="dropdown_item">
+                            <label id="dijkstra_btn">Dijkstra's Algorithm</label>
+                        </div>
+                        <div class="dropdown_item">
+                            <label id="dfs_btn">Depth-First Search (DFS)</label>
+                        </div>
+                        <div class="dropdown_item">
+                            <label id="bfs_btn">Breadth-First Search (DFS)</label>
+                        </div>
+                    </div>
                 </div>
                 <div class="menu_divider"></div>
                 <div id="graph_buttons" class="menu_item">
