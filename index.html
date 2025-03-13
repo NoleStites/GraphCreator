@@ -4,7 +4,7 @@
         <title>Graph Creator</title>
         <link rel="icon" type="image/x-icon" href="./assets/favicon.png">
         <link href="./styles.css" rel="stylesheet" />
-        <!-- <script src="./script.js" defer></script> -->
+        <script src="./script.js" defer></script>
     </head>
     <body>
         <div id="page">
@@ -56,11 +56,11 @@
                             <label for="weights_checkbox">Weights</label>
                         </div>
                         <div class="dropdown_item">
-                            <input id="adj_matrix_checkbox" type="checkbox">
+                            <input id="adj_matrix_checkbox" type="checkbox" onchange="toggleAdjMatrix()">
                             <label for="adj_matrix_checkbox">Adj. Matrix</label>
                         </div>
                         <div class="dropdown_item">
-                            <input id="adj_list_checkbox" type="checkbox">
+                            <input id="adj_list_checkbox" type="checkbox" onchange="toggleAdjList()">
                             <label for="adj_list_checkbox">Adj. List</label>
                         </div>
                     </div>
@@ -83,13 +83,22 @@
                 </div>
                 <div class="menu_divider"></div>
                 <div id="graph_buttons" class="menu_item">
-                    <button id="add_node_btn" class="graph_btn"></button>
-                    <button id="add_edge_btn" class="graph_btn"></button>
+                    <button id="create_node_btn" class="graph_btn"></button>
+                    <button id="create_edge_btn" class="graph_btn"></button>
                     <button id="delete_btn" class="graph_btn"></button>
                 </div>
             </div>
+
             <div id="preview_section"></div>
 
+            <div id="adj_box">
+                <div id="adj_list_box"><h1>Adj List [placeholder]</h1></div>
+                <div id="adj_matrix_box">
+                    <table id="adj_matrix">
+                        <tr id="matrix_top_labels" class="matrix_row"><th></th></tr>
+                    </table>
+                </div>
+            </div>
             <!-- <div id="side_panel">
                 <div id="side_panel_mask">
                     <h2 id="mask_text">"ESC" to cancel</h2>

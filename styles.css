@@ -2,7 +2,7 @@
     --node-size: 100px;
     --node-z-index: 3;
     --edge-thickness: 5px;
-    --edge-color: purple;
+    --edge-color: rgb(34, 34, 34);
     --weight-label-opacity: 0;
     --arrow-width-factor: 5;
     --arrow-width: calc(var(--edge-thickness)*var(--arrow-width-factor));
@@ -146,13 +146,13 @@ body {
     cursor: pointer;
 }
 
-#add_node_btn {
+#create_node_btn {
     background-image: url("./assets/node.svg");
     background-size: 70% 70%;
     background-repeat: no-repeat;
     background-position: center;
 }
-#add_edge_btn {
+#create_edge_btn {
     background-image: url("./assets/edge.svg");
     background-size: 80% 80%;
     background-repeat: no-repeat;
@@ -176,7 +176,31 @@ body {
     background-size: 50px 50px;
 }
 
+/* ADJACENCY MATRIX AND LIST STYLES */
+#adj_box {
+    width: 400px;
+    height: fit-content;
+    position: absolute;
+    bottom: 0%;
+    display: flex;
+    flex-direction: column;
+    justify-content: end;
+    z-index: 98;
+    background-color: rgba(250, 235, 215, 0.644);
+    border: 1px solid black;
+}
 
+#adj_list_box, #adj_matrix_box {
+    width: 100%;
+    height: fit-content;
+    background-color: white;
+}
+
+#adj_list_box {
+}
+
+#adj_matrix_box {
+}
 
 
 #side_panel {
@@ -290,7 +314,7 @@ label {
 .node {
     width: var(--node-size);
     aspect-ratio: 1/1;
-    background-color: rgb(231, 186, 231);
+    background-color: rgb(204, 204, 204);
     border: 2px solid var(--edge-color);
     border-radius: 50%;
     position: absolute;
