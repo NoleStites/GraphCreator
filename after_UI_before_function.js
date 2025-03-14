@@ -649,15 +649,15 @@ function calculateDistance(x1, y1, x2, y2) {
 }
 
 // Will reposition the weight label between the given nodes to be centered
-function moveWeightLabel(node1, node2) {
+function moveWeightLabel(node1_id, node2_id) {
     // Node ID order to append to end of new element ID
     let node_order_id; // Either 'nodeX_nodeY' or 'nodeY_nodeX'
     switch (graph_type) {
         case "undirected": // Create id with smallest node listed first
-            node_order_id = `${createMinMaxNodeID(node1.id, node2.id)}`;
+            node_order_id = `${createMinMaxNodeID(node1_id, node2_id)}`;
             break;
         case "directed": // Enforce order of selected nodes in ID
-            node_order_id = `${node1.id}_${node2.id}`;
+            node_order_id = `${node1_id}_${node2_id}`;
             break;
     }
 
@@ -674,7 +674,10 @@ function moveWeightLabel(node1, node2) {
 }
 
 // Will move the edge between the two given nodes (called when either node is repostioned)
-function moveEdge(node1, node2) {
+function moveEdge(node1_id, node2_id) {
+    let node1 = document.getElementById(node1_id);
+    let node2 = document.getElementById(node2_id);
+
     // Node ID order to append to end of new element ID
     let node_order_id; // Either 'nodeX_nodeY' or 'nodeY_nodeX'
     switch (graph_type) {
@@ -747,7 +750,7 @@ function moveEdge(node1, node2) {
     }
 
     // Reposition the weight labels
-    moveWeightLabel(node1, node2);
+    moveWeightLabel(node1.id, node2.id);
 }
 
 // Given two node IDs (node0, node1, etc.), will a string of the format

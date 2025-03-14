@@ -186,14 +186,13 @@ body {
     flex-direction: column;
     justify-content: end;
     z-index: 98;
-    background-color: rgba(250, 235, 215, 0.644);
     border: 1px solid black;
 }
 
 #adj_list_box, #adj_matrix_box {
     width: 100%;
     height: fit-content;
-    background-color: white;
+    background-color: rgba(255, 255, 255, 0.616);
 }
 
 #adj_list_box {

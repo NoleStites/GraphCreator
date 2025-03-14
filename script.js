@@ -189,8 +189,9 @@ class AdjacencyMatrixVisual {
 
 class AdjacencyMatrix {
     constructor() {
-        this.nodes = [] // List of node IDs, in order, within the matrix
-        this.adj_matrix = []
+        this.nodes = []; // List of node IDs, in order, within the matrix
+        this.adj_matrix = [];
+        this.adjMatrixVisual = new AdjacencyMatrixVisual();
     }
 
     // Adds a new node with the given node ID to the matrix, initializing entries to 0
@@ -208,6 +209,7 @@ class AdjacencyMatrix {
             }
             this.adj_matrix.push(new_row);
             this.nodes.push(node_id);
+            this.adjMatrixVisual.addNode(node_id);
             return 0;
         }
     } // END addNode
@@ -227,6 +229,8 @@ class AdjacencyMatrix {
             for (let i = 0; i < this.adj_matrix.length; i++) {
                 this.adj_matrix[i].splice(node_index, 1);
             }
+
+            this.adjMatrixVisual.removeNode(node_id);
             return 0;
         }
     } // END removeNode
@@ -244,12 +248,16 @@ class AdjacencyMatrix {
             let node1_index = this.nodes.indexOf(node1_id);
             let node2_index = this.nodes.indexOf(node2_id);
             this.adj_matrix[node1_index][node2_index] = new_value;
+            this.adjMatrixVisual.updateEdgeValue(node1_id, node2_id, new_value);
             return 0;
         }
     } // END updateEdgeValue
 
     // Completely clears the adjacency matrix and node list of all its contents (resets object)
     clearMatrix() {
+        for (let i = 0; i < this.nodes.length; i++) {
+            this.adjMatrixVisual.removeNode(this.nodes[i]);
+        }
         this.nodes = [];
         this.adj_matrix = [];
         return 0;
@@ -270,21 +278,20 @@ class Graph {
     constructor() {
         this.adjList = new AdjacencyList();
         this.adjMatrix = new AdjacencyMatrix();
-        this.adjMatrixVisual = new AdjacencyMatrixVisual();
         this.node_ids = [];
         this.num_nodes = 0;
+        this.graph_type = "undirected";
     }
 
     // Given an (x,y) position in the preview section, will add the node to all necessary places in the program
     addNode(posX, posY) {
         let node_id = `node${this.num_nodes+1}`;
-        this.num_nodes += 1;
 
         let placed_node = document.createElement("div");
         placed_node.classList.add("node");
         placed_node.id = node_id;
         placed_node.classList.add(`label_for_${placed_node.id}`);
-        placed_node.innerHTML = this.getLetterLabel(this.num_nodes);
+        placed_node.innerHTML = this.getLetterLabel(this.num_nodes+1);
         // placed_node.innerHTML = num_nodes-1;
         
         // Enforce upper and lower bounds (keep node in box)
@@ -305,15 +312,14 @@ class Graph {
 
         this.adjList.addNode(node_id);
         this.adjMatrix.addNode(node_id);
-        this.adjMatrixVisual.addNode(node_id);
         this.node_ids.push(node_id);
+        this.num_nodes += 1;
     } // END addNode
 
     // Given a node ID, will remove the node from all necessary places in the program
     removeNode(node_id) {
         this.adjList.removeNode(node_id);
         this.adjMatrix.removeNode(node_id);
-        this.adjMatrixVisual.removeNode(node_id);
 
         let index_to_remove = this.node_ids.indexOf(node_id);
         this.node_ids.splice(index_to_remove, 1);
@@ -324,20 +330,111 @@ class Graph {
         for (let i = 0; i < this.node_ids.length; i++) {
             this.removeNode(this.node_ids[i]);
         }
+        this.num_nodes = 0;
     } // END clearGraph
 
+    // Will add an edge between the given node IDs (considers graph type)
     addEdge(node1_id, node2_id) {
+        this.adjList.addAdjacencyToNode(node1_id, node2_id);
         this.adjMatrix.updateEdgeValue(node1_id, node2_id, 1);
-        this.adjMatrixVisual.updateEdgeValue(node1_id, node2_id, 1);
-    }
+
+        // Apply updates in both directions, not just one
+        if (this.graph_type === "undirected") {
+            this.adjList.addAdjacencyToNode(node2_id, node1_id);
+            this.adjMatrix.updateEdgeValue(node2_id, node1_id, 1);
+        }
+
+        let node1 = document.getElementById(node1_id);
+        let node2 = document.getElementById(node2_id);
+
+        // Fetch node sizes
+        let node1_props = node1.getBoundingClientRect();
+        let node2_props = node2.getBoundingClientRect();
+
+        // Node ID order to append to end of new element ID
+        let node_order_id; // Either 'nodeX_nodeY' or 'nodeY_nodeX'
+        switch (this.graph_type) {
+            case "undirected": // Create id with smallest node listed first
+                node_order_id = `${this.createMinMaxNodeID(node1.id, node2.id)}`;
+                break;
+            case "directed": // Enforce order of selected nodes in ID
+                node_order_id = `${node1.id}_${node2.id}`;
+                break;
+        }
+
+        // Create the new edge (div) element
+        let preview_box = document.getElementById("preview_section");
+        let new_edge = document.createElement("div");
+        new_edge.classList.add("edge");
+        new_edge.id = `edge_${node_order_id}`; // Ex: 'edge_node0_node1'
+
+        // Create edge mask
+        let edge_mask = document.createElement("div");
+        edge_mask.classList.add("edge_mask");
+        edge_mask.id = `edge_mask_${node_order_id}`;
+        new_edge.appendChild(edge_mask);
+
+        // Create weight label
+        let weight = document.createElement("div");
+        weight.classList.add("weight_label");
+        weight.id = `weight_${node_order_id}`; // Ex: 'weight_node0_node1'
+        weight.innerHTML = '1';
+        weight.addEventListener("input", this.handleWeightLabelChange); // Called when label is editted
+        if (hasWeightLabels) { weight.contentEditable = true; }
+        new_edge.appendChild(weight);
+
+        // Create arrow (directed graphs)
+        if (graph_type === "directed") {
+            let arrow = document.createElement("div");
+            arrow.classList.add("arrow");
+            arrow.id = `arrow_${node_order_id}`; // Ex: 'arrow_node0_node1'
+            let translate_y = arrow_width/-2 + edge_thickness/2;
+            arrow.style.top = translate_y + 'px';
+            edge_mask.appendChild(arrow);
+        }
+
+        preview_box.appendChild(new_edge);
+        
+        // Size, translate, and rotate edge to fit between nodes
+        if (graph_type === "directed" && this.adjList.checkForAdjacency(node2.id, node1.id)) {
+            this.moveEdge(node1_id, node2_id);
+            this.moveEdge(node2_id, node1_id);
+        }
+        else {
+            this.moveEdge(node1_id, node2_id);
+        }
+
+        // Add the edge to the document and return its ID
+        return new_edge.id;
+    } // END addEdge
+
+    // Will remove the edge between the given node IDs (considers graph type)
     removeEdge(node1_id, node2_id) {
+        this.adjList.removeAdjacencyFromNode(node1_id, node2_id);
         this.adjMatrix.updateEdgeValue(node1_id, node2_id, 0);
-        this.adjMatrixVisual.updateEdgeValue(node1_id, node2_id, 0);
-    }
+
+        if (this.graph_type === "undirected") { // Remove other direction too
+            this.adjList.removeAdjacencyFromNode(node2_id, node1_id);
+            this.adjMatrix.updateEdgeValue(node2_id, node1_id, 0);
+        }
+
+        let edge = document.getElementById(`edge_${node1_id}_${node2_id}`);
+        if (edge === null) {
+            edge = document.getElementById(`edge_${node2_id}_${node1_id}`);
+        }
+        edge.remove();
+
+        // There are two edges between nodes, so removing one should reposition the other to be center
+        if (this.graph_type === "directed" && this.adjList.checkForAdjacency(node2_id, node1_id)) {
+            this.moveEdge(node2_id, node1_id);
+        }
+    } // END removeEdge
+
     updateEdgeValue(node1_id, node2_id, new_value) {
         this.adjMatrix.updateEdgeValue(node1_id, node2_id, new_value);
-        this.adjMatrixVisual.updateEdgeValue(node1_id, node2_id, new_value);
     }
+
+    // === HELPER FUNCTIONS ===
 
     // Converts the given value into a string of letters.
     // Values above 26 start at 'AA', then 'AB', etc.
@@ -358,6 +455,136 @@ class Graph {
         }
 
         return label;
+    }
+
+    // Will reposition the weight label between the given nodes to be centered
+    moveWeightLabel(node1_id, node2_id) {
+        // Node ID order to append to end of new element ID
+        let node_order_id; // Either 'nodeX_nodeY' or 'nodeY_nodeX'
+        switch (this.graph_type) {
+            case "undirected": // Create id with smallest node listed first
+                node_order_id = `${this.createMinMaxNodeID(node1_id, node2_id)}`;
+                break;
+            case "directed": // Enforce order of selected nodes in ID
+                node_order_id = `${node1_id}_${node2_id}`;
+                break;
+        }
+
+        let edge = document.getElementById(`edge_${node_order_id}`);
+        let edge_length = edge.offsetWidth;
+        let weight = document.getElementById(`weight_${node_order_id}`);
+        let translate_x = edge_length/2 - weight.offsetWidth/2;
+        let translate_y = weight.offsetHeight/-2 + edge_thickness/2;
+        weight.style.left = translate_x + 'px';
+        weight.style.top = translate_y + 'px';
+        let tranform_props = edge.style.transform.split(' ');
+        let angle = Number(tranform_props[0].slice(8, -4));
+        weight.style.transform = `RotateZ(${-angle}rad)`;
+    }
+
+    // Will move the edge between the two given nodes (called when either node is repostioned)
+    moveEdge(node1_id, node2_id) {
+        let node1 = document.getElementById(node1_id);
+        let node2 = document.getElementById(node2_id);
+
+        // Node ID order to append to end of new element ID
+        let node_order_id; // Either 'nodeX_nodeY' or 'nodeY_nodeX'
+        switch (graph_type) {
+            case "undirected": // Create id with smallest node listed first
+                node_order_id = `${this.createMinMaxNodeID(node1.id, node2.id)}`;
+                break;
+            case "directed": // Enforce order of selected nodes in ID
+                node_order_id = `${node1.id}_${node2.id}`;
+                break;
+        }
+
+        // Get the edge element
+        let edge = document.getElementById(`edge_${node_order_id}`);
+
+        let node1_props = node1.getBoundingClientRect();
+        let node2_props = node2.getBoundingClientRect();
+        let edge_length = this.calculateDistance(node1_props.x, node1_props.y, node2_props.x, node2_props.y);
+        edge.style.width = edge_length + 'px';
+        edge.setAttribute('edgeLength', edge_length);
+
+        // Calculate the center points of each given node within the preview area
+        let node1_X = node1.offsetLeft + node_size/2;
+        let node1_Y = node1.offsetTop + node_size/2;
+        let node2_X = node2.offsetLeft + node_size/2;
+        let node2_Y = node2.offsetTop + node_size/2;
+
+        // Calculate the true center of the edge between the nodes
+        let centerX = node1_X + (-1*(node1_X - node2_X)/2);
+        let centerY = node1_Y + (-1*(node1_Y - node2_Y)/2);
+
+        // Offset the edge (div) element to have its center centered on the line between the two nodes
+        let centerX_offset = centerX - edge_length/2;
+        let centerY_offset = centerY - edge_thickness/2;
+
+        // Calculate angle to rotate edge div (currently a flat line)
+        // cos(<ang>) = adjacent / hypotenuse
+        let angle_factor = node2_Y < node1_Y ? -1 : 1; // Determines whether to rotate clockwise or counter-clockwise
+        let adj = (node2_X - centerX);
+        let hyp = edge_length/2;
+        let angle = angle_factor * Math.acos(adj/hyp); // in radians
+
+        // Translate and rotate the edge into position
+        edge.style.top = centerY_offset + 'px';
+        edge.style.left = centerX_offset + 'px';
+
+        // if (graph_type === "directed" && adj_lists[node2.id].includes(node1.id)) {
+        if (graph_type === "directed" && this.adjList.checkForAdjacency(node2.id, node1.id)) {
+            edge.style.transform = `RotateZ(${angle}rad) TranslateY(${-1*double_edge_offset}px)`;        
+        }
+        else {
+            edge.style.transform = `RotateZ(${angle}rad)`;
+        }
+
+        // Edge mask movement
+        let edge_mask = document.getElementById(`edge_mask_${node_order_id}`);
+        if (graph_type === "directed") {
+            // The line below should only run if there will be a double edge; offset should be 0 for one edge
+            let double_edge_offset_to_circle;
+            // if (adj_lists[node2.id].includes(node1.id)) {
+            if (this.adjList.checkForAdjacency(node2.id, node1.id)) {
+                double_edge_offset_to_circle = node_size/2 - Math.sqrt((node_size/2)**2 - (double_edge_offset)**2);
+            }
+            else {
+                double_edge_offset_to_circle = 0;            
+            }
+            let edge_mask_width = edge_length - node_size/2 - arrow_width - arrow_space_to_node + double_edge_offset_to_circle;
+            edge_mask.style.width = edge_mask_width + 'px';
+        } else {
+            edge_mask.style.width = "100%";
+        }
+
+        // Reposition the weight labels
+        this.moveWeightLabel(node1.id, node2.id);
+    }
+
+    // Given two node IDs (node0, node1, etc.), will a string of the format
+    // 'nodeX_nodeY' such that X is the smaller node ID and Y is the larger
+    createMinMaxNodeID(node_id1, node_id2) {
+        let smallest_id = "node" + Math.min(Number(node_id1.slice(4)), Number(node_id2.slice(4)));
+        let largest_id = "node" + Math.max(Number(node_id1.slice(4)), Number(node_id2.slice(4)));
+        return `${smallest_id}_${largest_id}`;
+    }
+
+    // Returns the distance between two points
+    calculateDistance(x1, y1, x2, y2) {
+        return Math.sqrt((x2-x1)**2 + (y2-y1)**2);
+    }
+
+    // Functionality of changing a weight label
+    handleWeightLabelChange(event) {
+        let label = event.target;
+        let node_ids_str = label.id.slice(7); // Ex: 'weight_nodeX_nodeY' => 'nodeX_nodeY'
+        let node_ids = node_ids_str.split('_');
+        this.moveWeightLabel(document.getElementById(node_ids[0]), document.getElementById(node_ids[1]));
+        this.adjMatrix.editEdgeValue(node_ids[0], node_ids[1], label.innerHTML);
+        if (this.graph_type === "undirected") {
+            adjMatrix.editEdgeValue(node_ids[1], node_ids[0], label.innerHTML);
+        }
     }
 }
 
@@ -492,7 +719,7 @@ function dragElement(elmnt) {
         for (let i = 0; i < edge_IDs_to_move.length; i++) {
             let node_ids = edge_IDs_to_move[i].slice(5);
             let node1_node2 = node_ids.split('_');
-            moveEdge(document.getElementById(node1_node2[0]), document.getElementById(node1_node2[1]));
+            userGraph.moveEdge(node1_node2[0], node1_node2[1]);
         }
     }
 
@@ -525,6 +752,136 @@ function getIncomingAndOutgoingEdges(node_id) {
 }
 
 
+document.getElementById("create_edge_btn").addEventListener("click", function(event) {
+    // Resets the preview section to the default edge creation view (no nodes highlighted)
+    function toggleOffStartNode(node_id) {
+        start_node = null;
+        let node = document.getElementById(node_id);
+        if (node === null) {
+            return;
+        }
+        node.classList.remove("create_edge_start");
+        let end_nodes = userGraph.adjList.getAdjacencies(node_id);
+        for (let i = 0; i < end_nodes.length; i++) {
+            let curr_node = document.getElementById(end_nodes[i]);
+            curr_node.classList.remove("create_edge_end");
+        }
+    }
+
+    // Sets the given node as the start of all created edges and highlights endpoints (all nodes toggleable)
+    function toggleOnStartNode(node_id) {
+        start_node = node_id;
+        let node = document.getElementById(node_id);
+        node.classList.add("create_edge_start");
+        let adjacencies = userGraph.adjList.getAdjacencies(node.id);
+        for (let i = 0; i < adjacencies.length; i++) { // Iterate through all already-connected nodes
+            let curr_node = document.getElementById(adjacencies[i]);
+            curr_node.classList.add("create_edge_end");
+        }
+    }
+
+    // What happens when a node is selected for new edge endpoint
+    function selectableForEdge(event) {
+        console.log("click");
+        if (event.shiftKey) { // Selected new start point
+            if  (start_node === null) { // No start mode currently selected
+                toggleOnStartNode(event.target.id);
+            }
+            else if (event.target.id === start_node) { // Toggle off start node
+                toggleOffStartNode(start_node);
+            }
+            else { // Change start node
+                toggleOffStartNode(start_node);
+                toggleOnStartNode(event.target.id);
+            }
+            return;
+        }
+
+        // BELOW: Left click with no shift (creates edges)
+        if (start_node === null || event.target.id === start_node) { // Cannot create edge to self
+            return; 
+        }
+
+        // Toggle clicked node ON or OFF (connected or not connected)
+        let selected_node = event.target;
+        if (selected_node.classList.contains("create_edge_end")) { // Remove edge
+            selected_node.classList.remove("create_edge_end");
+            userGraph.removeEdge(start_node, selected_node.id);
+        }
+        else { // Add edge
+            selected_node.classList.add("create_edge_end");
+            // adjList.addAdjacencyToNode(start_node, selected_node.id);
+            // if (graph_type === "undirected") {
+            //     adjList.addAdjacencyToNode(selected_node.id, start_node);
+            // }
+            
+            userGraph.addEdge(start_node, selected_node.id);
+            
+            // Edit edge values in matrix 
+            // adjMatrixVisual.editEdgeValue(start_node, selected_node.id, 1);
+            // if (graph_type === "undirected") {
+            //     adjMatrixVisual.editEdgeValue(selected_node.id, start_node, 1);
+            // }
+        }
+    }
+
+    // Listen for cancel "ESC"
+    function keydown(event) {
+        if (event.key === "Escape") {
+            toggleOffStartNode(start_node);
+            let nodes = document.getElementsByClassName("node");
+            for (let i = 0; i < nodes.length; i++) {
+                nodes[i].removeEventListener("click", selectableForEdge);
+                nodes[i].addEventListener("click", standardNodeSelect);
+            }
+            document.removeEventListener("keydown", keydown);
+            toggleSidePanelMaskOff();
+        }
+    }
+
+    if (userGraph.num_nodes === 0) {return;}
+
+    let start_node = null; // stores the ID of a node
+    // toggleSidePanelMaskOn("&quotESC&quot to quit");
+
+    let endpoint_node_ids = [];
+    let latest_edge_preview = null;
+    // Allow every node to be selected
+    let nodes = document.getElementsByClassName("node");
+    for (let i = 0; i < nodes.length; i++) {
+        nodes[i].addEventListener("click", selectableForEdge);
+        nodes[i].removeEventListener("click", standardNodeSelect);
+    }
+    document.addEventListener("keydown", keydown);
+});
+
+var _selected_node;
+function toggleInfoPanelOn(node_id) {
+    _selected_node = node_id;
+    let node = document.getElementById(node_id);
+    let info_panel = document.getElementById("node_info_section");
+    info_panel.style.display = "block";
+
+    let label_input = document.getElementById("label_input");
+    label_input.value = node.innerHTML;
+    label_input.addEventListener("input", updateLabel); // Every time something is typed
+}
+
+// Hides the info panel
+function toggleInfoPanelOff() {
+    document.getElementById("node_info_section").style.display = "none";
+    document.getElementById("label_input").removeEventListener("input", updateLabel);
+}
+
+// What to do when a node is selected normally
+function standardNodeSelect(event) {
+    // toggleInfoPanelOff();
+    // toggleInfoPanelOn(event.target.id);
+    return;
+}
+
+
+
 
 
 
@@ -532,13 +889,10 @@ function getIncomingAndOutgoingEdges(node_id) {
 
 // BEFORE: 867 lines
 // var num_nodes = 0; // used for creating unique IDs for nodes
-var adj_lists = {}; // Maps node IDs to a list of node IDs they are connected to
 var graph_type = "undirected"; // Default
 var hasWeightLabels = false; // Default
 
 var userGraph = new Graph();
-// var adjList = new AdjacencyList();
-// var adjMatrixVisual = new AdjacencyMatrixVisual();
 
 const css_styles = getComputedStyle(document.documentElement); // Or any specific element
 const cssSetVars = document.documentElement; // To use: cssSetVars.style.setProperty('--var-name', 'new_value')
