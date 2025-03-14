@@ -26,22 +26,22 @@
                 <div class="menu_divider"></div>
                 <div id="graph_type" class="menu_item menu_section no_flex">
                     <h2 class="menu_section_title">Graph Type</h2>
-                    <div class="menu_section_bottom">Directed</div>
+                    <div id="graph_type_display" class="menu_section_bottom">Directed</div>
                     <div id="graph_type_dropdown" class="menu_dropdown">
                         <div class="dropdown_item">
-                            <input id="undirected_radio" type="radio" name="graph_type">
+                            <input id="undirected_radio" type="radio" name="graph_type" value="undirected">
                             <label for="undirected_radio">Undirected</label>
                         </div>
                         <div class="dropdown_item">
-                            <input id="directed_radio" type="radio" name="graph_type">
+                            <input id="directed_radio" type="radio" name="graph_type" value="directed">
                             <label for="directed_radio">Directed</label>
                         </div>
                         <div class="dropdown_item">
-                            <input id="dfa_radio" type="radio" name="graph_type">
+                            <input id="dfa_radio" type="radio" name="graph_type" value="dfa">
                             <label for="dfa_radio">DFA</label>
                         </div>
                         <div class="dropdown_item">
-                            <input id="nfa_radio" type="radio" name="graph_type">
+                            <input id="nfa_radio" type="radio" name="graph_type" value="nfa">
                             <label for="nfa_radio">NFA</label>
                         </div>
                     </div>
@@ -83,6 +83,9 @@
                 </div>
                 <div class="menu_divider"></div>
                 <div id="graph_buttons" class="menu_item">
+                    <div id="button_panel_mask">
+                        <h2 id="mask_text">"ESC" to cancel</h2>
+                    </div>
                     <button id="create_node_btn" class="graph_btn"></button>
                     <button id="create_edge_btn" class="graph_btn"></button>
                     <button id="delete_btn" class="graph_btn"></button>
@@ -99,6 +102,17 @@
                     </table>
                 </div>
             </div>
+
+            <div id="prompt_section">
+                <div id="prompt_box">
+                    <p id="prompt_message"></p>
+                    <div id="prompt_button_box">
+                        <button class="prompt_btn">Yes</button>
+                        <button class="prompt_btn">No</button>
+                    </div>
+                </div>
+            </div>
+
             <!-- <div id="side_panel">
                 <div id="side_panel_mask">
                     <h2 id="mask_text">"ESC" to cancel</h2>

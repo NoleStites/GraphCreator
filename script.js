@@ -27,7 +27,10 @@ class AdjacencyList {
             // Remove any associated entries in other adj lists
             let keys = Object.keys(this.adj_lists);
             for (let i = 0; i < keys.length; i++) {
-                this.removeAdjacencyFromNode(keys[i], node_id);
+                try {
+                    this.removeAdjacencyFromNode(keys[i], node_id);
+                }
+                catch(err) {continue;}
             }
             return 0;
         }
@@ -275,12 +278,12 @@ class AdjacencyMatrix {
 } // END AdjacencyMatrix
 
 class Graph {
-    constructor() {
+    constructor(graph_type) {
         this.adjList = new AdjacencyList();
         this.adjMatrix = new AdjacencyMatrix();
         this.node_ids = [];
         this.num_nodes = 0;
-        this.graph_type = "undirected";
+        this.graph_type = graph_type;
     }
 
     // Given an (x,y) position in the preview section, will add the node to all necessary places in the program
@@ -318,6 +321,29 @@ class Graph {
 
     // Given a node ID, will remove the node from all necessary places in the program
     removeNode(node_id) {
+        document.getElementById(node_id).remove(); // Remove the node element
+
+        // Get IDs of all edge elements to remove
+        let edge_IDs_to_remove = [];
+        switch (this.graph_type) {
+            case "undirected":
+                // for (let i = 0; i < adj_lists[node_id].length; i++) {
+                let adjacencies = this.adjList.getAdjacencies(node_id);
+                for (let i = 0; i < adjacencies.length; i++) {
+                    edge_IDs_to_remove.push(`edge_${this.createMinMaxNodeID(node_id, adjacencies[i])}`);
+                }
+                break;
+            case "directed":
+                edge_IDs_to_remove = getIncomingAndOutgoingEdges(node_id);
+                break;
+        }
+
+        // Remove edges from DOM
+        for (let i = 0; i < edge_IDs_to_remove.length; i++) {
+            let edge_id = edge_IDs_to_remove[i];
+            document.getElementById(edge_id).remove();
+        }
+
         this.adjList.removeNode(node_id);
         this.adjMatrix.removeNode(node_id);
 
@@ -327,10 +353,17 @@ class Graph {
 
     // Will completely clear the contents of the graph in all locations of the program
     clearGraph() {
-        for (let i = 0; i < this.node_ids.length; i++) {
-            this.removeNode(this.node_ids[i]);
+        let ids_copy = [...this.node_ids]; // Strange copy syntax
+        for (let i = 0; i < ids_copy.length; i++) {
+            this.removeNode(ids_copy[i]);
         }
         this.num_nodes = 0;
+    } // END clearGraph
+
+    // Will change the graph type and reset the graph completely
+    changeGraphType(new_type) {
+        this.clearGraph();
+        this.graph_type = new_type;
     } // END clearGraph
 
     // Will add an edge between the given node IDs (considers graph type)
@@ -489,7 +522,7 @@ class Graph {
 
         // Node ID order to append to end of new element ID
         let node_order_id; // Either 'nodeX_nodeY' or 'nodeY_nodeX'
-        switch (graph_type) {
+        switch (this.graph_type) {
             case "undirected": // Create id with smallest node listed first
                 node_order_id = `${this.createMinMaxNodeID(node1.id, node2.id)}`;
                 break;
@@ -532,8 +565,7 @@ class Graph {
         edge.style.top = centerY_offset + 'px';
         edge.style.left = centerX_offset + 'px';
 
-        // if (graph_type === "directed" && adj_lists[node2.id].includes(node1.id)) {
-        if (graph_type === "directed" && this.adjList.checkForAdjacency(node2.id, node1.id)) {
+        if (this.graph_type === "directed" && this.adjList.checkForAdjacency(node2.id, node1.id)) {
             edge.style.transform = `RotateZ(${angle}rad) TranslateY(${-1*double_edge_offset}px)`;        
         }
         else {
@@ -542,7 +574,7 @@ class Graph {
 
         // Edge mask movement
         let edge_mask = document.getElementById(`edge_mask_${node_order_id}`);
-        if (graph_type === "directed") {
+        if (this.graph_type === "directed") {
             // The line below should only run if there will be a double edge; offset should be 0 for one edge
             let double_edge_offset_to_circle;
             // if (adj_lists[node2.id].includes(node1.id)) {
@@ -634,7 +666,7 @@ document.getElementById("create_node_btn").addEventListener("click", function(ev
         document.removeEventListener("keydown", keydown);
         document.removeEventListener("mousemove", mousemove);
         document.getElementById("preview_section").removeEventListener("click", click);
-        // toggleSidePanelMaskOff();
+        toggleButtonPanelMaskOff();
         setNodePointerEvents("all");
         new_node.remove();
     }
@@ -653,7 +685,7 @@ document.getElementById("create_node_btn").addEventListener("click", function(ev
         }
     }
 
-    // toggleSidePanelMaskOn("Click in preview section to place a node.<br>&quotESC&quot to cancel");
+    toggleButtonPanelMaskOn("Click in preview section to place a node.<br>&quotESC&quot to cancel");
 
     // Create and add a new node cursor to the page
     let new_node = document.createElement("div");
@@ -782,7 +814,6 @@ document.getElementById("create_edge_btn").addEventListener("click", function(ev
 
     // What happens when a node is selected for new edge endpoint
     function selectableForEdge(event) {
-        console.log("click");
         if (event.shiftKey) { // Selected new start point
             if  (start_node === null) { // No start mode currently selected
                 toggleOnStartNode(event.target.id);
@@ -810,18 +841,7 @@ document.getElementById("create_edge_btn").addEventListener("click", function(ev
         }
         else { // Add edge
             selected_node.classList.add("create_edge_end");
-            // adjList.addAdjacencyToNode(start_node, selected_node.id);
-            // if (graph_type === "undirected") {
-            //     adjList.addAdjacencyToNode(selected_node.id, start_node);
-            // }
-            
             userGraph.addEdge(start_node, selected_node.id);
-            
-            // Edit edge values in matrix 
-            // adjMatrixVisual.editEdgeValue(start_node, selected_node.id, 1);
-            // if (graph_type === "undirected") {
-            //     adjMatrixVisual.editEdgeValue(selected_node.id, start_node, 1);
-            // }
         }
     }
 
@@ -835,14 +855,14 @@ document.getElementById("create_edge_btn").addEventListener("click", function(ev
                 nodes[i].addEventListener("click", standardNodeSelect);
             }
             document.removeEventListener("keydown", keydown);
-            toggleSidePanelMaskOff();
+            toggleButtonPanelMaskOff();
         }
     }
 
     if (userGraph.num_nodes === 0) {return;}
 
     let start_node = null; // stores the ID of a node
-    // toggleSidePanelMaskOn("&quotESC&quot to quit");
+    toggleButtonPanelMaskOn("&quotESC&quot to quit");
 
     let endpoint_node_ids = [];
     let latest_edge_preview = null;
@@ -880,6 +900,106 @@ function standardNodeSelect(event) {
     return;
 }
 
+// Functions for showing and hidding the side panel mask. When toggling on, provide message to display.
+function toggleButtonPanelMaskOff() {
+    document.getElementById("button_panel_mask").style.display = "none";
+    document.getElementById("mask_text").innerHTML = "";
+}
+function toggleButtonPanelMaskOn(message) {
+    document.getElementById("button_panel_mask").style.display = "flex";
+    document.getElementById("mask_text").innerHTML = message;
+}
+
+// Defines the functionality of deleting when a node is clicked
+function deleteOnClick(event) {
+    userGraph.removeNode(event.target.id);
+}
+
+// The given class name will either be added (true) or removed (false) from every node
+function applyClassOnNodes(class_name, doApply) {
+    let nodes = document.getElementsByClassName("node");
+    for (let i = 0; i < nodes.length; i++) {
+        let node = nodes[i];
+        doApply ? node.classList.add(class_name) : node.classList.remove(class_name);
+    }
+}
+
+// The given function name will either be added (true) or removed (false) from every node as a click event
+function applyClickEventOnNodes(func, doApply) {
+    let nodes = document.getElementsByClassName("node");
+    for (let i = 0; i < nodes.length; i++) {
+        let node = nodes[i];
+        doApply ? node.addEventListener("click", func) : node.removeEventListener("click", func);
+    }
+}
+
+document.getElementById("delete_btn").addEventListener("click", function(event) {
+    // Listen for cancel "ESC"
+    function keydown(event) {
+        if (event.key === "Escape") {
+            toggleButtonPanelMaskOff();
+            applyClassOnNodes("delete_node", false);
+            applyClickEventOnNodes(standardNodeSelect, true);
+            applyClickEventOnNodes(deleteOnClick, false);
+        }
+    }
+    
+    // Prep screen for delete mode
+    toggleButtonPanelMaskOn("&quotESC&quot to quit");
+    applyClassOnNodes("delete_node", true);
+    // document.getElementById("node_info_section").style.display = "none";
+    applyClickEventOnNodes(standardNodeSelect, false);
+    applyClickEventOnNodes(deleteOnClick, true);
+
+    
+    document.addEventListener("keydown", keydown);
+});
+
+// Brings up a prompt box when changing graph type and applies logic to changing it
+// will display given message as the question
+function promptUserYesNo(new_graph_type, message) {
+    document.getElementById("prompt_message").innerHTML = message;
+    document.getElementById("prompt_section").style.display = "flex";
+
+    function promptButtonClick(event) {
+        if (event.target.innerHTML === "Yes") {
+            // Reset the screen (delete all nodes, edges, and matrix entries)
+            userGraph.changeGraphType(new_graph_type);     
+            num_nodes = 0;
+            // toggleInfoPanelOff();
+            graph_type = new_graph_type; // "undirected", "directed", ...
+            document.getElementById("graph_type_display").innerHTML = graph_type_display_names[graph_type];
+            document.getElementById(`${graph_type}_radio`).checked = true;
+        }
+        else {
+            document.getElementById(`${graph_type}_radio`).checked = true; // return radios to previous state
+        }
+
+        // Remove event listeners from buttons
+        let buttons = document.getElementsByClassName("prompt_btn");
+        for (let i = 0; i < buttons.length; i++) {
+            buttons[i].removeEventListener("click", promptButtonClick);
+        }
+
+        document.getElementById("prompt_section").style.display = "none";
+    }
+
+    let buttons = document.getElementsByClassName("prompt_btn");
+    for (let i = 0; i < buttons.length; i++) {
+        buttons[i].addEventListener("click", promptButtonClick);
+    }
+}
+
+
+// What happens when the user selects a new graph type
+document.getElementById(`undirected_radio`).checked = true; // default
+function changeGraphType(event) {
+    promptUserYesNo(event.target.value, "Changing graph types will delete your current graph. Are you sure that you want to continue?");
+}
+let graph_type_radios = document.getElementsByName("graph_type");
+for (let i = 0; i < graph_type_radios.length; i++) {
+    graph_type_radios[i].addEventListener("change", changeGraphType);
+}
 
 
 
@@ -888,11 +1008,18 @@ function standardNodeSelect(event) {
 
 
 // BEFORE: 867 lines
-// var num_nodes = 0; // used for creating unique IDs for nodes
 var graph_type = "undirected"; // Default
+let graph_type_display_names = {
+    "undirected": "Undirected",
+    "directed": "Directed",
+    "dfa": "DFA",
+    "nfa": "NFA"
+}
+document.getElementById("graph_type_display").innerHTML = graph_type_display_names[graph_type];
+document.getElementById(`${graph_type}_radio`).checked = true;
 var hasWeightLabels = false; // Default
 
-var userGraph = new Graph();
+var userGraph = new Graph(graph_type);
 
 const css_styles = getComputedStyle(document.documentElement); // Or any specific element
 const cssSetVars = document.documentElement; // To use: cssSetVars.style.setProperty('--var-name', 'new_value')
