@@ -27,154 +27,6 @@ body {
     position: relative;
 }
 
-/* MENU STYLES */
-#menu {
-    width: 100%;
-    height: 8%;
-    flex-grow: 0;
-    background-color: white;
-    box-shadow: 0px 2px 12px 0px black;
-    z-index: 99;
-    display: flex;
-    flex-direction: row;
-    justify-content: flex-start;
-    align-items: center;
-}
-
-.menu_item {
-    width: fit-content;
-    height: 100%;
-    padding: 10px 0px;
-    box-sizing: border-box;
-}
-
-.no_flex {
-    flex: 0 0 fit-content;
-}
-
-.menu_divider {
-    width: 0px;
-    height: 50%;
-    box-shadow: 0px 0px 1px 0.3px grey;
-    margin: 20px;
-}
-
-#hamburger {
-    aspect-ratio: 1/1;
-    background-image: url("./assets/hamburger.svg");
-    background-size: 50% 50%;
-    background-repeat: no-repeat;
-    background-position: center;
-}
-#hamburger:hover {
-    background-color: rgb(230, 230, 230);
-    cursor: pointer;
-}
-
-#page_title {
-    display: flex;
-    align-items: center;
-}
-#page_title > h1 {
-    font-size: 25pt;
-}
-
-.menu_section {
-    display: flex;
-    flex-direction: column;
-    position: relative;
-}
-.menu_section_title {
-    font-size: 18pt;
-}
-.menu_section_bottom {
-    text-align: center;
-}
-#graph_features_section_bottom, #algorithms_section_bottom {
-    width: 100%;
-    height: 100%;
-    background-image: url("./assets/down_arrow.svg");
-    background-size: 80% 80%;
-    background-repeat: no-repeat;
-    background-position: center;
-}
-
-.menu_section:hover .menu_dropdown {
-    visibility: visible;
-    opacity: 1;
-}
-
-.menu_dropdown {
-    min-width: fit-content;
-    width: 100%;
-    height: fit-content;
-    position: absolute;
-    top: 100%;
-    background-color: rgb(247, 247, 247);
-    border-bottom: 2px solid black;
-    padding: 10px;
-    box-sizing: border-box;
-    visibility: hidden;
-    opacity: 0;
-}
-
-.dropdown_item {
-    text-wrap: nowrap;
-}
-
-.dropdown_item:hover {
-    background-color: rgb(236, 236, 236);
-}
-
-#graph_buttons {
-    width: 100%;
-    display: flex;
-    flex-direction: row;
-    justify-content: center;
-    align-items: center;
-    gap: 20px;
-    position: relative;
-}
-.graph_btn {
-    height: 85%;
-    aspect-ratio: 1/1;
-    border: 1px solid black;
-    border-radius: 10px;
-    background-color: white;
-}
-.graph_btn:hover {
-    background-color: rgb(230, 230, 230);
-    cursor: pointer;
-}
-
-#create_node_btn {
-    background-image: url("./assets/node.svg");
-    background-size: 70% 70%;
-    background-repeat: no-repeat;
-    background-position: center;
-}
-#create_edge_btn {
-    background-image: url("./assets/edge.svg");
-    background-size: 80% 80%;
-    background-repeat: no-repeat;
-    background-position: center;
-}
-#delete_btn {
-    background-image: url("./assets/delete.svg");
-    background-size: 100% 100%;
-    background-repeat: no-repeat;
-    background-position: center;
-}
-#button_panel_mask {
-    width: 100%;
-    height: 100%;
-    position: absolute;
-    background-color: rgba(0, 0, 0, 0.479);
-    display: none;
-    flex-direction: row;
-    justify-content: center;
-}
-
 /* PREVIEW SECTION STYLES */
 #preview_section {
     width: 100%;
@@ -211,86 +63,6 @@ body {
 #adj_matrix_box {
 }
 
-
-#side_panel {
-    width: 25%;
-    height: 100%;
-    border-right: 2px solid black;
-    background-color: lightgray;
-    position: relative;
-}
-#side_panel_mask {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.699);
-    z-index: 2;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    display: none;
-}
-#mask_text {
-    color: white;
-    background-color: black;
-    border-radius: 5px;
-    font-size: 20pt;
-    padding: 20px;
-    box-shadow: 0 0 3px 0 white;
-}
-
-/* side Panel Styles */
-#side_panel_heading {
-    width: 100%;
-    font-size: 30pt;
-    text-align: center;
-    padding: 10px 0px;
-    background-color: rgb(194, 194, 194);
-    border-bottom: 1px solid black;
-}
-
-#btn_box {
-    width: 100%;
-    height: fit-content;
-    padding: 20px;
-    box-sizing: border-box;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 10px;
-}
-
-.ctrl_btn {
-    border-radius: 5px;
-    border: 1px solid black;
-    text-align: center;
-}
-.ctrl_btn:hover {
-    background-color: yellow;
-    cursor: pointer;
-}
-
-#create_node_btn, #delete_node_btn {
-    width: 50px;
-    line-height: 50px;
-    aspect-ratio: 1/1;
-    font-size: 30pt;
-}
-
-#create_edge_btn, #export_btn, #import_btn {
-    font-size: 25pt;
-    padding: 10px;
-}
-
-#node_info_section {
-    width: 100%;
-    height: auto;
-    padding: 10px;
-    box-sizing: border-box;
-    display: none;
-}
-
 #adj_matrix {
     width: 100%;
     padding: 5px;
@@ -299,27 +71,16 @@ body {
     border-spacing: 0px;
     font-size: 20pt;
 }
-th {
+#adj_matrix th {
     color: black;
 }
-td {
+#adj_matrix td {
     background-color: rgb(78, 78, 78);
     color: white;
     border: 1px solid black;
 }
 
-fieldset {
-    padding: 10px;
-}
-legend {
-    font-size: 18pt;
-    font-weight: bold;
-}
-label {
-    font-size: 16pt;
-}
-
-/* Preview Section Styles */
+/* Node Styles */
 .node {
     width: var(--node-size);
     aspect-ratio: 1/1;
@@ -341,22 +102,6 @@ label {
     cursor: move;
 }
 
-.edge {
-    /* background-color: var(--edge-color); */
-    position: absolute;
-    height: var(--edge-thickness);
-    z-index: 1;
-    transform-origin: center;
-}
-
-.edge_mask {
-    height: 100%;
-    z-index: 2;
-    position: relative;
-    background-color: var(--edge-color);
-    border-right: 1px solid var(--edge-color); /* To remove tiny, impure space between edge end and arrow start */
-}
-
 /* Style applied to the start node of edge creation */
 .create_edge_start {
     box-shadow: 0px 0px 3px 3px green;
@@ -370,6 +115,22 @@ label {
 /* Style applied to each node when delete mode is activated */
 .delete_node {
     box-shadow: 0px 0px 3px 3px red;
+}
+
+/* Edge, Weight, and Arrow Styles */
+.edge {
+    position: absolute;
+    height: var(--edge-thickness);
+    z-index: 1;
+    transform-origin: center;
+}
+
+.edge_mask {
+    height: 100%;
+    z-index: 2;
+    position: relative;
+    background-color: var(--edge-color);
+    border-right: 1px solid var(--edge-color); /* To remove tiny, impure space between edge end and arrow start */
 }
 
 .weight_label {

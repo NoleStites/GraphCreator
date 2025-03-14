@@ -284,6 +284,7 @@ class Graph {
         this.node_ids = [];
         this.num_nodes = 0;
         this.graph_type = graph_type;
+        this.hasWeightLabels = false; // Default (hides labels)
     }
 
     // Given an (x,y) position in the preview section, will add the node to all necessary places in the program
@@ -990,8 +991,72 @@ function promptUserYesNo(new_graph_type, message) {
     }
 }
 
+// Import graph from file
+var import_str;
+function importGraph() {
+    let fields = import_str.split('\n');
+    graph_type = fields[0].slice(6, -2);
+    hasWeightLabels = Boolean(fields[1].slice(8, -2));
+    
+    let rows = fields[2].split(';'); // 'A':0|0|1|1
+    for (let i = 0; i < rows.length-1; i++) {
+        let row_fields = rows[i].split(':');
+        let label = row_fields[0].slice(1,-1); // A
+        let values = row_fields[1].split('|'); // [0, 0, 1, 1]
+    }
+}
 
-// What happens when the user selects a new graph type
+// Export graph as file
+// Syntax:
+/*
+    type='undirected';\n
+    weights=false;\n
+    'A':0|0|1|1;'B':1|0|1|0; ...
+*/
+function exportGraph() {
+    let export_str = "";
+
+    // Append graph properties
+    export_str += `type='${graph_type}';\n`;
+    export_str += `weights=${hasWeightLabels};\n`;
+
+    // Append graph vertex/edge data
+    // let keys = Object.keys(adj_lists);
+    let keys = adjList.getKeys();
+    for (let i = 0; i < keys.length; i++) {
+        let key = keys[i];
+        let node_label = document.getElementsByClassName(`label_for_${key}`)[0].innerHTML;
+
+        // Fetch value from every cell in adjacency matrix row of current node
+        let cell_values = [];
+        for (let j = 0; j < keys.length; j++) {
+            let data_cell = document.getElementById(`data_${key}_${keys[j]}`)
+            cell_values.push(data_cell.innerHTML);
+        }
+        let cell_values_str = cell_values.join('|');
+
+        // Append new node data to the export string
+        export_str += `'${node_label}':${cell_values_str};`
+    }
+    console.log(export_str);
+    import_str = export_str;
+}
+
+// Clears the graph in its entirety
+function clearGraph() {
+    userGraph.clearGraph();
+}
+
+
+
+
+
+/* 
+    ===== INITIALIZE VARIABLES FOR STARTUP =====
+    ===== ALSO, APPLY EVENT LISTENERS TO MENU =====
+*/
+
+// Graph type menu functionality
 document.getElementById(`undirected_radio`).checked = true; // default
 function changeGraphType(event) {
     promptUserYesNo(event.target.value, "Changing graph types will delete your current graph. Are you sure that you want to continue?");
@@ -1001,13 +1066,6 @@ for (let i = 0; i < graph_type_radios.length; i++) {
     graph_type_radios[i].addEventListener("change", changeGraphType);
 }
 
-
-
-
-
-
-
-// BEFORE: 867 lines
 var graph_type = "undirected"; // Default
 let graph_type_display_names = {
     "undirected": "Undirected",
@@ -1017,12 +1075,17 @@ let graph_type_display_names = {
 }
 document.getElementById("graph_type_display").innerHTML = graph_type_display_names[graph_type];
 document.getElementById(`${graph_type}_radio`).checked = true;
-var hasWeightLabels = false; // Default
 
+// Initialize a Graph object
 var userGraph = new Graph(graph_type);
 
+// Hamburger menu buttons
+document.getElementById("import_btn").addEventListener("click", importGraph);
+document.getElementById("export_btn").addEventListener("click", exportGraph);
+document.getElementById("clear_btn").addEventListener("click", clearGraph);
+
+// Import necessary styles from stylesheet
 const css_styles = getComputedStyle(document.documentElement); // Or any specific element
-const cssSetVars = document.documentElement; // To use: cssSetVars.style.setProperty('--var-name', 'new_value')
 var edge_thickness = Number(css_styles.getPropertyValue("--edge-thickness").slice(0,-2)); // px
 var node_size = css_styles.getPropertyValue("--node-size").slice(0,-2); // Includes border
 var node_zIndex = Number(css_styles.getPropertyValue("--node-z-index"));
