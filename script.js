@@ -413,8 +413,8 @@ class Graph {
         weight.classList.add("weight_label");
         weight.id = `weight_${node_order_id}`; // Ex: 'weight_node0_node1'
         weight.innerHTML = '1';
-        weight.addEventListener("input", this.handleWeightLabelChange); // Called when label is editted
-        if (hasWeightLabels) { weight.contentEditable = true; }
+        weight.addEventListener("input", handleWeightLabelChange); // Called when label is editted
+        if (this.hasWeightLabels) { weight.contentEditable = true; }
         new_edge.appendChild(weight);
 
         // Create arrow (directed graphs)
@@ -466,6 +466,32 @@ class Graph {
 
     updateEdgeValue(node1_id, node2_id, new_value) {
         this.adjMatrix.updateEdgeValue(node1_id, node2_id, new_value);
+    }
+
+    // Will either display (true) or hide (false) the weights and labels
+    toggleWeightsAndLabels(on_off) {
+        this.hasWeightLabels = on_off;
+        let weight_labels = document.getElementsByClassName("weight_label");
+        let opacity_val = on_off ? "1" : "0";
+
+        cssSetVars.style.setProperty("--weight-label-opacity", opacity_val);
+
+        // Reset all label weights to 1 and make them uneditable 
+        for (let i = 0; i < weight_labels.length; i++) {
+            let label = weight_labels[i];
+            label.innerHTML = "1"; // Reset label
+            label.contentEditable = this.hasWeightLabels;
+        }
+
+        // Update adjacency matrix by removing/adding weights and setting all to '1'
+        let data_cells = document.getElementsByClassName("matrix_data_cell");
+        for (let i = 0; i < data_cells.length; i++) {
+            let cell = data_cells[i];
+            let value = Number(cell.innerHTML);
+            if (value != 0) {
+                cell.innerHTML = '1';
+            }
+        }
     }
 
     // === HELPER FUNCTIONS ===
@@ -607,17 +633,17 @@ class Graph {
     calculateDistance(x1, y1, x2, y2) {
         return Math.sqrt((x2-x1)**2 + (y2-y1)**2);
     }
+}
 
-    // Functionality of changing a weight label
-    handleWeightLabelChange(event) {
-        let label = event.target;
-        let node_ids_str = label.id.slice(7); // Ex: 'weight_nodeX_nodeY' => 'nodeX_nodeY'
-        let node_ids = node_ids_str.split('_');
-        this.moveWeightLabel(document.getElementById(node_ids[0]), document.getElementById(node_ids[1]));
-        this.adjMatrix.editEdgeValue(node_ids[0], node_ids[1], label.innerHTML);
-        if (this.graph_type === "undirected") {
-            adjMatrix.editEdgeValue(node_ids[1], node_ids[0], label.innerHTML);
-        }
+// Functionality of changing a weight label
+function handleWeightLabelChange(event) {
+    let label = event.target;
+    let node_ids_str = label.id.slice(7); // Ex: 'weight_nodeX_nodeY' => 'nodeX_nodeY'
+    let node_ids = node_ids_str.split('_');
+    userGraph.moveWeightLabel(node_ids[0], node_ids[1]);
+    userGraph.updateEdgeValue(node_ids[0], node_ids[1], label.innerHTML);
+    if (graph_type === "undirected") {
+        userGraph.updateEdgeValue(node_ids[1], node_ids[0], label.innerHTML);
     }
 }
 
@@ -876,6 +902,16 @@ document.getElementById("create_edge_btn").addEventListener("click", function(ev
     document.addEventListener("keydown", keydown);
 });
 
+// Displays, in the side panel, info for the given node
+// All elements with class 'label_for_nodeX' will be changed
+function updateLabel(event) {
+    // For all page elements with sharing a label, edit them
+    let labels = document.getElementsByClassName(`label_for_${_selected_node}`);
+    for (let i = 0; i < labels.length; i++) {
+        labels[i].innerHTML = event.target.value;
+    }
+}
+
 var _selected_node;
 function toggleInfoPanelOn(node_id) {
     _selected_node = node_id;
@@ -1047,6 +1083,15 @@ function clearGraph() {
     userGraph.clearGraph();
 }
 
+function toggleWeights() {
+    if (document.getElementById("weights_checkbox").checked) {
+        userGraph.toggleWeightsAndLabels(true);
+    }
+    else {
+        userGraph.toggleWeightsAndLabels(false);
+    }
+}
+
 
 
 
@@ -1084,8 +1129,19 @@ document.getElementById("import_btn").addEventListener("click", importGraph);
 document.getElementById("export_btn").addEventListener("click", exportGraph);
 document.getElementById("clear_btn").addEventListener("click", clearGraph);
 
+// Graph features
+document.getElementById("weights_checkbox").addEventListener("change", toggleWeights);
+document.getElementById("adj_matrix_checkbox").addEventListener("change", toggleAdjMatrix);
+document.getElementById("adj_list_checkbox").addEventListener("change", toggleAdjList);
+
+document.getElementById("weights_checkbox").checked = false;
+document.getElementById("adj_matrix_checkbox").checked = false;
+document.getElementById("adj_list_checkbox").checked = false;
+
+
 // Import necessary styles from stylesheet
 const css_styles = getComputedStyle(document.documentElement); // Or any specific element
+const cssSetVars = document.documentElement; // To use: cssSetVars.style.setProperty('--var-name', 'new_value')
 var edge_thickness = Number(css_styles.getPropertyValue("--edge-thickness").slice(0,-2)); // px
 var node_size = css_styles.getPropertyValue("--node-size").slice(0,-2); // Includes border
 var node_zIndex = Number(css_styles.getPropertyValue("--node-z-index"));
