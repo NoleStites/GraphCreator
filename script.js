@@ -1003,7 +1003,6 @@ function promptUserYesNo(new_graph_type, message) {
         if (event.target.innerHTML === "Yes") {
             // Reset the screen (delete all nodes, edges, and matrix entries)
             userGraph.changeGraphType(new_graph_type);     
-            num_nodes = 0;
             // toggleInfoPanelOff();
             graph_type = new_graph_type; // "undirected", "directed", ...
             document.getElementById("graph_type_display").innerHTML = graph_type_display_names[graph_type];
@@ -1130,25 +1129,32 @@ function toggleAlgorithmAboutsection(algorithm_choice, on_off) {
 // Records selected node as start of an algorithm
 // Toggles to selected node
 function selectNodeforStart(event) {
-    start_node = event.target.id;
+    start_node_id = event.target.id;
     applyClassOnNodes("algorithmStartNode", false);
     event.target.classList.add("algorithmStartNode");
 }
 
+let isPlaying = false;
 function playPauseAlgorithm() {
-
+    if (isPlaying) {
+        isPlaying = false;
+    }
+    else {
+        if (start_node_id === null) {return;}
+        isPlaying = true;
+        document.getElementById("play_pause").removeEventListener("click", playPauseAlgorithm);
+        DFS(start_node_id, userGraph.adjList); // Imported function
+    }
 }
 
 
-let start_node;
+let start_node_id = null;
 function enterDFS() {
     toggleAlgorithmAboutsection("dfs", true);
     applyClickEventOnNodes(standardNodeSelect, false);
     applyClickEventOnNodes(selectNodeforStart, true);
 
-    // TODO: let user select start node
-    applyClickEventOnNodes
-    let start_node_id = "node1";
+    // let start_node_id = "node1";
     // DFS(start_node_id, userGraph.adjList); // Imported function
 }
 

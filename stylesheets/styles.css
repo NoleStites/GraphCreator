@@ -272,6 +272,8 @@ body {
     display: flex;
     justify-content: center;
     gap: 20px;
+    padding: 20px;
+    box-sizing: border-box;
 }
 .step_btn {
     height: 30px;

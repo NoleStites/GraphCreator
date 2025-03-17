@@ -1,5 +1,19 @@
 var adjList;
 
+var isPlaying = false;
+document.getElementById("play_pause").addEventListener("click", function () {
+    isPlaying = isPlaying ? false : true;
+
+    // Change play/pause symbol
+    let btn = document.getElementById("play_pause");
+    if (isPlaying) {
+        btn.style.backgroundImage = "url(\"/assets/pause.svg\")";
+    } 
+    else {
+        btn.style.backgroundImage = "url(\"/assets/play.svg\")";
+    }
+});
+
 // Entry point to the algorithm.
 // Uses the graph's adjacency list to perform.
 // Given the node ID for the start of the search, will prepare necessary vars
@@ -44,11 +58,24 @@ async function visit(node_id, visited, path) {
     stack = stack.sort();
     for (let i = 0; i < stack.length; i++) {
         let to_visit = stack[i];
-            await sleep(1000);
+            // await sleep(1000);
+            await waitForCondition(() => isPlaying);
             [visited, path] = await visit(to_visit, visited, path);
     }
 
     return [visited, path];
+}
+
+let doContinue = false;
+async function waitForCondition(conditionFunction, checkInterval = 1000) {
+    return new Promise(resolve => {
+        const interval = setInterval(() => {
+            if (conditionFunction()) {
+                clearInterval(interval);
+                resolve();
+            }
+        }, checkInterval);
+    });
 }
 
 function sleep(ms) {
