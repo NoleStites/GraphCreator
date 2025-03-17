@@ -3,9 +3,9 @@
     <head>
         <title>Graph Creator</title>
         <link rel="icon" type="image/x-icon" href="./assets/favicon.png">
-        <link href="./styles.css" rel="stylesheet" />
+        <link href="./stylesheets/styles.css" rel="stylesheet" />
         <link href="./stylesheets/menu.css" rel="stylesheet" />
-        <script src="./script.js" defer></script>
+        <script src="./script.js" type="module" defer></script>
     </head>
     <body>
         <div id="page">
@@ -113,49 +113,6 @@
                     </div>
                 </div>
             </div>
-
-            <!-- <div id="side_panel">
-                <div id="side_panel_mask">
-                    <h2 id="mask_text">"ESC" to cancel</h2>
-                </div>
-                <h1 id="side_panel_heading">Graph Creator</h1>
-                <div id="btn_box">
-                    <div id="create_node_btn" class="ctrl_btn">+</div>
-                    <div id="delete_node_btn" class="ctrl_btn">-</div>
-                    <div id="create_edge_btn" class="ctrl_btn">Edit Edges</div>
-                    <div id="import_btn" class="ctrl_btn">Import</div>
-                    <div id="export_btn" class="ctrl_btn">Export</div>
-                </div>
-                <div id="node_info_section">
-                    <label for="label_input">Label:</label>
-                    <input type="text" id="label_input">
-                </div>
-                <table id="adj_matrix">
-                    <tr id="matrix_top_labels" class="matrix_row"><th></th></tr>
-                </table>
-                <fieldset id="graph_type_fieldset">
-                    <legend>Choose your graph type</legend>
-                    <input type="radio" id="radio_undirected" name="graph_type_radio" value="undirected">
-                    <label for="radio_undirected">Undirected</label><br>
-                    <input type="radio" id="radio_directed" name="graph_type_radio" value="directed">
-                    <label for="radio_directed">Directed</label>
-                </fieldset>
-                <fieldset id="additional_features_fieldset">
-                    <legend>Additional features</legend>
-                    <input type="checkbox" id="checkbox_weights">
-                    <label for="checkbox_weights">Weights</label><br>
-                </fieldset>
-                <button onclick="tester()">Tester</button>
-            </div>
-            <div id="prompt_section">
-                <div id="prompt_box">
-                    <p id="prompt_message"></p>
-                    <div id="prompt_button_box">
-                        <button class="prompt_btn">Yes</button>
-                        <button class="prompt_btn">No</button>
-                    </div>
-                </div>
-            </div> -->
         </div>
     </body>
 </html>

@@ -1,3 +1,4 @@
+import { DFS } from './dfs.js'
 
 class AdjacencyList {
     constructor() {
@@ -712,7 +713,7 @@ document.getElementById("create_node_btn").addEventListener("click", function(ev
         }
     }
 
-    toggleButtonPanelMaskOn("Click in preview section to place a node.<br>&quotESC&quot to cancel");
+    toggleButtonPanelMaskOn("Click in preview section to place a node. &quotESC&quot to cancel");
 
     // Create and add a new node cursor to the page
     let new_node = document.createElement("div");
@@ -1137,6 +1138,15 @@ document.getElementById("adj_list_checkbox").addEventListener("change", toggleAd
 document.getElementById("weights_checkbox").checked = false;
 document.getElementById("adj_matrix_checkbox").checked = false;
 document.getElementById("adj_list_checkbox").checked = false;
+
+// Algorithms
+function enterDFS() {
+    // TODO: let user select start node
+    let start_node_id = "node1";
+    DFS(start_node_id, userGraph.adjList); // Imported function
+}
+document.getElementById("dfs_btn").addEventListener("click", enterDFS);
+
 
 
 // Import necessary styles from stylesheet
