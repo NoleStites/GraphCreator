@@ -72,13 +72,13 @@
                     <div id="algorithms_section_bottom" class="menu_section_bottom"></div>
                     <div id="algorithms_dropdown" class="menu_dropdown">
                         <div class="dropdown_item">
-                            <label id="dijkstra_btn">Dijkstra's Algorithm</label>
-                        </div>
-                        <div class="dropdown_item">
                             <label id="dfs_btn">Depth-First Search (DFS)</label>
                         </div>
                         <div class="dropdown_item">
                             <label id="bfs_btn">Breadth-First Search (DFS)</label>
+                        </div>
+                        <div class="dropdown_item">
+                            <label id="dijkstra_btn">Dijkstra's Algorithm</label>
                         </div>
                     </div>
                 </div>
@@ -93,7 +93,17 @@
                 </div>
             </div>
 
-            <div id="preview_section"></div>
+            <div id="preview_section">
+                <div id="algorithm_about_section">
+                    <div id="algorithm_about_close_bar"><img id="alg_about_close" src="./assets/close.svg"></div>
+                    <h1 id="algorithm_name">Tester</h1>
+                    <div id="step_buttons">
+                        <button id="step_forward" class="step_btn">&leftarrow;</button>
+                        <button id="play_pause" class="step_btn"></button>
+                        <button id="step_backward" class="step_btn">&rightarrow;</button>
+                    </div>
+                </div>
+            </div>
 
             <div id="adj_box">
                 <div id="adj_list_box"><h1>Adj List [placeholder]</h1></div>

@@ -4,7 +4,7 @@ var adjList;
 // Uses the graph's adjacency list to perform.
 // Given the node ID for the start of the search, will prepare necessary vars
 // before calling recursive function to perform search.
-export function DFS(start_node_id, adj_list) {
+export async function DFS(start_node_id, adj_list) {
     adjList = adj_list;
 
     // Initialized visited dictionary to all false except for start node
@@ -23,12 +23,12 @@ export function DFS(start_node_id, adj_list) {
     let path = [];
 
     // Begin algorithm by visiting the start node
-    [visited, path] = visit(start_node_id, visited, path);
+    [visited, path] = await visit(start_node_id, visited, path);
     console.log(path);
 }
 
-function visit(node_id, visited, path) {
-    // document.getElementById(node_id).classList.add("visited");
+async function visit(node_id, visited, path) {
+    document.getElementById(node_id).classList.add("visited");
     path.push(node_id);
 
     // Mark all adjacencies that have not yet been visited as visited and put in stack
@@ -44,8 +44,19 @@ function visit(node_id, visited, path) {
     stack = stack.sort();
     for (let i = 0; i < stack.length; i++) {
         let to_visit = stack[i];
-            [visited, path] = visit(to_visit, visited, path);
+            await sleep(1000);
+            [visited, path] = await visit(to_visit, visited, path);
     }
 
     return [visited, path];
+}
+
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+function waitForClick(button_id) {
+    return new Promise(resolve => {
+        document.getElementById(button_id).addEventListener("click", resolve, { once: true });
+    });
 }

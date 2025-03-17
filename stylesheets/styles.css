@@ -48,13 +48,14 @@ body {
     flex-direction: column;
     justify-content: end;
     z-index: 98;
-    border: 1px solid black;
 }
 
 #adj_list_box, #adj_matrix_box {
     width: 100%;
     height: fit-content;
     background-color: rgba(255, 255, 255, 0.616);
+    border-top: 1px solid black;
+    border-right: 1px solid black;
 }
 
 #adj_list_box {
@@ -122,6 +123,11 @@ body {
 
 .visited {
     background-color: goldenrod;
+}
+
+.algorithmStartNode {
+    outline: 8px solid lime;
+    outline-offset: 0px;
 }
 
 /* Edge, Weight, and Arrow Styles */
@@ -220,4 +226,62 @@ body {
 }
 .prompt_btn:hover {
     cursor: pointer;
+}
+
+/* ALGORITHM ABOUT SECTION */
+#algorithm_about_section {
+    width: 400px;
+    height: 100%;
+    position: absolute;
+    left: -401px;
+    z-index: 98;
+    box-sizing: border-box;
+    /* background-color: rgba(0, 0, 0, 0.685); */
+    background-color: rgb(238, 238, 238);
+    border-right: 1px solid black;
+    transition: left 0.3s ease-in-out;
+}
+
+#algorithm_about_close_bar {
+    height: 40px;
+    padding: 5px;
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+    align-items: center;
+    box-sizing: border-box;
+}
+#algorithm_about_close_bar img {
+    height: 100%;
+    border-radius: 25%;
+}
+#algorithm_about_close_bar img:hover {
+    background-color: lightgray;
+    cursor: pointer;
+}
+
+#algorithm_name {
+    display: block;
+    color: black;
+    text-align: center;
+}
+
+#step_buttons {
+    display: block;
+    height: fit-content;
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+}
+.step_btn {
+    height: 30px;
+    aspect-ratio: 2/1;
+    font-size: 20pt;
+    line-height: 30px;
+}
+#play_pause {
+    background-image: url("/assets/play.svg");
+    background-size: auto 80%;
+    background-position: center;
+    background-repeat: no-repeat;
 }

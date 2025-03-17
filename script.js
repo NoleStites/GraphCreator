@@ -1093,6 +1093,72 @@ function toggleWeights() {
     }
 }
 
+// Toggles the about info panel for the algorithms. On: true, Off: false
+// Called by the algorithm buttons
+let algorithm;
+function toggleAlgorithmAboutsection(algorithm_choice, on_off) {
+    let about_section = document.getElementById("algorithm_about_section");
+    if (!on_off) {
+        about_section.style.left = "-401px";
+        return;
+    }
+
+    algorithm = algorithm_choice;
+    let info_presets = {
+        "dfs": {
+            "title": "Depth-First Search (DFS)",
+            "About": ""
+        },
+        "bfs": {
+            "title": "Breadth-First Search (BFS)",
+            "About": ""
+        },
+        "dijkstra": {
+            "title": "Dijkstra's Algorithm",
+            "About": ""
+        }
+    }
+    
+    // Set contents of about section to match chosen algorithm
+    document.getElementById("algorithm_name").innerHTML = info_presets[algorithm_choice]["title"];
+
+    // Reveal the about section
+    about_section.style.left = "0px";
+}
+
+// A click event to be applied to nodes for algorithms
+// Records selected node as start of an algorithm
+// Toggles to selected node
+function selectNodeforStart(event) {
+    start_node = event.target.id;
+    applyClassOnNodes("algorithmStartNode", false);
+    event.target.classList.add("algorithmStartNode");
+}
+
+function playPauseAlgorithm() {
+
+}
+
+
+let start_node;
+function enterDFS() {
+    toggleAlgorithmAboutsection("dfs", true);
+    applyClickEventOnNodes(standardNodeSelect, false);
+    applyClickEventOnNodes(selectNodeforStart, true);
+
+    // TODO: let user select start node
+    applyClickEventOnNodes
+    let start_node_id = "node1";
+    // DFS(start_node_id, userGraph.adjList); // Imported function
+}
+
+function enterBFS() {
+    toggleAlgorithmAboutsection("bfs", true);
+}
+
+function enterDijkstra() {
+    toggleAlgorithmAboutsection("dijkstra", true);
+}
 
 
 
@@ -1140,14 +1206,13 @@ document.getElementById("adj_matrix_checkbox").checked = false;
 document.getElementById("adj_list_checkbox").checked = false;
 
 // Algorithms
-function enterDFS() {
-    // TODO: let user select start node
-    let start_node_id = "node1";
-    DFS(start_node_id, userGraph.adjList); // Imported function
-}
 document.getElementById("dfs_btn").addEventListener("click", enterDFS);
+document.getElementById("bfs_btn").addEventListener("click", enterBFS);
+document.getElementById("dijkstra_btn").addEventListener("click", enterDijkstra);
 
-
+// Algorithm About Section
+document.getElementById("alg_about_close").addEventListener("click", function () {toggleAlgorithmAboutsection("", false)});
+document.getElementById("play_pause").addEventListener("click", playPauseAlgorithm);
 
 // Import necessary styles from stylesheet
 const css_styles = getComputedStyle(document.documentElement); // Or any specific element
