@@ -2,7 +2,7 @@
     --node-size: 100px;
     --node-z-index: 3;
     --edge-thickness: 5px;
-    --edge-color: purple;
+    --edge-color: rgb(34, 34, 34);
     --weight-label-opacity: 0;
     --arrow-width-factor: 5;
     --arrow-width: calc(var(--edge-thickness)*var(--arrow-width-factor));
@@ -23,37 +23,11 @@ body {
     width: 100%;
     height: 100%;
     display: flex;
-    flex-direction: row;
+    flex-direction: column;
     position: relative;
 }
 
-#side_panel {
-    width: 25%;
-    height: 100%;
-    border-right: 2px solid black;
-    background-color: lightgray;
-    position: relative;
-}
-#side_panel_mask {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.699);
-    z-index: 2;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    display: none;
-}
-#mask_text {
-    color: white;
-    background-color: black;
-    border-radius: 5px;
-    font-size: 20pt;
-    padding: 20px;
-    box-shadow: 0 0 3px 0 white;
-}
-
+/* PREVIEW SECTION STYLES */
 #preview_section {
     width: 100%;
     height: 100%;
@@ -64,55 +38,30 @@ body {
     background-size: 50px 50px;
 }
 
-/* side Panel Styles */
-#side_panel_heading {
-    width: 100%;
-    font-size: 30pt;
-    text-align: center;
-    padding: 10px 0px;
-    background-color: rgb(194, 194, 194);
-    border-bottom: 1px solid black;
+/* ADJACENCY MATRIX AND LIST STYLES */
+#adj_box {
+    width: 400px;
+    height: fit-content;
+    position: absolute;
+    bottom: 0%;
+    display: flex;
+    flex-direction: column;
+    justify-content: end;
+    z-index: 98;
+    border: 1px solid black;
 }
 
-#btn_box {
+#adj_list_box, #adj_matrix_box {
     width: 100%;
     height: fit-content;
-    padding: 20px;
-    box-sizing: border-box;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 10px;
+    background-color: rgba(255, 255, 255, 0.616);
 }
 
-.ctrl_btn {
-    border-radius: 5px;
-    border: 1px solid black;
-    text-align: center;
-}
-.ctrl_btn:hover {
-    background-color: yellow;
-    cursor: pointer;
+#adj_list_box {
+    display: none;
 }
 
-#create_node_btn, #delete_node_btn {
-    width: 50px;
-    line-height: 50px;
-    aspect-ratio: 1/1;
-    font-size: 30pt;
-}
-
-#create_edge_btn, #export_btn, #import_btn {
-    font-size: 25pt;
-    padding: 10px;
-}
-
-#node_info_section {
-    width: 100%;
-    height: auto;
-    padding: 10px;
-    box-sizing: border-box;
+#adj_matrix_box {
     display: none;
 }
 
@@ -124,31 +73,21 @@ body {
     border-spacing: 0px;
     font-size: 20pt;
 }
-th {
+#adj_matrix th {
     color: black;
+    text-align: center;
 }
-td {
+#adj_matrix td {
     background-color: rgb(78, 78, 78);
     color: white;
     border: 1px solid black;
 }
 
-fieldset {
-    padding: 10px;
-}
-legend {
-    font-size: 18pt;
-    font-weight: bold;
-}
-label {
-    font-size: 16pt;
-}
-
-/* Preview Section Styles */
+/* Node Styles */
 .node {
     width: var(--node-size);
     aspect-ratio: 1/1;
-    background-color: rgb(231, 186, 231);
+    background-color: rgb(204, 204, 204);
     border: 2px solid var(--edge-color);
     border-radius: 50%;
     position: absolute;
@@ -166,22 +105,6 @@ label {
     cursor: move;
 }
 
-.edge {
-    /* background-color: var(--edge-color); */
-    position: absolute;
-    height: var(--edge-thickness);
-    z-index: 1;
-    transform-origin: center;
-}
-
-.edge_mask {
-    height: 100%;
-    z-index: 2;
-    position: relative;
-    background-color: var(--edge-color);
-    border-right: 1px solid var(--edge-color); /* To remove tiny, impure space between edge end and arrow start */
-}
-
 /* Style applied to the start node of edge creation */
 .create_edge_start {
     box-shadow: 0px 0px 3px 3px green;
@@ -195,6 +118,26 @@ label {
 /* Style applied to each node when delete mode is activated */
 .delete_node {
     box-shadow: 0px 0px 3px 3px red;
+}
+
+.visited {
+    background-color: goldenrod;
+}
+
+/* Edge, Weight, and Arrow Styles */
+.edge {
+    position: absolute;
+    height: var(--edge-thickness);
+    z-index: 1;
+    transform-origin: center;
+}
+
+.edge_mask {
+    height: 100%;
+    z-index: 2;
+    position: relative;
+    background-color: var(--edge-color);
+    border-right: 1px solid var(--edge-color); /* To remove tiny, impure space between edge end and arrow start */
 }
 
 .weight_label {
