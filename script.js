@@ -1,4 +1,3 @@
-import { DFS } from './dfs.js'
 
 class AdjacencyList {
     constructor() {
@@ -1095,15 +1094,10 @@ function toggleWeights() {
 // Toggles the about info panel for the algorithms. On: true, Off: false
 // Called by the algorithm buttons
 let algorithm;
-function toggleAlgorithmAboutsection(algorithm_choice, on_off) {
+function toggleAlgorithmAboutSection(algorithm_choice, on_off) {
     let about_section = document.getElementById("algorithm_about_section");
     if (!on_off) {
         about_section.style.left = "-401px";
-        // Remove necessary classes and event listeners from nodes
-        applyClassOnNodes("visited", false);
-        applyClassOnNodes("algorithmStartNode", false);
-        applyClickEventOnNodes(standardNodeSelect, true);
-        applyClickEventOnNodes(selectNodeforStart, false);
         return;
     }
 
@@ -1133,42 +1127,173 @@ function toggleAlgorithmAboutsection(algorithm_choice, on_off) {
 // A click event to be applied to nodes for algorithms
 // Records selected node as start of an algorithm
 // Toggles to selected node
+let start_node_id = null;
 function selectNodeforStart(event) {
     start_node_id = event.target.id;
     applyClassOnNodes("algorithmStartNode", false);
     event.target.classList.add("algorithmStartNode");
 }
 
-let isPlaying = false;
-function playPauseAlgorithm() {
+// The following function will toggle the play button visuals and boolean variable for playing
+var isPlaying = false;
+function togglePlayButton() {
+    isPlaying = isPlaying ? false : true;
+
+    // Change play/pause symbol
+    let btn = document.getElementById("play_pause");
     if (isPlaying) {
-        isPlaying = false;
-    }
+        btn.style.backgroundImage = "url(\"/assets/pause.svg\")";
+    } 
     else {
-        if (start_node_id === null) {return;}
-        isPlaying = true;
-        document.getElementById("play_pause").removeEventListener("click", playPauseAlgorithm);
-        DFS(start_node_id, userGraph.adjList); // Imported function
+        btn.style.backgroundImage = "url(\"/assets/play.svg\")";
+        checkInterval = 1000;
     }
 }
 
+// All functionality when an algorithm button is selected
+var chosen_algorithm;
+function openAlgorithm(algorithm_choice) {
+    chosen_algorithm = algorithm_choice;
+    toggleAlgorithmAboutSection(algorithm_choice, true);
+}
 
-let start_node_id = null;
-function enterDFS() {
-    toggleAlgorithmAboutsection("dfs", true);
+// All functionality required when the little 'x' is clicked
+function closeAlgorithm() {
+    toggleAlgorithmAboutSection("", false);
+    if (isPlaying) {togglePlayButton();}
+
+    // Remove necessary classes and event listeners from nodes
+    applyClassOnNodes("visited", false);
+    applyClassOnNodes("algorithmStartNode", false);
+    applyClickEventOnNodes(standardNodeSelect, true);
+    applyClickEventOnNodes(selectNodeforStart, false);
+    start_node_id = null;
+}
+
+// Handles logic for choosing a start node for the selected algorithm
+function allowStartNodeSelection() {
+    toggleButtonPanelMaskOn("Select a node. \"ESC\" to finish.");
+    document.addEventListener("keydown", keydown); // Listen for ESC
     applyClickEventOnNodes(standardNodeSelect, false);
     applyClickEventOnNodes(selectNodeforStart, true);
 
-    // let start_node_id = "node1";
-    // DFS(start_node_id, userGraph.adjList); // Imported function
+    // Listen for cancel "ESC"
+    function keydown(event) {
+        if (event.key === "Escape") {
+            toggleButtonPanelMaskOff();
+            document.removeEventListener("keydown", keydown);
+            applyClickEventOnNodes(standardNodeSelect, true);
+            applyClickEventOnNodes(selectNodeforStart, false);
+        }
+    }
 }
 
-function enterBFS() {
-    toggleAlgorithmAboutsection("bfs", true);
+function runAlgorithm() {
+    switch (chosen_algorithm) {
+        case "dfs":
+            DFS(start_node_id);
+            break;
+    }
 }
 
-function enterDijkstra() {
-    toggleAlgorithmAboutsection("dijkstra", true);
+var controller = new AbortController();
+function resetAlgorithm() {
+    controller.abort();
+    // Remove necessary classes and event listeners from nodes
+    applyClassOnNodes("visited", false);
+    applyClassOnNodes("algorithmStartNode", false);
+    start_node_id = null;
+}
+
+// var controller = new AbortController();
+// var signal = controller.signal;
+
+// Step/play logic
+var checkInterval = 1000; // Play speed
+async function waitForCondition(condFunction) {
+    // signal.throwIfAborted();
+    return new Promise(resolve => {
+        const interval = setInterval(() => {
+            if (condFunction()) {
+                clearInterval(interval);
+                resolve();
+            }
+        }, checkInterval);
+    });
+}
+
+// The condition for continuing the playback/simulation of the algorithm
+// Only continues when true is returned
+var doStep = false;
+function conditionFunction() {
+    let result = isPlaying || doStep; // Continue playing if the play button is pressed or the desire to step exists
+
+    // Reset step boolean if necessary
+    doStep = false;
+
+    return result;
+}
+
+// Entry point to the algorithm.
+// Uses the graph's adjacency list to perform.
+// Given the node ID for the start of the search, will prepare necessary vars
+// before calling recursive function to perform search.
+async function DFS(start_node_id) {
+    controller = new AbortController();
+    const signal = controller.signal;
+
+    // Initialized visited dictionary to all false except for start node
+    let node_ids = userGraph.adjList.getKeys();
+    let visited = {};
+    for (let i = 0; i < node_ids.length; i++) {
+        if (node_ids[i] === start_node_id) {
+            visited[node_ids[i]] = true;
+        }
+        else {
+            visited[node_ids[i]] = false;
+        }
+    }
+
+    // Initialize search path array
+    let path = [];
+
+    // Begin algorithm by visiting the start node
+    try {
+        [visited, path] = await visit(signal, start_node_id, visited, path);
+        console.log(path);
+    } catch (err) {
+        console.log("Error on line ", err.lineNumber, ": ", err.message);
+    }
+}
+
+// DFS recursive helper
+async function visit(signal, node_id, visited, path) {
+    if (signal.aborted) {
+        throw new Error("Operation aborted");
+    }
+
+    document.getElementById(node_id).classList.add("visited");
+    path.push(node_id);
+
+    // Mark all adjacencies that have not yet been visited as visited and put in stack
+    let stack = [];
+    let adjs = userGraph.adjList.getAdjacencies(node_id); 
+    for (let i = 0; i < adjs.length; i++) {
+        if (!visited[adjs[i]]) {
+            stack.push(adjs[i]);
+            visited[adjs[i]] = true;
+        }
+    }
+    // Recursively visit each adj node in stack
+    stack = stack.sort();
+    for (let i = 0; i < stack.length; i++) {
+        let to_visit = stack[i];
+            // signal.throwIfAborted();
+            await waitForCondition(conditionFunction);
+            [visited, path] = await visit(signal, to_visit, visited, path);
+    }
+
+    return [visited, path];
 }
 
 
@@ -1217,13 +1342,22 @@ document.getElementById("adj_matrix_checkbox").checked = false;
 document.getElementById("adj_list_checkbox").checked = false;
 
 // Algorithms
-document.getElementById("dfs_btn").addEventListener("click", enterDFS);
-document.getElementById("bfs_btn").addEventListener("click", enterBFS);
-document.getElementById("dijkstra_btn").addEventListener("click", enterDijkstra);
+document.getElementById("dfs_btn").addEventListener("click", function () {openAlgorithm("dfs");});
+document.getElementById("bfs_btn").addEventListener("click", function () {openAlgorithm("bfs");});
+document.getElementById("dijkstra_btn").addEventListener("click", function () {openAlgorithm("dijkstra");});
 
 // Algorithm About Section
-document.getElementById("alg_about_close").addEventListener("click", function () {toggleAlgorithmAboutsection("", false)});
-document.getElementById("play_pause").addEventListener("click", playPauseAlgorithm);
+document.getElementById("alg_about_close").addEventListener("click", closeAlgorithm);
+document.getElementById("start_node_select_btn").addEventListener("click", allowStartNodeSelection);
+document.getElementById("start_algorithm_btn").addEventListener("click", runAlgorithm);
+document.getElementById("reset_algorithm").addEventListener("click", resetAlgorithm);
+document.getElementById("play_pause").addEventListener("click", togglePlayButton);
+document.getElementById("step_forward").addEventListener("click", function () {
+    // When stepping forward, stop the play button if on and toggle doStep var
+    if (isPlaying) {togglePlayButton();}
+    checkInterval = 0;
+    doStep = true;
+});
 
 // Import necessary styles from stylesheet
 const css_styles = getComputedStyle(document.documentElement); // Or any specific element

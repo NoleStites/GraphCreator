@@ -237,7 +237,7 @@ body {
     z-index: 98;
     box-sizing: border-box;
     /* background-color: rgba(0, 0, 0, 0.685); */
-    background-color: rgb(238, 238, 238);
+    background-color: rgba(238, 238, 238, 0.527);
     border-right: 1px solid black;
     transition: left 0.3s ease-in-out;
 }
