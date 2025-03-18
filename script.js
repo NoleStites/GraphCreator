@@ -1099,6 +1099,11 @@ function toggleAlgorithmAboutsection(algorithm_choice, on_off) {
     let about_section = document.getElementById("algorithm_about_section");
     if (!on_off) {
         about_section.style.left = "-401px";
+        // Remove necessary classes and event listeners from nodes
+        applyClassOnNodes("visited", false);
+        applyClassOnNodes("algorithmStartNode", false);
+        applyClickEventOnNodes(standardNodeSelect, true);
+        applyClickEventOnNodes(selectNodeforStart, false);
         return;
     }
 

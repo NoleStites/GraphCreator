@@ -1,7 +1,10 @@
 var adjList;
-
 var isPlaying = false;
-document.getElementById("play_pause").addEventListener("click", function () {
+var doStep = false;
+var checkInterval = 1000; // Play speed
+
+// The following function will toggle the play button visuals and boolean variable for playing
+function togglePlayButton() {
     isPlaying = isPlaying ? false : true;
 
     // Change play/pause symbol
@@ -11,8 +14,39 @@ document.getElementById("play_pause").addEventListener("click", function () {
     } 
     else {
         btn.style.backgroundImage = "url(\"/assets/play.svg\")";
+        checkInterval = 1000;
     }
+}
+
+document.getElementById("play_pause").addEventListener("click", togglePlayButton);
+document.getElementById("step_forward").addEventListener("click", function () {
+    // When stepping forward, stop the play button if on and toggle doStep var
+    if (isPlaying) {togglePlayButton();}
+    checkInterval = 0;
+    doStep = true;
 });
+
+async function waitForCondition(condFunction) {
+    return new Promise(resolve => {
+        const interval = setInterval(() => {
+            if (condFunction()) {
+                clearInterval(interval);
+                resolve();
+            }
+        }, checkInterval);
+    });
+}
+
+// The condition for continuing the playback/simulation of the algorithm
+// Only continues when true is returned
+function conditionFunction() {
+    let result = isPlaying || doStep; // Continue playing if the play button is pressed or the desire to step exists
+
+    // Reset step boolean if necessary
+    doStep = false;
+
+    return result;
+}
 
 // Entry point to the algorithm.
 // Uses the graph's adjacency list to perform.
@@ -58,32 +92,9 @@ async function visit(node_id, visited, path) {
     stack = stack.sort();
     for (let i = 0; i < stack.length; i++) {
         let to_visit = stack[i];
-            // await sleep(1000);
-            await waitForCondition(() => isPlaying);
+            await waitForCondition(conditionFunction);
             [visited, path] = await visit(to_visit, visited, path);
     }
 
     return [visited, path];
-}
-
-let doContinue = false;
-async function waitForCondition(conditionFunction, checkInterval = 1000) {
-    return new Promise(resolve => {
-        const interval = setInterval(() => {
-            if (conditionFunction()) {
-                clearInterval(interval);
-                resolve();
-            }
-        }, checkInterval);
-    });
-}
-
-function sleep(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-}
-
-function waitForClick(button_id) {
-    return new Promise(resolve => {
-        document.getElementById(button_id).addEventListener("click", resolve, { once: true });
-    });
 }
