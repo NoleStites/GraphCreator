@@ -1137,17 +1137,24 @@ function selectNodeforStart(event) {
 // The following function will toggle the play button visuals and boolean variable for playing
 var isPlaying = false;
 function togglePlayButton() {
-    isPlaying = isPlaying ? false : true;
-
     // Change play/pause symbol
     let btn = document.getElementById("play_pause");
-    if (isPlaying) {
+    if (!isPlaying) {
         btn.style.backgroundImage = "url(\"/assets/pause.svg\")";
+        checkInterval = playSpeed;
     } 
     else {
         btn.style.backgroundImage = "url(\"/assets/play.svg\")";
-        checkInterval = 1000;
+        doStep = false;
     }
+    isPlaying = isPlaying ? false : true;
+}
+
+function toggleStepHandling() {
+    // When stepping forward, stop the play button if on and toggle doStep var
+    if (isPlaying) {togglePlayButton();}
+    checkInterval = 0;
+    doStep = true;
 }
 
 // All functionality when an algorithm button is selected
@@ -1203,15 +1210,16 @@ function resetAlgorithm() {
     applyClassOnNodes("visited", false);
     applyClassOnNodes("algorithmStartNode", false);
     start_node_id = null;
+    if (isPlaying) {togglePlayButton();}
 }
 
 // var controller = new AbortController();
 // var signal = controller.signal;
 
 // Step/play logic
-var checkInterval = 1000; // Play speed
+const playSpeed = 3000;
+var checkInterval = playSpeed; // Animation speed
 async function waitForCondition(condFunction) {
-    // signal.throwIfAborted();
     return new Promise(resolve => {
         const interval = setInterval(() => {
             if (condFunction()) {
@@ -1288,7 +1296,6 @@ async function visit(signal, node_id, visited, path) {
     stack = stack.sort();
     for (let i = 0; i < stack.length; i++) {
         let to_visit = stack[i];
-            // signal.throwIfAborted();
             await waitForCondition(conditionFunction);
             [visited, path] = await visit(signal, to_visit, visited, path);
     }
@@ -1352,12 +1359,7 @@ document.getElementById("start_node_select_btn").addEventListener("click", allow
 document.getElementById("start_algorithm_btn").addEventListener("click", runAlgorithm);
 document.getElementById("reset_algorithm").addEventListener("click", resetAlgorithm);
 document.getElementById("play_pause").addEventListener("click", togglePlayButton);
-document.getElementById("step_forward").addEventListener("click", function () {
-    // When stepping forward, stop the play button if on and toggle doStep var
-    if (isPlaying) {togglePlayButton();}
-    checkInterval = 0;
-    doStep = true;
-});
+document.getElementById("step_forward").addEventListener("click", toggleStepHandling);
 
 // Import necessary styles from stylesheet
 const css_styles = getComputedStyle(document.documentElement); // Or any specific element
