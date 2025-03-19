@@ -96,14 +96,24 @@
             <div id="preview_section">
                 <div id="algorithm_about_section">
                     <div id="algorithm_about_close_bar"><img id="alg_about_close" src="./assets/close.svg"></div>
-                    <h1 id="algorithm_name">Tester</h1>
-                    <button id="start_node_select_btn">Select Start Node</button>
-                    <button id="start_algorithm_btn">Run Algorithm</button>
+                    <h1 id="algorithm_name"></h1>
+                    <div class="horizontal_divider_outside"><div class="horizontal_divider"></div></div>
+                    <p id="algorithm_about_text"></p>
+                    <div class="horizontal_divider_outside"><div class="horizontal_divider"></div></div>
+                    <div id="pre_alg_btn_box">
+                        <button id="start_node_select_btn" class="pre_alg_btn">Select Start Node</button>
+                        <button id="start_algorithm_btn" class="pre_alg_btn" disabled>Run Algorithm</button>
+                    </div>
+                    <div class="horizontal_divider_outside"><div class="horizontal_divider"></div></div>
                     <div id="step_buttons">
-                        <button id="step_backward" class="step_btn">&leftarrow;</button>
+                        <button id="step_backward" class="step_btn"></button>
+                        <button id="reset_algorithm" class="step_btn"></button>
                         <button id="play_pause" class="step_btn"></button>
-                        <button id="step_forward" class="step_btn">&rightarrow;</button>
-                        <button id="reset_algorithm" class="step_btn">Reset</button>
+                        <button id="step_forward" class="step_btn"></button>
+                    </div>
+                    <div id="speed_slider_box">
+                        <h3 id="speed_display">Animation Speed:<br><span id="speed_value">1.00</span> steps/second</h3>
+                        <input id="animation_speed" type="range" min="100" max="2000" step="100">
                     </div>
                 </div>
             </div>

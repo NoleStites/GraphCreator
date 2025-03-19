@@ -1105,20 +1105,21 @@ function toggleAlgorithmAboutSection(algorithm_choice, on_off) {
     let info_presets = {
         "dfs": {
             "title": "Depth-First Search (DFS)",
-            "About": ""
+            "about": "In Depth First Search (or DFS) for a graph, we traverse all adjacent vertices one by one. When we traverse an adjacent vertex, we completely finish the traversal of all vertices reachable through that adjacent vertex."
         },
         "bfs": {
             "title": "Breadth-First Search (BFS)",
-            "About": ""
+            "about": ""
         },
         "dijkstra": {
             "title": "Dijkstra's Algorithm",
-            "About": ""
+            "about": ""
         }
     }
     
     // Set contents of about section to match chosen algorithm
     document.getElementById("algorithm_name").innerHTML = info_presets[algorithm_choice]["title"];
+    document.getElementById("algorithm_about_text").innerHTML = info_presets[algorithm_choice]["about"];
 
     // Reveal the about section
     about_section.style.left = "0px";
@@ -1129,9 +1130,16 @@ function toggleAlgorithmAboutSection(algorithm_choice, on_off) {
 // Toggles to selected node
 let start_node_id = null;
 function selectNodeforStart(event) {
+    if (event.target.id === start_node_id) {
+        document.getElementById("start_algorithm_btn").disabled = true;
+        event.target.classList.remove("algorithmStartNode");
+        start_node_id = null;
+        return;
+    }
     start_node_id = event.target.id;
     applyClassOnNodes("algorithmStartNode", false);
     event.target.classList.add("algorithmStartNode");
+    document.getElementById("start_algorithm_btn").disabled = false;
 }
 
 // Handles logic for choosing a start node for the selected algorithm
@@ -1181,16 +1189,15 @@ function togglePlayButton() {
     let btn = document.getElementById("play_pause");
     if (!isPlaying) {
         btn.style.backgroundImage = "url(\"/assets/pause.svg\")";
-        // checkInterval = playSpeed;
     } 
     else {
         btn.style.backgroundImage = "url(\"/assets/play.svg\")";
-        // doStep = false;
     }
 
     // Start/stop the animation
     if (animationInterval === null) {
         animationInterval = setInterval(function() {
+            if (current_step === path.length-1) {togglePlayButton();}
             stepForward();
         }, animationSpeed);
     }
@@ -1200,6 +1207,12 @@ function togglePlayButton() {
     }
     
     isPlaying = isPlaying ? false : true;
+}
+
+function changeAnimationSpeed(event) {
+    let new_speed = event.target.value;
+    animationSpeed = 2100 - new_speed;
+    document.getElementById("speed_value").innerHTML = (animationSpeed / 1000).toFixed(2);
 }
 
 var current_step = -1;
@@ -1243,59 +1256,26 @@ function runAlgorithm() {
         case "dfs":
             [path, nodes_to_visit] = DFS(start_node_id);
             stepForward();
-            // console.log(path);
-            // console.log(nodes_to_visit);
             break;
     }
 }
 
-var controller = new AbortController();
 function resetAlgorithm() {
-    controller.abort();
     // Remove necessary classes and event listeners from nodes
     applyClassOnNodes("visited", false);
+    applyClassOnNodes("to_visit", false);
     applyClassOnNodes("algorithmStartNode", false);
-    start_node_id = null;
+    // start_node_id = null;
+    current_step = -1;
     if (isPlaying) {togglePlayButton();}
-}
-
-// var controller = new AbortController();
-// var signal = controller.signal;
-
-// Step/play logic
-async function waitForCondition(condFunction) {
-    return new Promise(resolve => {
-        const interval = setInterval(() => {
-            if (condFunction()) {
-                clearInterval(interval);
-                resolve();
-            }
-        }, 10);
-    });
-}
-
-// The condition for continuing the playback/simulation of the algorithm
-// Only continues when true is returned
-var doStep = false;
-function conditionFunction() {
-    let result = isPlaying || doStep; // Continue playing if the play button is pressed or the desire to step exists
-
-    // Reset step boolean if necessary
-    doStep = false;
-
-    return result;
 }
 
 // Entry point to the algorithm.
 // Uses the graph's adjacency list to perform.
 // Given the node ID for the start of the search, will prepare necessary vars
 // before calling recursive function to perform search.
-// async function DFS(start_node_id) {
 function DFS(start_node_id) {
-    // controller = new AbortController();
-    // const signal = controller.signal;
-
-    // Initialized visited dictionary to all false except for start node
+    // Initialize visited dictionary to all false except for start node
     let node_ids = userGraph.adjList.getKeys();
     let visited = {};
     for (let i = 0; i < node_ids.length; i++) {
@@ -1310,26 +1290,12 @@ function DFS(start_node_id) {
     let path = []; // An ordered array of the path taken by the algorithm
     let nodes_to_visit = {}; // Maps node IDs to an array of node IDs that they would visit during the algorithm
 
-    // Begin algorithm by visiting the start node
-    // try {
-    //     [visited, path, nodes_to_visit] = await visit(signal, start_node_id, visited, path, nodes_to_visit);
-    //     console.log(path);
-    //     console.log(nodes_to_visit);
-    // } catch (err) {
-    //     console.log("Error on line ", err.lineNumber, ": ", err.message);
-    // }
     [visited, path, nodes_to_visit] = visit(start_node_id, visited, path, nodes_to_visit);
     return [path, nodes_to_visit];
 }
 
 // DFS recursive helper
-// async function visit(signal, node_id, visited, path, nodes_to_visit) {
 function visit(node_id, visited, path, nodes_to_visit) {
-    // if (signal.aborted) {
-    //     throw new Error("Operation aborted");
-    // }
-
-    // document.getElementById(node_id).classList.add("visited");
     path.push(node_id);
     nodes_to_visit[node_id] = []; // Initialize entry to no to-visit adjacencies
 
@@ -1347,8 +1313,6 @@ function visit(node_id, visited, path, nodes_to_visit) {
     stack = stack.sort();
     for (let i = 0; i < stack.length; i++) {
         let to_visit = stack[i];
-            // await waitForCondition(conditionFunction);
-            // [visited, path, nodes_to_visit] = await visit(signal, to_visit, visited, path, nodes_to_visit);
             [visited, path, nodes_to_visit] = visit(to_visit, visited, path, nodes_to_visit);
     }
 
@@ -1409,10 +1373,14 @@ document.getElementById("dijkstra_btn").addEventListener("click", function () {o
 document.getElementById("alg_about_close").addEventListener("click", closeAlgorithm);
 document.getElementById("start_node_select_btn").addEventListener("click", allowStartNodeSelection);
 document.getElementById("start_algorithm_btn").addEventListener("click", runAlgorithm);
+document.getElementById("start_algorithm_btn").disabled = true;
 document.getElementById("reset_algorithm").addEventListener("click", resetAlgorithm);
 document.getElementById("play_pause").addEventListener("click", togglePlayButton);
 document.getElementById("step_backward").addEventListener("click", stepBackward);
 document.getElementById("step_forward").addEventListener("click", stepForward);
+document.getElementById("animation_speed").addEventListener("input", changeAnimationSpeed);
+document.getElementById("animation_speed").value = animationSpeed;
+document.getElementById("speed_value").innerHTML = (animationSpeed / 1000).toFixed(2);
 
 // Import necessary styles from stylesheet
 const css_styles = getComputedStyle(document.documentElement); // Or any specific element
