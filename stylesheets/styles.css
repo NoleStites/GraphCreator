@@ -124,6 +124,9 @@ body {
 .visited {
     background-color: goldenrod;
 }
+.to_visit {
+    outline: 3px solid goldenrod;
+}
 
 .algorithmStartNode {
     outline: 8px solid lime;

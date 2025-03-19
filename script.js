@@ -1134,27 +1134,22 @@ function selectNodeforStart(event) {
     event.target.classList.add("algorithmStartNode");
 }
 
-// The following function will toggle the play button visuals and boolean variable for playing
-var isPlaying = false;
-function togglePlayButton() {
-    // Change play/pause symbol
-    let btn = document.getElementById("play_pause");
-    if (!isPlaying) {
-        btn.style.backgroundImage = "url(\"/assets/pause.svg\")";
-        checkInterval = playSpeed;
-    } 
-    else {
-        btn.style.backgroundImage = "url(\"/assets/play.svg\")";
-        doStep = false;
-    }
-    isPlaying = isPlaying ? false : true;
-}
+// Handles logic for choosing a start node for the selected algorithm
+function allowStartNodeSelection() {
+    toggleButtonPanelMaskOn("Select a node. \"ESC\" to finish.");
+    document.addEventListener("keydown", keydown); // Listen for ESC
+    applyClickEventOnNodes(standardNodeSelect, false);
+    applyClickEventOnNodes(selectNodeforStart, true);
 
-function toggleStepHandling() {
-    // When stepping forward, stop the play button if on and toggle doStep var
-    if (isPlaying) {togglePlayButton();}
-    checkInterval = 0;
-    doStep = true;
+    // Listen for cancel "ESC"
+    function keydown(event) {
+        if (event.key === "Escape") {
+            toggleButtonPanelMaskOff();
+            document.removeEventListener("keydown", keydown);
+            applyClickEventOnNodes(standardNodeSelect, true);
+            applyClickEventOnNodes(selectNodeforStart, false);
+        }
+    }
 }
 
 // All functionality when an algorithm button is selected
@@ -1177,28 +1172,79 @@ function closeAlgorithm() {
     start_node_id = null;
 }
 
-// Handles logic for choosing a start node for the selected algorithm
-function allowStartNodeSelection() {
-    toggleButtonPanelMaskOn("Select a node. \"ESC\" to finish.");
-    document.addEventListener("keydown", keydown); // Listen for ESC
-    applyClickEventOnNodes(standardNodeSelect, false);
-    applyClickEventOnNodes(selectNodeforStart, true);
+// The following function will toggle the play button visuals and the animation functionality
+var isPlaying = false;
+var animationInterval = null;
+var animationSpeed = 1000;
+function togglePlayButton() {
+    // Change play/pause symbol
+    let btn = document.getElementById("play_pause");
+    if (!isPlaying) {
+        btn.style.backgroundImage = "url(\"/assets/pause.svg\")";
+        // checkInterval = playSpeed;
+    } 
+    else {
+        btn.style.backgroundImage = "url(\"/assets/play.svg\")";
+        // doStep = false;
+    }
 
-    // Listen for cancel "ESC"
-    function keydown(event) {
-        if (event.key === "Escape") {
-            toggleButtonPanelMaskOff();
-            document.removeEventListener("keydown", keydown);
-            applyClickEventOnNodes(standardNodeSelect, true);
-            applyClickEventOnNodes(selectNodeforStart, false);
-        }
+    // Start/stop the animation
+    if (animationInterval === null) {
+        animationInterval = setInterval(function() {
+            stepForward();
+        }, animationSpeed);
+    }
+    else {
+        clearInterval(animationInterval);
+        animationInterval = null;
+    }
+    
+    isPlaying = isPlaying ? false : true;
+}
+
+var current_step = -1;
+var prev_step;
+function stepBackward() {
+    if (current_step === -1) {return;}
+    prev_step = current_step;
+    current_step--;
+    displayAlgorithmStep(current_step);
+}
+
+function stepForward() {
+    if (current_step === path.length-1) {return;}
+    prev_step = current_step;
+    current_step++;
+    displayAlgorithmStep(current_step);
+}
+
+// Will display the given step in the algorithm's execution
+var path, nodes_to_visit = null;
+function displayAlgorithmStep(step) {
+    applyClassOnNodes("to_visit", false);
+
+    if (current_step < prev_step) { // Backward step
+        document.getElementById(path[prev_step]).classList.remove("visited");
+    }
+    if (step === -1) {return;}
+
+    let visiting_node = path[step];
+    let next_visits = nodes_to_visit[visiting_node];
+    document.getElementById(visiting_node).classList.add("visited");
+    
+    for (let j = 0; j < next_visits.length; j++) {
+        document.getElementById(next_visits[j]).classList.add("to_visit");
     }
 }
 
 function runAlgorithm() {
+    document.getElementById(start_node_id).classList.remove("algorithmStartNode");
     switch (chosen_algorithm) {
         case "dfs":
-            DFS(start_node_id);
+            [path, nodes_to_visit] = DFS(start_node_id);
+            stepForward();
+            // console.log(path);
+            // console.log(nodes_to_visit);
             break;
     }
 }
@@ -1217,8 +1263,6 @@ function resetAlgorithm() {
 // var signal = controller.signal;
 
 // Step/play logic
-const playSpeed = 3000;
-var checkInterval = playSpeed; // Animation speed
 async function waitForCondition(condFunction) {
     return new Promise(resolve => {
         const interval = setInterval(() => {
@@ -1226,7 +1270,7 @@ async function waitForCondition(condFunction) {
                 clearInterval(interval);
                 resolve();
             }
-        }, checkInterval);
+        }, 10);
     });
 }
 
@@ -1246,9 +1290,10 @@ function conditionFunction() {
 // Uses the graph's adjacency list to perform.
 // Given the node ID for the start of the search, will prepare necessary vars
 // before calling recursive function to perform search.
-async function DFS(start_node_id) {
-    controller = new AbortController();
-    const signal = controller.signal;
+// async function DFS(start_node_id) {
+function DFS(start_node_id) {
+    // controller = new AbortController();
+    // const signal = controller.signal;
 
     // Initialized visited dictionary to all false except for start node
     let node_ids = userGraph.adjList.getKeys();
@@ -1262,26 +1307,31 @@ async function DFS(start_node_id) {
         }
     }
 
-    // Initialize search path array
-    let path = [];
+    let path = []; // An ordered array of the path taken by the algorithm
+    let nodes_to_visit = {}; // Maps node IDs to an array of node IDs that they would visit during the algorithm
 
     // Begin algorithm by visiting the start node
-    try {
-        [visited, path] = await visit(signal, start_node_id, visited, path);
-        console.log(path);
-    } catch (err) {
-        console.log("Error on line ", err.lineNumber, ": ", err.message);
-    }
+    // try {
+    //     [visited, path, nodes_to_visit] = await visit(signal, start_node_id, visited, path, nodes_to_visit);
+    //     console.log(path);
+    //     console.log(nodes_to_visit);
+    // } catch (err) {
+    //     console.log("Error on line ", err.lineNumber, ": ", err.message);
+    // }
+    [visited, path, nodes_to_visit] = visit(start_node_id, visited, path, nodes_to_visit);
+    return [path, nodes_to_visit];
 }
 
 // DFS recursive helper
-async function visit(signal, node_id, visited, path) {
-    if (signal.aborted) {
-        throw new Error("Operation aborted");
-    }
+// async function visit(signal, node_id, visited, path, nodes_to_visit) {
+function visit(node_id, visited, path, nodes_to_visit) {
+    // if (signal.aborted) {
+    //     throw new Error("Operation aborted");
+    // }
 
-    document.getElementById(node_id).classList.add("visited");
+    // document.getElementById(node_id).classList.add("visited");
     path.push(node_id);
+    nodes_to_visit[node_id] = []; // Initialize entry to no to-visit adjacencies
 
     // Mark all adjacencies that have not yet been visited as visited and put in stack
     let stack = [];
@@ -1289,6 +1339,7 @@ async function visit(signal, node_id, visited, path) {
     for (let i = 0; i < adjs.length; i++) {
         if (!visited[adjs[i]]) {
             stack.push(adjs[i]);
+            nodes_to_visit[node_id].push(adjs[i]);
             visited[adjs[i]] = true;
         }
     }
@@ -1296,11 +1347,12 @@ async function visit(signal, node_id, visited, path) {
     stack = stack.sort();
     for (let i = 0; i < stack.length; i++) {
         let to_visit = stack[i];
-            await waitForCondition(conditionFunction);
-            [visited, path] = await visit(signal, to_visit, visited, path);
+            // await waitForCondition(conditionFunction);
+            // [visited, path, nodes_to_visit] = await visit(signal, to_visit, visited, path, nodes_to_visit);
+            [visited, path, nodes_to_visit] = visit(to_visit, visited, path, nodes_to_visit);
     }
 
-    return [visited, path];
+    return [visited, path, nodes_to_visit];
 }
 
 
@@ -1359,7 +1411,8 @@ document.getElementById("start_node_select_btn").addEventListener("click", allow
 document.getElementById("start_algorithm_btn").addEventListener("click", runAlgorithm);
 document.getElementById("reset_algorithm").addEventListener("click", resetAlgorithm);
 document.getElementById("play_pause").addEventListener("click", togglePlayButton);
-document.getElementById("step_forward").addEventListener("click", toggleStepHandling);
+document.getElementById("step_backward").addEventListener("click", stepBackward);
+document.getElementById("step_forward").addEventListener("click", stepForward);
 
 // Import necessary styles from stylesheet
 const css_styles = getComputedStyle(document.documentElement); // Or any specific element
