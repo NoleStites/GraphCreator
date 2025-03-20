@@ -408,6 +408,12 @@ class Graph {
         edge_mask.id = `edge_mask_${node_order_id}`;
         new_edge.appendChild(edge_mask);
 
+        // Create edge hitbox
+        let edge_hitbox = document.createElement("div");
+        edge_hitbox.classList.add("edge_hitbox");
+        edge_hitbox.id = `edge_hitbox_${node_order_id}`;
+        new_edge.appendChild(edge_hitbox);
+
         // Create weight label
         let weight = document.createElement("div");
         weight.classList.add("weight_label");

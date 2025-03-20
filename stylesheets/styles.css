@@ -2,6 +2,7 @@
     --node-size: 100px;
     --node-z-index: 3;
     --edge-thickness: 5px;
+    --edge-hitbox-size: 40px;
     --edge-color: rgb(34, 34, 34);
     --weight-label-opacity: 0;
     --arrow-width-factor: 5;
@@ -147,6 +148,17 @@ body {
     position: relative;
     background-color: var(--edge-color);
     border-right: 1px solid var(--edge-color); /* To remove tiny, impure space between edge end and arrow start */
+}
+
+.edge_hitbox {
+    width: 100%;
+    height: var(--edge-hitbox-size);
+    top: calc(var(--edge-thickness)/2 - var(--edge-hitbox-size)/2);
+    position: absolute;
+    z-index: 4;
+}
+.edge_hitbox:hover {
+    background-color: rgba(255, 0, 0, 0.329);
 }
 
 .weight_label {
