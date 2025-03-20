@@ -1,4 +1,3 @@
-import { DFS } from './dfs.js'
 
 class AdjacencyList {
     constructor() {
@@ -985,7 +984,6 @@ document.getElementById("delete_btn").addEventListener("click", function(event) 
     // Prep screen for delete mode
     toggleButtonPanelMaskOn("&quotESC&quot to quit");
     applyClassOnNodes("delete_node", true);
-    // document.getElementById("node_info_section").style.display = "none";
     applyClickEventOnNodes(standardNodeSelect, false);
     applyClickEventOnNodes(deleteOnClick, true);
 
@@ -1003,7 +1001,6 @@ function promptUserYesNo(new_graph_type, message) {
         if (event.target.innerHTML === "Yes") {
             // Reset the screen (delete all nodes, edges, and matrix entries)
             userGraph.changeGraphType(new_graph_type);     
-            num_nodes = 0;
             // toggleInfoPanelOff();
             graph_type = new_graph_type; // "undirected", "directed", ...
             document.getElementById("graph_type_display").innerHTML = graph_type_display_names[graph_type];
@@ -1093,6 +1090,233 @@ function toggleWeights() {
     }
 }
 
+// Toggles the about info panel for the algorithms. On: true, Off: false
+// Called by the algorithm buttons
+let algorithm;
+function toggleAlgorithmAboutSection(algorithm_choice, on_off) {
+    let about_section = document.getElementById("algorithm_about_section");
+    if (!on_off) {
+        about_section.style.left = "-401px";
+        return;
+    }
+
+    algorithm = algorithm_choice;
+    let info_presets = {
+        "dfs": {
+            "title": "Depth-First Search (DFS)",
+            "about": "In Depth First Search (or DFS) for a graph, we traverse all adjacent vertices one by one. When we traverse an adjacent vertex, we completely finish the traversal of all vertices reachable through that adjacent vertex."
+        },
+        "bfs": {
+            "title": "Breadth-First Search (BFS)",
+            "about": ""
+        },
+        "dijkstra": {
+            "title": "Dijkstra's Algorithm",
+            "about": ""
+        }
+    }
+    
+    // Set contents of about section to match chosen algorithm
+    document.getElementById("algorithm_name").innerHTML = info_presets[algorithm_choice]["title"];
+    document.getElementById("algorithm_about_text").innerHTML = info_presets[algorithm_choice]["about"];
+
+    // Reveal the about section
+    about_section.style.left = "0px";
+}
+
+// A click event to be applied to nodes for algorithms
+// Records selected node as start of an algorithm
+// Toggles to selected node
+let start_node_id = null;
+function selectNodeforStart(event) {
+    if (event.target.id === start_node_id) {
+        document.getElementById("start_algorithm_btn").disabled = true;
+        event.target.classList.remove("algorithmStartNode");
+        start_node_id = null;
+        return;
+    }
+    start_node_id = event.target.id;
+    applyClassOnNodes("algorithmStartNode", false);
+    event.target.classList.add("algorithmStartNode");
+    document.getElementById("start_algorithm_btn").disabled = false;
+}
+
+// Handles logic for choosing a start node for the selected algorithm
+function allowStartNodeSelection() {
+    toggleButtonPanelMaskOn("Select a node. \"ESC\" to finish.");
+    document.addEventListener("keydown", keydown); // Listen for ESC
+    applyClickEventOnNodes(standardNodeSelect, false);
+    applyClickEventOnNodes(selectNodeforStart, true);
+
+    // Listen for cancel "ESC"
+    function keydown(event) {
+        if (event.key === "Escape") {
+            toggleButtonPanelMaskOff();
+            document.removeEventListener("keydown", keydown);
+            applyClickEventOnNodes(standardNodeSelect, true);
+            applyClickEventOnNodes(selectNodeforStart, false);
+        }
+    }
+}
+
+// All functionality when an algorithm button is selected
+var chosen_algorithm;
+function openAlgorithm(algorithm_choice) {
+    chosen_algorithm = algorithm_choice;
+    toggleAlgorithmAboutSection(algorithm_choice, true);
+}
+
+// All functionality required when the little 'x' is clicked
+function closeAlgorithm() {
+    toggleAlgorithmAboutSection("", false);
+    if (isPlaying) {togglePlayButton();}
+
+    // Remove necessary classes and event listeners from nodes
+    applyClassOnNodes("visited", false);
+    applyClassOnNodes("algorithmStartNode", false);
+    applyClickEventOnNodes(standardNodeSelect, true);
+    applyClickEventOnNodes(selectNodeforStart, false);
+    start_node_id = null;
+}
+
+// The following function will toggle the play button visuals and the animation functionality
+var isPlaying = false;
+var animationInterval = null;
+var animationSpeed = 1000;
+function togglePlayButton() {
+    // Change play/pause symbol
+    let btn = document.getElementById("play_pause");
+    if (!isPlaying) {
+        btn.style.backgroundImage = "url(\"/assets/pause.svg\")";
+    } 
+    else {
+        btn.style.backgroundImage = "url(\"/assets/play.svg\")";
+    }
+
+    // Start/stop the animation
+    if (animationInterval === null) {
+        animationInterval = setInterval(function() {
+            if (current_step === path.length-1) {togglePlayButton();}
+            stepForward();
+        }, animationSpeed);
+    }
+    else {
+        clearInterval(animationInterval);
+        animationInterval = null;
+    }
+    
+    isPlaying = isPlaying ? false : true;
+}
+
+function changeAnimationSpeed(event) {
+    let new_speed = event.target.value;
+    animationSpeed = 2100 - new_speed;
+    document.getElementById("speed_value").innerHTML = (animationSpeed / 1000).toFixed(2);
+}
+
+var current_step = -1;
+var prev_step;
+function stepBackward() {
+    if (current_step === -1) {return;}
+    prev_step = current_step;
+    current_step--;
+    displayAlgorithmStep(current_step);
+}
+
+function stepForward() {
+    if (current_step === path.length-1) {return;}
+    prev_step = current_step;
+    current_step++;
+    displayAlgorithmStep(current_step);
+}
+
+// Will display the given step in the algorithm's execution
+var path, nodes_to_visit = null;
+function displayAlgorithmStep(step) {
+    applyClassOnNodes("to_visit", false);
+
+    if (current_step < prev_step) { // Backward step
+        document.getElementById(path[prev_step]).classList.remove("visited");
+    }
+    if (step === -1) {return;}
+
+    let visiting_node = path[step];
+    let next_visits = nodes_to_visit[visiting_node];
+    document.getElementById(visiting_node).classList.add("visited");
+    
+    for (let j = 0; j < next_visits.length; j++) {
+        document.getElementById(next_visits[j]).classList.add("to_visit");
+    }
+}
+
+function runAlgorithm() {
+    document.getElementById(start_node_id).classList.remove("algorithmStartNode");
+    switch (chosen_algorithm) {
+        case "dfs":
+            [path, nodes_to_visit] = DFS(start_node_id);
+            stepForward();
+            break;
+    }
+}
+
+function resetAlgorithm() {
+    // Remove necessary classes and event listeners from nodes
+    applyClassOnNodes("visited", false);
+    applyClassOnNodes("to_visit", false);
+    applyClassOnNodes("algorithmStartNode", false);
+    // start_node_id = null;
+    current_step = -1;
+    if (isPlaying) {togglePlayButton();}
+}
+
+// Entry point to the algorithm.
+// Uses the graph's adjacency list to perform.
+// Given the node ID for the start of the search, will prepare necessary vars
+// before calling recursive function to perform search.
+function DFS(start_node_id) {
+    // Initialize visited dictionary to all false except for start node
+    let node_ids = userGraph.adjList.getKeys();
+    let visited = {};
+    for (let i = 0; i < node_ids.length; i++) {
+        if (node_ids[i] === start_node_id) {
+            visited[node_ids[i]] = true;
+        }
+        else {
+            visited[node_ids[i]] = false;
+        }
+    }
+
+    let path = []; // An ordered array of the path taken by the algorithm
+    let nodes_to_visit = {}; // Maps node IDs to an array of node IDs that they would visit during the algorithm
+
+    [visited, path, nodes_to_visit] = visit(start_node_id, visited, path, nodes_to_visit);
+    return [path, nodes_to_visit];
+}
+
+// DFS recursive helper
+function visit(node_id, visited, path, nodes_to_visit) {
+    path.push(node_id);
+    nodes_to_visit[node_id] = []; // Initialize entry to no to-visit adjacencies
+
+    // Mark all adjacencies that have not yet been visited as visited and put in stack
+    let stack = [];
+    let adjs = userGraph.adjList.getAdjacencies(node_id); 
+    for (let i = 0; i < adjs.length; i++) {
+        if (!visited[adjs[i]]) {
+            stack.push(adjs[i]);
+            nodes_to_visit[node_id].push(adjs[i]);
+            visited[adjs[i]] = true;
+        }
+    }
+    // Recursively visit each adj node in stack
+    stack = stack.sort();
+    for (let i = 0; i < stack.length; i++) {
+        let to_visit = stack[i];
+            [visited, path, nodes_to_visit] = visit(to_visit, visited, path, nodes_to_visit);
+    }
+
+    return [visited, path, nodes_to_visit];
+}
 
 
 
@@ -1140,14 +1364,22 @@ document.getElementById("adj_matrix_checkbox").checked = false;
 document.getElementById("adj_list_checkbox").checked = false;
 
 // Algorithms
-function enterDFS() {
-    // TODO: let user select start node
-    let start_node_id = "node1";
-    DFS(start_node_id, userGraph.adjList); // Imported function
-}
-document.getElementById("dfs_btn").addEventListener("click", enterDFS);
+document.getElementById("dfs_btn").addEventListener("click", function () {openAlgorithm("dfs");});
+document.getElementById("bfs_btn").addEventListener("click", function () {openAlgorithm("bfs");});
+document.getElementById("dijkstra_btn").addEventListener("click", function () {openAlgorithm("dijkstra");});
 
-
+// Algorithm About Section
+document.getElementById("alg_about_close").addEventListener("click", closeAlgorithm);
+document.getElementById("start_node_select_btn").addEventListener("click", allowStartNodeSelection);
+document.getElementById("start_algorithm_btn").addEventListener("click", runAlgorithm);
+document.getElementById("start_algorithm_btn").disabled = true;
+document.getElementById("reset_algorithm").addEventListener("click", resetAlgorithm);
+document.getElementById("play_pause").addEventListener("click", togglePlayButton);
+document.getElementById("step_backward").addEventListener("click", stepBackward);
+document.getElementById("step_forward").addEventListener("click", stepForward);
+document.getElementById("animation_speed").addEventListener("input", changeAnimationSpeed);
+document.getElementById("animation_speed").value = animationSpeed;
+document.getElementById("speed_value").innerHTML = (animationSpeed / 1000).toFixed(2);
 
 // Import necessary styles from stylesheet
 const css_styles = getComputedStyle(document.documentElement); // Or any specific element

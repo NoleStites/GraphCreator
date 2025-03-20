@@ -48,13 +48,14 @@ body {
     flex-direction: column;
     justify-content: end;
     z-index: 98;
-    border: 1px solid black;
 }
 
 #adj_list_box, #adj_matrix_box {
     width: 100%;
     height: fit-content;
     background-color: rgba(255, 255, 255, 0.616);
+    border-top: 1px solid black;
+    border-right: 1px solid black;
 }
 
 #adj_list_box {
@@ -122,6 +123,14 @@ body {
 
 .visited {
     background-color: goldenrod;
+}
+.to_visit {
+    outline: 3px solid goldenrod;
+}
+
+.algorithmStartNode {
+    outline: 8px solid lime;
+    outline-offset: 0px;
 }
 
 /* Edge, Weight, and Arrow Styles */
@@ -220,4 +229,123 @@ body {
 }
 .prompt_btn:hover {
     cursor: pointer;
+}
+
+/* ALGORITHM ABOUT SECTION */
+#algorithm_about_section {
+    width: 400px;
+    height: 100%;
+    position: absolute;
+    left: -401px;
+    z-index: 98;
+    padding: 10px;
+    box-sizing: border-box;
+    background-color: rgba(238, 238, 238, 0.527);
+    border-right: 1px solid black;
+    transition: left 0.3s ease-in-out;
+}
+
+#algorithm_about_close_bar {
+    height: 40px;
+    padding: 5px;
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+    align-items: center;
+    box-sizing: border-box;
+}
+#algorithm_about_close_bar img {
+    height: 100%;
+    border-radius: 25%;
+}
+#algorithm_about_close_bar img:hover {
+    background-color: lightgray;
+    cursor: pointer;
+}
+
+#algorithm_name {
+    display: block;
+    color: black;
+    text-align: center;
+}
+
+.horizontal_divider_outside {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 30px;
+}
+.horizontal_divider {
+    width: 50%;
+    height: 0px;
+    box-shadow: 0px 0px 1px 0.3px grey;
+}
+
+#algorithm_about_text {
+    display: block;
+    font-size: 14pt;
+    padding: 0px 10px;
+}
+
+#pre_alg_btn_box {
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+    height: fit-content;
+}
+.pre_alg_btn {
+    font-size: 14pt;
+    padding: 5px;
+}
+
+#step_buttons {
+    display: block;
+    height: fit-content;
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    padding: 20px;
+    box-sizing: border-box;
+}
+.step_btn {
+    height: 40px;
+    aspect-ratio: 2/1;
+    font-size: 20pt;
+    line-height: 30px;
+
+    background-size: auto 80%;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+#step_backward {
+    background-image: url("/assets/left-arrow.svg");
+}
+#reset_algorithm {
+    background-image: url("/assets/reset.svg");
+}
+#play_pause {
+    background-image: url("/assets/play.svg");
+}
+#step_forward {
+    background-image: url("/assets/right-arrow.svg");
+}
+
+#speed_slider_box {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 30px;
+    gap: 20px;
+}
+#algorithm_speed {
+    width: 80%;
+}
+#speed_display {
+    text-align: center;
+    font-size: 12pt;
 }
