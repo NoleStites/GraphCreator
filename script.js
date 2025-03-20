@@ -412,6 +412,9 @@ class Graph {
         let edge_hitbox = document.createElement("div");
         edge_hitbox.classList.add("edge_hitbox");
         edge_hitbox.id = `edge_hitbox_${node_order_id}`;
+        edge_hitbox.addEventListener("click", function() {
+            userGraph.removeEdge(node1.id, node2.id);
+        });
         new_edge.appendChild(edge_hitbox);
 
         // Create weight label
@@ -984,6 +987,7 @@ document.getElementById("delete_btn").addEventListener("click", function(event) 
             applyClassOnNodes("delete_node", false);
             applyClickEventOnNodes(standardNodeSelect, true);
             applyClickEventOnNodes(deleteOnClick, false);
+            cssSetVars.style.setProperty('--edge-hitbox-display', 'none');
         }
     }
     
@@ -992,6 +996,7 @@ document.getElementById("delete_btn").addEventListener("click", function(event) 
     applyClassOnNodes("delete_node", true);
     applyClickEventOnNodes(standardNodeSelect, false);
     applyClickEventOnNodes(deleteOnClick, true);
+    cssSetVars.style.setProperty('--edge-hitbox-display', 'block');
 
     
     document.addEventListener("keydown", keydown);
