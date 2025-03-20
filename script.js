@@ -984,7 +984,6 @@ document.getElementById("delete_btn").addEventListener("click", function(event) 
     // Prep screen for delete mode
     toggleButtonPanelMaskOn("&quotESC&quot to quit");
     applyClassOnNodes("delete_node", true);
-    // document.getElementById("node_info_section").style.display = "none";
     applyClickEventOnNodes(standardNodeSelect, false);
     applyClickEventOnNodes(deleteOnClick, true);
 
