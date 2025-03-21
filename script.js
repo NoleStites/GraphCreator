@@ -867,22 +867,23 @@ document.getElementById("create_edge_btn").addEventListener("click", function(ev
         }
     }
 
-    // What happens when a node is selected for new edge endpoint
-    function selectableForEdge(event) {
-        if (event.shiftKey) { // Selected new start point
-            if  (start_node === null) { // No start mode currently selected
-                toggleOnStartNode(event.target.id);
-            }
-            else if (event.target.id === start_node) { // Toggle off start node
-                toggleOffStartNode(start_node);
-            }
-            else { // Change start node
-                toggleOffStartNode(start_node);
-                toggleOnStartNode(event.target.id);
-            }
-            return;
+    // When node is right-clicked, make into start node
+    function selectableForEdgeStart(event) {
+        event.preventDefault();
+        if  (start_node === null) { // No start mode currently selected
+            toggleOnStartNode(event.target.id);
         }
+        else if (event.target.id === start_node) { // Toggle off start node
+            toggleOffStartNode(start_node);
+        }
+        else { // Change start node
+            toggleOffStartNode(start_node);
+            toggleOnStartNode(event.target.id);
+        }
+    }
 
+    // What happens when a node is selected (left-clicked) for new edge endpoint
+    function selectableForEdgeEnd(event) {
         // BELOW: Left click with no shift (creates edges)
         if (start_node === null || event.target.id === start_node) { // Cannot create edge to self
             return; 
@@ -906,8 +907,11 @@ document.getElementById("create_edge_btn").addEventListener("click", function(ev
             toggleOffStartNode(start_node);
             let nodes = document.getElementsByClassName("node");
             for (let i = 0; i < nodes.length; i++) {
-                nodes[i].removeEventListener("click", selectableForEdge);
+                nodes[i].removeEventListener("click", selectableForEdgeEnd);
+                nodes[i].removeEventListener("contextmenu", selectableForEdgeStart);
                 nodes[i].addEventListener("click", standardNodeSelect);
+                nodes[i].addEventListener("contextmenu", handleNodeRightClick);
+                nodes[i].contentEditable = true;
             }
             document.removeEventListener("keydown", keydown);
             toggleButtonPanelMaskOff();
@@ -919,13 +923,14 @@ document.getElementById("create_edge_btn").addEventListener("click", function(ev
     let start_node = null; // stores the ID of a node
     toggleButtonPanelMaskOn("&quotESC&quot to quit");
 
-    let endpoint_node_ids = [];
-    let latest_edge_preview = null;
     // Allow every node to be selected
     let nodes = document.getElementsByClassName("node");
     for (let i = 0; i < nodes.length; i++) {
-        nodes[i].addEventListener("click", selectableForEdge);
+        nodes[i].addEventListener("click", selectableForEdgeEnd); // Edge end
+        nodes[i].addEventListener("contextmenu", selectableForEdgeStart); // Edge start
         nodes[i].removeEventListener("click", standardNodeSelect);
+        nodes[i].removeEventListener("contextmenu", handleNodeRightClick);
+        nodes[i].contentEditable = false;
     }
     document.addEventListener("keydown", keydown);
 });
