@@ -124,10 +124,10 @@ body {
 }
 
 .visited {
-    background-color: goldenrod;
+    background-color: rgb(43, 139, 14);
 }
-.to_visit {
-    outline: 3px solid goldenrod;
+.next_visit {
+    background-color: goldenrod;
 }
 
 .algorithmStartNode {
@@ -161,6 +161,7 @@ body {
 }
 .edge_hitbox:hover {
     background-color: rgba(255, 0, 0, 0.329);
+    cursor: pointer;
 }
 
 .weight_label {
@@ -314,6 +315,24 @@ body {
 .pre_alg_btn {
     font-size: 14pt;
     padding: 5px;
+}
+
+#path_result {
+    width: 100%;
+    height: 50px;
+    display: block;
+    text-align: center;
+    font-size: 16pt;
+}
+
+.path_unvisited {
+    color: grey;
+}
+.path_visited {
+    color: rgb(43, 139, 14);
+}
+.path_next_visit {
+    color: goldenrod;
 }
 
 #step_buttons {

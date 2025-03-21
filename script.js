@@ -296,6 +296,9 @@ class Graph {
         placed_node.id = node_id;
         placed_node.classList.add(`label_for_${placed_node.id}`);
         placed_node.innerHTML = this.getLetterLabel(this.num_nodes+1);
+        placed_node.addEventListener("input", handleNodeLabelChange);
+        placed_node.addEventListener("contextmenu", handleNodeRightClick);
+        placed_node.contentEditable = true;
         // placed_node.innerHTML = num_nodes-1;
         
         // Enforce upper and lower bounds (keep node in box)
@@ -656,6 +659,21 @@ function handleWeightLabelChange(event) {
     }
 }
 
+// When the label of a node is edited, update all instances of label on webpage
+function handleNodeLabelChange(event) {
+    let label = event.target.innerHTML;
+    let labels = document.getElementsByClassName(`label_for_${event.target.id}`);
+    for (let i = 0; i < labels.length; i++) {
+        if (labels[i].id === event.target.id) {continue;} // Do not update curr node (causes weird bug)
+        labels[i].innerHTML = label;
+    }
+}
+
+// Right click on node
+function handleNodeRightClick(event) {
+    event.preventDefault(); // Prevent standard right-click window to appearing
+}
+
 // Toggles the adjacency matrix visual on/off depending on checkbox value
 function toggleAdjMatrix() {
     let adj_matrix = document.getElementById("adj_matrix_box");
@@ -752,6 +770,7 @@ function dragElement(elmnt) {
     elmnt.onmousedown = dragMouseDown;
 
     function dragMouseDown(e) {
+        if (e.buttons === 2) {return;} // No right-click
         edge_IDs_to_move = getIncomingAndOutgoingEdges(e.target.id);
 
         document.getElementById(e.target.id).style.zIndex = node_zIndex+1; // Resolve issues with cursor detecting different node when on it
@@ -997,7 +1016,6 @@ document.getElementById("delete_btn").addEventListener("click", function(event) 
     applyClickEventOnNodes(standardNodeSelect, false);
     applyClickEventOnNodes(deleteOnClick, true);
     cssSetVars.style.setProperty('--edge-hitbox-display', 'block');
-
     
     document.addEventListener("keydown", keydown);
 });
@@ -1244,7 +1262,7 @@ function stepForward() {
 // Will display the given step in the algorithm's execution
 var path, nodes_to_visit = null;
 function displayAlgorithmStep(step) {
-    applyClassOnNodes("to_visit", false);
+    applyClassOnNodes("next_visit", false);
 
     if (current_step < prev_step) { // Backward step
         document.getElementById(path[prev_step]).classList.remove("visited");
@@ -1252,12 +1270,50 @@ function displayAlgorithmStep(step) {
     if (step === -1) {return;}
 
     let visiting_node = path[step];
-    let next_visits = nodes_to_visit[visiting_node];
     document.getElementById(visiting_node).classList.add("visited");
-    
-    for (let j = 0; j < next_visits.length; j++) {
-        document.getElementById(next_visits[j]).classList.add("to_visit");
+
+    if (step < path.length-1) { // Next to visit (if exists)
+        document.getElementById(path[step+1]).classList.add("next_visit");
     }
+
+    // Edit path result display
+    let path_display = document.getElementById("path_result");
+    path_display.innerHTML = "";
+    requestAnimationFrame(() => {
+    for (let i = 0; i < path.length; i++) {
+        let curr_node = path[i];
+        console.log(curr_node);
+        if (i <= step) {
+            document.getElementById(`path_result_${curr_node}`).classList.add("path_visited");
+        }
+        else if (i === step+1) {
+            document.getElementById(`path_result_${curr_node}`).classList.add("path_next_visit");
+        }
+        else {
+            document.getElementById(`path_result_${curr_node}`).classList.add("path_unvisited");
+        }
+    } 
+    });
+}
+
+// Will create the DOM necessary to show the path taken by the algorithm
+function displayAlgorithmResult(path) {
+    let path_display = document.getElementById("path_result");
+
+    requestAnimationFrame(() => { // Needed to render the new DOM elements below after JS is finished with other tasks
+        for (let i = 0; i < path.length; i++) {
+            let new_span = document.createElement("span");
+            new_span.classList.add("path_unvisited");
+            new_span.id = `path_result_${path[i]}`; // Ex: path_result_node0
+            let label = document.getElementById(path[i]).innerHTML; // Node label
+            new_span.textContent = label;
+            path_display.appendChild(new_span);
+
+            if (i < path.length-1) { // Add arrow between nodes in path display
+                path_display.appendChild(document.createTextNode("→"));
+            }
+        }
+    });
 }
 
 function runAlgorithm() {
@@ -1265,6 +1321,7 @@ function runAlgorithm() {
     switch (chosen_algorithm) {
         case "dfs":
             [path, nodes_to_visit] = DFS(start_node_id);
+            displayAlgorithmResult(path);
             stepForward();
             break;
     }
