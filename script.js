@@ -720,7 +720,7 @@ document.getElementById("create_node_btn").addEventListener("click", function(ev
         document.removeEventListener("keydown", keydown);
         document.removeEventListener("mousemove", mousemove);
         document.getElementById("preview_section").removeEventListener("click", click);
-        toggleButtonPanelMaskOff();
+        toggleBannerOff();
         setNodePointerEvents("all");
         new_node.remove();
     }
@@ -739,7 +739,7 @@ document.getElementById("create_node_btn").addEventListener("click", function(ev
         }
     }
 
-    toggleButtonPanelMaskOn("Click in preview section to place a node. &quotESC&quot to cancel");
+    toggleBannerOn("Click in preview section to place a node. &quotESC&quot to cancel");
 
     // Create and add a new node cursor to the page
     let new_node = document.createElement("div");
@@ -914,14 +914,14 @@ document.getElementById("create_edge_btn").addEventListener("click", function(ev
                 nodes[i].contentEditable = true;
             }
             document.removeEventListener("keydown", keydown);
-            toggleButtonPanelMaskOff();
+            toggleBannerOff();
         }
     }
 
     if (userGraph.num_nodes === 0) {return;}
 
     let start_node = null; // stores the ID of a node
-    toggleButtonPanelMaskOn("&quotESC&quot to quit");
+    toggleBannerOn("&quotESC&quot to quit");
 
     // Allow every node to be selected
     let nodes = document.getElementsByClassName("node");
@@ -971,13 +971,12 @@ function standardNodeSelect(event) {
 }
 
 // Functions for showing and hidding the side panel mask. When toggling on, provide message to display.
-function toggleButtonPanelMaskOff() {
-    document.getElementById("button_panel_mask").style.display = "none";
-    document.getElementById("mask_text").innerHTML = "";
+function toggleBannerOff() {
+    document.getElementById("dropdown_banner").style.top = "-40px";
 }
-function toggleButtonPanelMaskOn(message) {
-    document.getElementById("button_panel_mask").style.display = "flex";
-    document.getElementById("mask_text").innerHTML = message;
+function toggleBannerOn(message) {
+    document.getElementById("banner_text").innerHTML = message;
+    document.getElementById("dropdown_banner").style.top = "0";
 }
 
 // Defines the functionality of deleting when a node is clicked
@@ -1007,7 +1006,7 @@ document.getElementById("delete_btn").addEventListener("click", function(event) 
     // Listen for cancel "ESC"
     function keydown(event) {
         if (event.key === "Escape") {
-            toggleButtonPanelMaskOff();
+            toggleBannerOff();
             applyClassOnNodes("delete_node", false);
             applyClickEventOnNodes(standardNodeSelect, true);
             applyClickEventOnNodes(deleteOnClick, false);
@@ -1016,7 +1015,7 @@ document.getElementById("delete_btn").addEventListener("click", function(event) 
     }
     
     // Prep screen for delete mode
-    toggleButtonPanelMaskOn("&quotESC&quot to quit");
+    toggleBannerOn("&quotESC&quot to quit");
     applyClassOnNodes("delete_node", true);
     applyClickEventOnNodes(standardNodeSelect, false);
     applyClickEventOnNodes(deleteOnClick, true);
@@ -1131,6 +1130,10 @@ function toggleAlgorithmAboutSection(algorithm_choice, on_off) {
     let about_section = document.getElementById("algorithm_about_section");
     if (!on_off) {
         about_section.style.left = "-401px";
+        resetNodeClassesInAlgorithm();
+        document.getElementById("path_result").innerHTML = "";
+        path, nodes_to_visit = null;
+        document.getElementById("start_algorithm_btn").disabled = true;
         return;
     }
 
@@ -1177,7 +1180,7 @@ function selectNodeforStart(event) {
 
 // Handles logic for choosing a start node for the selected algorithm
 function allowStartNodeSelection() {
-    toggleButtonPanelMaskOn("Select a node. \"ESC\" to finish.");
+    toggleBannerOn("Select a node. \"ESC\" to finish.");
     document.addEventListener("keydown", keydown); // Listen for ESC
     applyClickEventOnNodes(standardNodeSelect, false);
     applyClickEventOnNodes(selectNodeforStart, true);
@@ -1185,7 +1188,7 @@ function allowStartNodeSelection() {
     // Listen for cancel "ESC"
     function keydown(event) {
         if (event.key === "Escape") {
-            toggleButtonPanelMaskOff();
+            toggleBannerOff();
             document.removeEventListener("keydown", keydown);
             applyClickEventOnNodes(standardNodeSelect, true);
             applyClickEventOnNodes(selectNodeforStart, false);
@@ -1327,7 +1330,7 @@ function displayAlgorithmResult(path) {
             path_display.appendChild(new_span);
 
             if (i < path.length-1) { // Add arrow between nodes in path display
-                path_display.appendChild(document.createTextNode("→"));
+                path_display.appendChild(document.createTextNode(" → "));
             }
         }
     });
@@ -1344,12 +1347,17 @@ function runAlgorithm() {
     }
 }
 
-function resetAlgorithm() {
-    // Remove necessary classes and event listeners from nodes
+// Removes all algorithm-specific classes from the graph
+function resetNodeClassesInAlgorithm() {
     applyClassOnNodes("visited", false);
     applyClassOnNodes("next_visit", false);
     applyClassOnNodes("to_visit", false);
     applyClassOnNodes("algorithmStartNode", false);
+}
+
+function resetAlgorithm() {
+    // Remove necessary classes and event listeners from nodes
+    resetNodeClassesInAlgorithm();
     resetClassesInPathResult();
     current_step = -2;
     stepForward();

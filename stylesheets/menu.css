@@ -10,6 +10,7 @@
     flex-direction: row;
     justify-content: flex-start;
     align-items: center;
+    position: relative;
 }
 
 .menu_item {
@@ -28,6 +29,24 @@
 
 .no_flex {
     flex: 0 0 fit-content;
+}
+
+#dropdown_banner {
+    width: 100%;
+    height: 40px;
+    position: absolute;
+    top: -40px;
+    background-color: rgba(0, 0, 0, 0.548);
+    z-index: 97;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: top 0.5s;
+}
+#banner_text {
+    width: fit-content;
+    font-size: 15pt;
+    color: white;
 }
 
 #hamburger {
@@ -92,6 +111,7 @@ label {
     box-sizing: border-box;
     visibility: hidden;
     opacity: 0;
+    z-index: 98;
 }
 
 .dropdown_item {
@@ -141,24 +161,4 @@ label {
     background-size: 100% 100%;
     background-repeat: no-repeat;
     background-position: center;
-}
-
-/* Button Panel Mask */
-#button_panel_mask {
-    width: 100%;
-    height: 100%;
-    position: absolute;
-    background-color: rgba(0, 0, 0, 0.479);
-    display: none;
-    flex-direction: row;
-    justify-content: center;
-}
-
-#mask_text {
-    color: white;
-    background-color: black;
-    border-radius: 5px;
-    font-size: 20pt;
-    padding: 20px;
-    box-shadow: 0 0 3px 0 white;
 }
