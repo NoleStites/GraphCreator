@@ -674,6 +674,29 @@ function handleNodeRightClick(event) {
     event.preventDefault(); // Prevent standard right-click window to appearing
 }
 
+// Makes weights editable (true) or uneditable (false)
+function toggleWeightsChangeable(on_off) {
+    let weight_labels = document.getElementsByClassName("weight_label");
+    for (const label of weight_labels) {
+        label.contentEditable = on_off;
+    }
+}
+
+// Disables (false) or enables (true) the graph feature checkboxes
+function toggleAdjItemsDisable(on_off) {
+    document.getElementById("adj_matrix_checkbox").disabled = !on_off;
+    document.getElementById("adj_list_checkbox").disabled = !on_off;
+    document.getElementById("weights_checkbox").disabled = !on_off;
+}
+
+// Called programitcally to hise AdjMatrix and AdjList and automatically unchecks checkboxes
+function toggleAdjItems() {
+    document.getElementById("adj_matrix_checkbox").checked = false;
+    document.getElementById("adj_list_checkbox").checked = false;
+    toggleAdjMatrix();
+    toggleAdjList();
+}
+
 // Toggles the adjacency matrix visual on/off depending on checkbox value
 function toggleAdjMatrix() {
     let adj_matrix = document.getElementById("adj_matrix_box");
@@ -721,6 +744,7 @@ document.getElementById("create_node_btn").addEventListener("click", function(ev
         document.removeEventListener("mousemove", mousemove);
         document.getElementById("preview_section").removeEventListener("click", click);
         toggleBannerOff();
+        toggleButtons(true);
         setNodePointerEvents("all");
         new_node.remove();
     }
@@ -740,6 +764,7 @@ document.getElementById("create_node_btn").addEventListener("click", function(ev
     }
 
     toggleBannerOn("<b class=\"banner_bold\">Left-click:</b> place node | <b class=\"banner_bold\">ESC:</b> finish");
+    toggleButtons(false);
 
     // Create and add a new node cursor to the page
     let new_node = document.createElement("div");
@@ -915,6 +940,7 @@ document.getElementById("create_edge_btn").addEventListener("click", function(ev
             }
             document.removeEventListener("keydown", keydown);
             toggleBannerOff();
+            toggleButtons(true);
         }
     }
 
@@ -922,6 +948,7 @@ document.getElementById("create_edge_btn").addEventListener("click", function(ev
 
     let start_node = null; // stores the ID of a node
     toggleBannerOn("<b class=\"banner_bold\">Right-click:</b> start of edge | <b class=\"banner_bold\">Left-click:</b> end of edge | <b class=\"banner_bold\">ESC:</b> finish");
+    toggleButtons(false);
 
     // Allow every node to be selected
     let nodes = document.getElementsByClassName("node");
@@ -982,12 +1009,10 @@ function toggleButtons(on_off) {
 // Functions for showing and hidding the side panel mask. When toggling on, provide message to display.
 function toggleBannerOff() {
     document.getElementById("dropdown_banner").style.top = "-40px";
-    toggleButtons(true);
 }
 function toggleBannerOn(message) {
     document.getElementById("banner_text").innerHTML = message;
     document.getElementById("dropdown_banner").style.top = "0";
-    toggleButtons(false);
 }
 
 // Defines the functionality of deleting when a node is clicked
@@ -1018,6 +1043,7 @@ document.getElementById("delete_btn").addEventListener("click", function(event) 
     function keydown(event) {
         if (event.key === "Escape") {
             toggleBannerOff();
+            toggleButtons(true);
             applyClassOnNodes("delete_node", false);
             applyClickEventOnNodes(standardNodeSelect, true);
             applyClickEventOnNodes(deleteOnClick, false);
@@ -1027,6 +1053,7 @@ document.getElementById("delete_btn").addEventListener("click", function(event) 
     
     // Prep screen for delete mode
     toggleBannerOn("<b class=\"banner_bold\">Left-click:</b> delete node or edge | <b class=\"banner_bold\">ESC:</b> finish");
+    toggleButtons(false);
     applyClassOnNodes("delete_node", true);
     applyClickEventOnNodes(standardNodeSelect, false);
     applyClickEventOnNodes(deleteOnClick, true);
@@ -1044,8 +1071,8 @@ function promptUserYesNo(new_graph_type, message) {
     function promptButtonClick(event) {
         if (event.target.innerHTML === "Yes") {
             // Reset the screen (delete all nodes, edges, and matrix entries)
-            userGraph.changeGraphType(new_graph_type);     
-            // toggleInfoPanelOff();
+            userGraph.changeGraphType(new_graph_type);    
+            closeAlgorithm(); 
             graph_type = new_graph_type; // "undirected", "directed", ...
             document.getElementById("graph_type_display").innerHTML = graph_type_display_names[graph_type];
             document.getElementById(`${graph_type}_radio`).checked = true;
@@ -1123,6 +1150,7 @@ function exportGraph() {
 // Clears the graph in its entirety
 function clearGraph() {
     userGraph.clearGraph();
+    closeAlgorithm();
 }
 
 function toggleWeights() {
@@ -1139,15 +1167,21 @@ function toggleWeights() {
 let algorithm;
 function toggleAlgorithmAboutSection(algorithm_choice, on_off) {
     let about_section = document.getElementById("algorithm_about_section");
+    
+    // Close panel
     if (!on_off) {
         about_section.style.left = "-401px";
         resetNodeClassesInAlgorithm();
         document.getElementById("path_result").innerHTML = "";
         path, nodes_to_visit = null;
         document.getElementById("start_algorithm_btn").disabled = true;
+        toggleButtons(true);
+        toggleAdjItemsDisable(true);
+        if (document.getElementById("weights_checkbox").checked) { toggleWeightsChangeable(true); }
         return;
     }
 
+    // Open panel (below)
     algorithm = algorithm_choice;
     let info_presets = {
         "dfs": {
@@ -1167,9 +1201,11 @@ function toggleAlgorithmAboutSection(algorithm_choice, on_off) {
     // Set contents of about section to match chosen algorithm
     document.getElementById("algorithm_name").innerHTML = info_presets[algorithm_choice]["title"];
     document.getElementById("algorithm_about_text").innerHTML = info_presets[algorithm_choice]["about"];
-
-    // Reveal the about section
     about_section.style.left = "0px";
+    toggleButtons(false);
+    toggleAdjItems(); // Hide AdjMatrix and AdjList
+    toggleAdjItemsDisable(false);
+    toggleWeightsChangeable(false);
 }
 
 // A click event to be applied to nodes for algorithms
@@ -1192,6 +1228,7 @@ function selectNodeforStart(event) {
 // Handles logic for choosing a start node for the selected algorithm
 function allowStartNodeSelection() {
     toggleBannerOn("<b class=\"banner_bold\">Left-click:</b> start of search | <b class=\"banner_bold\">ESC:</b> finish");
+    toggleButtons(false);
     document.addEventListener("keydown", keydown); // Listen for ESC
     applyClickEventOnNodes(standardNodeSelect, false);
     applyClickEventOnNodes(selectNodeforStart, true);
