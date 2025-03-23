@@ -1245,10 +1245,10 @@ function togglePlayButton() {
 function changeAnimationSpeed(event) {
     let new_speed = event.target.value;
     animationSpeed = 2100 - new_speed;
-    document.getElementById("speed_value").innerHTML = (animationSpeed / 1000).toFixed(2);
+    document.getElementById("speed_value").innerHTML = (new_speed / 1000).toFixed(2);
 }
 
-var current_step = -1;
+var current_step = -2;
 var prev_step;
 function stepBackward() {
     if (current_step === -1) {return;}
@@ -1264,15 +1264,31 @@ function stepForward() {
     displayAlgorithmStep(current_step);
 }
 
+function resetClassesInPathResult() {
+        for (let i = 0; i < path.length; i++) {
+            let curr_node = path[i];
+            document.getElementById(`path_result_${curr_node}`).classList.remove("path_visited");
+            document.getElementById(`path_result_${curr_node}`).classList.remove("path_next_visit");
+            document.getElementById(`path_result_${curr_node}`).classList.remove("path_unvisited");
+            document.getElementById(`path_result_${curr_node}`).classList.add("path_unvisited");
+        } 
+}
+
 // Will display the given step in the algorithm's execution
 var path, nodes_to_visit = null;
 function displayAlgorithmStep(step) {
+    requestAnimationFrame(() => {
     applyClassOnNodes("next_visit", false);
+    resetClassesInPathResult();
 
     if (current_step < prev_step) { // Backward step
         document.getElementById(path[prev_step]).classList.remove("visited");
     }
-    if (step === -1) {return;}
+    if (step === -1) {
+        document.getElementById(path[0]).classList.add("next_visit");
+        document.getElementById(`path_result_${path[0]}`).classList.add("path_next_visit");
+        return;
+    }
 
     let visiting_node = path[step];
     document.getElementById(visiting_node).classList.add("visited");
@@ -1282,12 +1298,8 @@ function displayAlgorithmStep(step) {
     }
 
     // Edit path result display
-    let path_display = document.getElementById("path_result");
-    path_display.innerHTML = "";
-    requestAnimationFrame(() => {
     for (let i = 0; i < path.length; i++) {
         let curr_node = path[i];
-        console.log(curr_node);
         if (i <= step) {
             document.getElementById(`path_result_${curr_node}`).classList.add("path_visited");
         }
@@ -1335,10 +1347,12 @@ function runAlgorithm() {
 function resetAlgorithm() {
     // Remove necessary classes and event listeners from nodes
     applyClassOnNodes("visited", false);
+    applyClassOnNodes("next_visit", false);
     applyClassOnNodes("to_visit", false);
     applyClassOnNodes("algorithmStartNode", false);
-    // start_node_id = null;
-    current_step = -1;
+    resetClassesInPathResult();
+    current_step = -2;
+    stepForward();
     if (isPlaying) {togglePlayButton();}
 }
 
