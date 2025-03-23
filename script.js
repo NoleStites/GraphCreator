@@ -739,7 +739,7 @@ document.getElementById("create_node_btn").addEventListener("click", function(ev
         }
     }
 
-    toggleBannerOn("Click in preview section to place a node. &quotESC&quot to cancel");
+    toggleBannerOn("<b class=\"banner_bold\">Left-click:</b> place node | <b class=\"banner_bold\">ESC:</b> finish");
 
     // Create and add a new node cursor to the page
     let new_node = document.createElement("div");
@@ -921,7 +921,7 @@ document.getElementById("create_edge_btn").addEventListener("click", function(ev
     if (userGraph.num_nodes === 0) {return;}
 
     let start_node = null; // stores the ID of a node
-    toggleBannerOn("&quotESC&quot to quit");
+    toggleBannerOn("<b class=\"banner_bold\">Right-click:</b> start of edge | <b class=\"banner_bold\">Left-click:</b> end of edge | <b class=\"banner_bold\">ESC:</b> finish");
 
     // Allow every node to be selected
     let nodes = document.getElementsByClassName("node");
@@ -970,13 +970,24 @@ function standardNodeSelect(event) {
     return;
 }
 
+// Enable (true) or disable (false) all buttons that a user should not interact with
+function toggleButtons(on_off) {
+    // Disbale graph edit buttons
+    let graph_btns = document.getElementsByClassName("graph_btn");
+    for (const btn of graph_btns) {
+        btn.disabled = !on_off;
+    }
+}
+
 // Functions for showing and hidding the side panel mask. When toggling on, provide message to display.
 function toggleBannerOff() {
     document.getElementById("dropdown_banner").style.top = "-40px";
+    toggleButtons(true);
 }
 function toggleBannerOn(message) {
     document.getElementById("banner_text").innerHTML = message;
     document.getElementById("dropdown_banner").style.top = "0";
+    toggleButtons(false);
 }
 
 // Defines the functionality of deleting when a node is clicked
@@ -1015,7 +1026,7 @@ document.getElementById("delete_btn").addEventListener("click", function(event) 
     }
     
     // Prep screen for delete mode
-    toggleBannerOn("&quotESC&quot to quit");
+    toggleBannerOn("<b class=\"banner_bold\">Left-click:</b> delete node or edge | <b class=\"banner_bold\">ESC:</b> finish");
     applyClassOnNodes("delete_node", true);
     applyClickEventOnNodes(standardNodeSelect, false);
     applyClickEventOnNodes(deleteOnClick, true);
@@ -1180,7 +1191,7 @@ function selectNodeforStart(event) {
 
 // Handles logic for choosing a start node for the selected algorithm
 function allowStartNodeSelection() {
-    toggleBannerOn("Select a node. \"ESC\" to finish.");
+    toggleBannerOn("<b class=\"banner_bold\">Left-click:</b> start of search | <b class=\"banner_bold\">ESC:</b> finish");
     document.addEventListener("keydown", keydown); // Listen for ESC
     applyClickEventOnNodes(standardNodeSelect, false);
     applyClickEventOnNodes(selectNodeforStart, true);
@@ -1424,7 +1435,7 @@ function visit(node_id, visited, path, nodes_to_visit) {
 // Graph type menu functionality
 document.getElementById(`undirected_radio`).checked = true; // default
 function changeGraphType(event) {
-    promptUserYesNo(event.target.value, "Changing graph types will delete your current graph. Are you sure that you want to continue?");
+    promptUserYesNo(event.target.value, "Changing graph types will delete your current graph. Do you want to continue?");
 }
 let graph_type_radios = document.getElementsByName("graph_type");
 for (let i = 0; i < graph_type_radios.length; i++) {
