@@ -21,6 +21,20 @@ class AdjacencyListVisual {
         // Add the new elements to the DOM
         new_section.appendChild(node_name);
         new_section.appendChild(adj_nodes);
+
+        let adj_list_box = document.getElementById("adj_list_box");
+        let sections = adj_list_box.children;
+        
+        // Insert in order
+        for (const section of sections) {
+            let section_node_id = Number(section.id.slice(21));
+            let to_insert_node_id = Number(node_id.slice(4));
+            if (section_node_id > to_insert_node_id) {
+                adj_list_box.insertBefore(new_section, section); // Insert in order
+                return;
+            }
+        }
+        // To be placed at end of list
         document.getElementById("adj_list_box").appendChild(new_section);
     }
 
@@ -35,6 +49,22 @@ class AdjacencyListVisual {
         new_span.classList.add("comma");
         new_span.id = `adj_list_${node_id}_to_${adj_node_id}`;
         new_span.innerText = document.getElementById(adj_node_id).innerText;
+
+        let adj_spans = document.getElementById(`adj_list_adj_nodes_of_${node_id}`);
+        let span_els = adj_spans.children;
+        
+        // Insert in order
+        for (const span of span_els) {
+            let span_id = Number(span.id.slice(9+node_id.length+8));
+            let to_insert_node_id = Number(adj_node_id.slice(4));
+            if (span_id > to_insert_node_id) {
+                adj_spans.insertBefore(new_span, span); // Insert in order
+                return;
+            }
+        }
+        // To be placed at end of list
+        // document.getElementById("adj_list_box").appendChild(new_section);
+
         document.getElementById(`adj_list_adj_nodes_of_${node_id}`).appendChild(new_span);
     }
 
