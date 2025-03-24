@@ -31,19 +31,19 @@
                     <div id="graph_type_dropdown" class="menu_dropdown">
                         <div class="dropdown_item">
                             <input id="undirected_radio" type="radio" name="graph_type" value="undirected">
-                            <label for="undirected_radio">Undirected</label>
+                            <label for="undirected_radio" class="dropdown_label">Undirected</label>
                         </div>
                         <div class="dropdown_item">
                             <input id="directed_radio" type="radio" name="graph_type" value="directed">
-                            <label for="directed_radio">Directed</label>
+                            <label for="directed_radio" class="dropdown_label">Directed</label>
                         </div>
                         <div class="dropdown_item">
                             <input id="dfa_radio" type="radio" name="graph_type" value="dfa">
-                            <label for="dfa_radio">DFA</label>
+                            <label for="dfa_radio" class="dropdown_label">DFA</label>
                         </div>
                         <div class="dropdown_item">
                             <input id="nfa_radio" type="radio" name="graph_type" value="nfa">
-                            <label for="nfa_radio">NFA</label>
+                            <label for="nfa_radio" class="dropdown_label">NFA</label>
                         </div>
                     </div>
                 </div>
@@ -54,15 +54,15 @@
                     <div id="graph_features_dropdown" class="menu_dropdown">
                         <div class="dropdown_item">
                             <input id="weights_checkbox" type="checkbox">
-                            <label for="weights_checkbox">Weights</label>
+                            <label for="weights_checkbox" class="dropdown_label">Weights</label>
                         </div>
                         <div class="dropdown_item">
                             <input id="adj_matrix_checkbox" type="checkbox">
-                            <label for="adj_matrix_checkbox">Adj. Matrix</label>
+                            <label for="adj_matrix_checkbox" class="dropdown_label">Adj. Matrix</label>
                         </div>
                         <div class="dropdown_item">
                             <input id="adj_list_checkbox" type="checkbox">
-                            <label for="adj_list_checkbox">Adj. List</label>
+                            <label for="adj_list_checkbox" class="dropdown_label">Adj. List</label>
                         </div>
                     </div>
                 </div>
@@ -72,21 +72,18 @@
                     <div id="algorithms_section_bottom" class="menu_section_bottom"></div>
                     <div id="algorithms_dropdown" class="menu_dropdown">
                         <div class="dropdown_item">
-                            <label id="dfs_btn">Depth-First Search (DFS)</label>
+                            <label id="dfs_btn" class="dropdown_label">Depth-First Search (DFS)</label>
                         </div>
                         <div class="dropdown_item">
-                            <label id="bfs_btn">Breadth-First Search (DFS)</label>
+                            <label id="bfs_btn" class="dropdown_label">Breadth-First Search (DFS)</label>
                         </div>
                         <div class="dropdown_item">
-                            <label id="dijkstra_btn">Dijkstra's Algorithm</label>
+                            <label id="dijkstra_btn" class="dropdown_label">Dijkstra's Algorithm</label>
                         </div>
                     </div>
                 </div>
                 <div class="menu_divider"></div>
                 <div id="graph_buttons" class="menu_item">
-                    <div id="button_panel_mask">
-                        <h2 id="mask_text">"ESC" to cancel</h2>
-                    </div>
                     <button id="create_node_btn" class="graph_btn"></button>
                     <button id="create_edge_btn" class="graph_btn"></button>
                     <button id="delete_btn" class="graph_btn"></button>
@@ -94,6 +91,7 @@
             </div>
 
             <div id="preview_section">
+                <div id="dropdown_banner"><p id="banner_text">This is some testing text.</p></div>
                 <div id="algorithm_about_section">
                     <div id="algorithm_about_close_bar"><img id="alg_about_close" src="./assets/close.svg"></div>
                     <h1 id="algorithm_name"></h1>
@@ -105,6 +103,7 @@
                         <button id="start_algorithm_btn" class="pre_alg_btn" disabled>Run Algorithm</button>
                     </div>
                     <div class="horizontal_divider_outside"><div class="horizontal_divider"></div></div>
+                    <div id="path_result"></div>
                     <div id="step_buttons">
                         <button id="step_backward" class="step_btn"></button>
                         <button id="reset_algorithm" class="step_btn"></button>
@@ -119,7 +118,7 @@
             </div>
 
             <div id="adj_box">
-                <div id="adj_list_box"><h1>Adj List [placeholder]</h1></div>
+                <div id="adj_list_box"></div>
                 <div id="adj_matrix_box">
                     <table id="adj_matrix">
                         <tr id="matrix_top_labels" class="matrix_row"><th></th></tr>

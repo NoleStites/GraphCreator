@@ -1,7 +1,84 @@
 
+class AdjacencyListVisual {
+    addNode(node_id) {
+        // Entire section of adjList with ndoe and adjacencies
+        let new_section = document.createElement("div");
+        new_section.classList.add("adj_list_item");
+        new_section.id = `adj_list_section_${node_id}`;
+
+        // Name of node in question
+        let node_name = document.createElement("p");
+        node_name.classList.add("adj_list_node_name");
+        node_name.classList.add(`label_for_${node_id}`);
+        node_name.innerText = document.getElementById(node_id).innerText;
+
+        // List of adjacent nodes
+        let adj_nodes = document.createElement("p");
+        adj_nodes.classList.add("adj_list_adj_nodes");
+        adj_nodes.id = `adj_list_adj_nodes_of_${node_id}`;
+        adj_nodes.innerHTML = "&hairsp;"; // Need some content to show right-border
+
+        // Add the new elements to the DOM
+        new_section.appendChild(node_name);
+        new_section.appendChild(adj_nodes);
+
+        let adj_list_box = document.getElementById("adj_list_box");
+        let sections = adj_list_box.children;
+        
+        // Insert in order
+        for (const section of sections) {
+            let section_node_id = Number(section.id.slice(21));
+            let to_insert_node_id = Number(node_id.slice(4));
+            if (section_node_id > to_insert_node_id) {
+                adj_list_box.insertBefore(new_section, section); // Insert in order
+                return;
+            }
+        }
+        // To be placed at end of list
+        document.getElementById("adj_list_box").appendChild(new_section);
+    }
+
+    // Removes a node section. Must call removeAdjacencyfromNode on all other sections
+    removeNode(node_id) {
+        document.getElementById(`adj_list_section_${node_id}`).remove();
+    }
+
+    addAdjacencyToNode(node_id, adj_node_id) {
+        let new_span = document.createElement("span");
+        new_span.classList.add(`label_for_${adj_node_id}`);
+        new_span.classList.add("comma");
+        new_span.id = `adj_list_${node_id}_to_${adj_node_id}`;
+        new_span.innerText = document.getElementById(adj_node_id).innerText;
+
+        let adj_spans = document.getElementById(`adj_list_adj_nodes_of_${node_id}`);
+        let span_els = adj_spans.children;
+        
+        // Insert in order
+        for (const span of span_els) {
+            let span_id = Number(span.id.slice(9+node_id.length+8));
+            let to_insert_node_id = Number(adj_node_id.slice(4));
+            if (span_id > to_insert_node_id) {
+                adj_spans.insertBefore(new_span, span); // Insert in order
+                return;
+            }
+        }
+        // To be placed at end of list
+        document.getElementById(`adj_list_adj_nodes_of_${node_id}`).appendChild(new_span);
+    }
+
+    removeAdjacencyFromNode(node_id, adj_node_id) {
+        document.getElementById(`adj_list_${node_id}_to_${adj_node_id}`).remove();
+    }
+
+    clearList() {
+        document.getElementById("adj_list_box").innerHTML = "";
+    }
+} // END AdjacencyListVisual
+
 class AdjacencyList {
     constructor() {
         this.adj_lists = {}; // Maps node IDs to a list of node IDs they are connected to
+        this.adjListVisual = new AdjacencyListVisual();
     }
 
     // Adds an entry for the given node ID to the adjacency list
@@ -13,6 +90,7 @@ class AdjacencyList {
         }
         else {
             this.adj_lists[node_id] = [];
+            this.adjListVisual.addNode(node_id);
             return 0;
         }
     } // END addNode
@@ -23,12 +101,14 @@ class AdjacencyList {
         // Check that node exists
         if (node_id in this.adj_lists) {
             delete this.adj_lists[node_id];
+            this.adjListVisual.removeNode(node_id);
 
             // Remove any associated entries in other adj lists
             let keys = Object.keys(this.adj_lists);
             for (let i = 0; i < keys.length; i++) {
                 try {
                     this.removeAdjacencyFromNode(keys[i], node_id);
+                    this.adjListVisual.removeAdjacencyFromNode(keys[i], node_id);
                 }
                 catch(err) {continue;}
             }
@@ -51,6 +131,7 @@ class AdjacencyList {
         }
         else {
             this.adj_lists[node_id].push(adj_node_id);
+            this.adjListVisual.addAdjacencyToNode(node_id, adj_node_id);
             return 0;
         }
     } // END addAdjacencyToNode
@@ -65,6 +146,7 @@ class AdjacencyList {
         else {
             let index = this.adj_lists[node_id].indexOf(adj_node_id);
             this.adj_lists[node_id].splice(index, 1);
+            this.adjListVisual.removeAdjacencyFromNode(node_id, adj_node_id);
             return 0;
         }
     } // END removeAdjacencyFromNode
@@ -96,6 +178,7 @@ class AdjacencyList {
     // Completely clears the adjacency list of all its contents
     clearList() {
         this.adj_lists = {};
+        this.adjListVisual.clearList();
         return 0;
     } // END clearList
 
@@ -126,17 +209,38 @@ class AdjacencyMatrixVisual {
         new_data.classList.add("matrix_data_cell");
         new_data.innerHTML = 0;
 
-        // Add new column (label and data) at the end of every row so far
+        // Add new column (label and data) in order within every row so far
         let rows = document.getElementsByClassName("matrix_row");
+        let insert_location = Number(node_id.slice(4));
         for (let i = 0; i < rows.length; i++) {
-            if (i === 0) { // Label row
-                rows[i].appendChild(new_label.cloneNode("deep"));
+            let row_cells = rows[i].children;
+            let hasInserted = false;
+            for (let j = 0; j < row_cells.length; j++) {
+                if (j === insert_location) {
+                    if (i === 0) { // Label row
+                        rows[i].insertBefore(new_label.cloneNode("deep"), row_cells[j]);
+                    }
+                    else {
+                        let data_clone = new_data.cloneNode("deep");
+                        let row_node = rows[i].id.slice(4); // Remove the 'row_' in 'row_nodeX'
+                        data_clone.id = `data_${row_node}_${node_id}`;
+                        rows[i].insertBefore(data_clone, row_cells[j]);
+                    }
+                    hasInserted = true;
+                    break;
+                }
             }
-            else {
-                let data_clone = new_data.cloneNode("deep");
-                let row_node = rows[i].id.slice(4); // Remove the 'row_' in 'row_nodeX'
-                data_clone.id = `data_${row_node}_${node_id}`;
-                rows[i].appendChild(data_clone);
+
+            if (!hasInserted) {
+                if (i === 0) { // Label row
+                    rows[i].appendChild(new_label.cloneNode("deep"));
+                }
+                else {
+                    let data_clone = new_data.cloneNode("deep");
+                    let row_node = rows[i].id.slice(4); // Remove the 'row_' in 'row_nodeX'
+                    data_clone.id = `data_${row_node}_${node_id}`;
+                    rows[i].appendChild(data_clone);
+                }
             }
         }
 
@@ -155,6 +259,13 @@ class AdjacencyMatrixVisual {
             }
             data_clone.id = `data_${node_id}_${row_node}`;
             new_row.appendChild(data_clone);
+        }
+
+        for (let i = 0; i < rows.length; i++) {
+            if (i === insert_location) {
+                matrix.insertBefore(new_row, rows[i]);
+                return;
+            }
         }
         matrix.appendChild(new_row);
     } // END addNode
@@ -285,17 +396,22 @@ class Graph {
         this.num_nodes = 0;
         this.graph_type = graph_type;
         this.hasWeightLabels = false; // Default (hides labels)
+        this.node_numbers = []; // Used to keep track of gaps in labels; contains ints
     }
 
     // Given an (x,y) position in the preview section, will add the node to all necessary places in the program
     addNode(posX, posY) {
-        let node_id = `node${this.num_nodes+1}`;
+        let node_num = this.getNextLabelNum(); // For filling in gaps in the labeling due to deletion
+        let node_id = `node${node_num}`;
 
         let placed_node = document.createElement("div");
         placed_node.classList.add("node");
         placed_node.id = node_id;
         placed_node.classList.add(`label_for_${placed_node.id}`);
-        placed_node.innerHTML = this.getLetterLabel(this.num_nodes+1);
+        placed_node.innerText = this.getLetterLabel(node_num);
+        placed_node.addEventListener("input", handleNodeLabelChange);
+        placed_node.addEventListener("contextmenu", handleNodeRightClick);
+        placed_node.contentEditable = true;
         // placed_node.innerHTML = num_nodes-1;
         
         // Enforce upper and lower bounds (keep node in box)
@@ -324,6 +440,10 @@ class Graph {
     removeNode(node_id) {
         document.getElementById(node_id).remove(); // Remove the node element
 
+        // Remove the label number from the list
+        let label_index_to_remove = this.node_numbers.indexOf(Number(node_id.slice(4)));
+        this.node_numbers.splice(label_index_to_remove, 1);
+
         // Get IDs of all edge elements to remove
         let edge_IDs_to_remove = [];
         switch (this.graph_type) {
@@ -350,6 +470,7 @@ class Graph {
 
         let index_to_remove = this.node_ids.indexOf(node_id);
         this.node_ids.splice(index_to_remove, 1);
+        this.num_nodes -= 1;
     } // END removeNode
 
     // Will completely clear the contents of the graph in all locations of the program
@@ -407,6 +528,15 @@ class Graph {
         edge_mask.classList.add("edge_mask");
         edge_mask.id = `edge_mask_${node_order_id}`;
         new_edge.appendChild(edge_mask);
+
+        // Create edge hitbox
+        let edge_hitbox = document.createElement("div");
+        edge_hitbox.classList.add("edge_hitbox");
+        edge_hitbox.id = `edge_hitbox_${node_order_id}`;
+        edge_hitbox.addEventListener("click", function() {
+            userGraph.removeEdge(node1.id, node2.id);
+        });
+        new_edge.appendChild(edge_hitbox);
 
         // Create weight label
         let weight = document.createElement("div");
@@ -495,6 +625,26 @@ class Graph {
     }
 
     // === HELPER FUNCTIONS ===
+
+    // Determines the value of the next label to assign to a node.
+    // Fills in any missing gaps in the lettering
+    getNextLabelNum() {
+        this.node_numbers = this.node_numbers.sort();
+        let gap_num = null;
+        for (let i = 0; i < this.node_numbers.length; i++) {
+            if (i+1 !== this.node_numbers[i]) { // Found gap
+                gap_num = i+1;
+                break;
+            }
+        }
+
+        if (gap_num === null) {
+            gap_num = this.num_nodes+1;
+        }
+        // console.log(gap_num);
+        this.node_numbers.push(gap_num);
+        return gap_num;
+    }
 
     // Converts the given value into a string of letters.
     // Values above 26 start at 'AA', then 'AB', etc.
@@ -647,6 +797,44 @@ function handleWeightLabelChange(event) {
     }
 }
 
+// When the label of a node is edited, update all instances of label on webpage
+function handleNodeLabelChange(event) {
+    let label = event.target.innerHTML;
+    let labels = document.getElementsByClassName(`label_for_${event.target.id}`);
+    for (let i = 0; i < labels.length; i++) {
+        if (labels[i].id === event.target.id) {continue;} // Do not update curr node (causes weird bug)
+        labels[i].innerHTML = label;
+    }
+}
+
+// Right click on node
+function handleNodeRightClick(event) {
+    event.preventDefault(); // Prevent standard right-click window to appearing
+}
+
+// Makes weights editable (true) or uneditable (false)
+function toggleWeightsChangeable(on_off) {
+    let weight_labels = document.getElementsByClassName("weight_label");
+    for (const label of weight_labels) {
+        label.contentEditable = on_off;
+    }
+}
+
+// Disables (false) or enables (true) the graph feature checkboxes
+function toggleAdjItemsDisable(on_off) {
+    document.getElementById("adj_matrix_checkbox").disabled = !on_off;
+    document.getElementById("adj_list_checkbox").disabled = !on_off;
+    document.getElementById("weights_checkbox").disabled = !on_off;
+}
+
+// Called programitcally to hise AdjMatrix and AdjList and automatically unchecks checkboxes
+function toggleAdjItems() {
+    document.getElementById("adj_matrix_checkbox").checked = false;
+    document.getElementById("adj_list_checkbox").checked = false;
+    toggleAdjMatrix();
+    toggleAdjList();
+}
+
 // Toggles the adjacency matrix visual on/off depending on checkbox value
 function toggleAdjMatrix() {
     let adj_matrix = document.getElementById("adj_matrix_box");
@@ -662,7 +850,7 @@ function toggleAdjMatrix() {
 function toggleAdjList() {
     let adj_list = document.getElementById("adj_list_box");
     if (document.getElementById("adj_list_checkbox").checked) {
-        adj_list.style.display = "block";
+        adj_list.style.display = "flex";
     }
     else {
         adj_list.style.display = "none";
@@ -693,7 +881,8 @@ document.getElementById("create_node_btn").addEventListener("click", function(ev
         document.removeEventListener("keydown", keydown);
         document.removeEventListener("mousemove", mousemove);
         document.getElementById("preview_section").removeEventListener("click", click);
-        toggleButtonPanelMaskOff();
+        toggleBannerOff();
+        toggleButtons(true);
         setNodePointerEvents("all");
         new_node.remove();
     }
@@ -712,7 +901,8 @@ document.getElementById("create_node_btn").addEventListener("click", function(ev
         }
     }
 
-    toggleButtonPanelMaskOn("Click in preview section to place a node. &quotESC&quot to cancel");
+    toggleBannerOn("<b class=\"banner_bold\">Left-click:</b> place node | <b class=\"banner_bold\">ESC:</b> finish");
+    toggleButtons(false);
 
     // Create and add a new node cursor to the page
     let new_node = document.createElement("div");
@@ -743,6 +933,7 @@ function dragElement(elmnt) {
     elmnt.onmousedown = dragMouseDown;
 
     function dragMouseDown(e) {
+        if (e.buttons === 2) {return;} // No right-click
         edge_IDs_to_move = getIncomingAndOutgoingEdges(e.target.id);
 
         document.getElementById(e.target.id).style.zIndex = node_zIndex+1; // Resolve issues with cursor detecting different node when on it
@@ -839,22 +1030,23 @@ document.getElementById("create_edge_btn").addEventListener("click", function(ev
         }
     }
 
-    // What happens when a node is selected for new edge endpoint
-    function selectableForEdge(event) {
-        if (event.shiftKey) { // Selected new start point
-            if  (start_node === null) { // No start mode currently selected
-                toggleOnStartNode(event.target.id);
-            }
-            else if (event.target.id === start_node) { // Toggle off start node
-                toggleOffStartNode(start_node);
-            }
-            else { // Change start node
-                toggleOffStartNode(start_node);
-                toggleOnStartNode(event.target.id);
-            }
-            return;
+    // When node is right-clicked, make into start node
+    function selectableForEdgeStart(event) {
+        event.preventDefault();
+        if  (start_node === null) { // No start mode currently selected
+            toggleOnStartNode(event.target.id);
         }
+        else if (event.target.id === start_node) { // Toggle off start node
+            toggleOffStartNode(start_node);
+        }
+        else { // Change start node
+            toggleOffStartNode(start_node);
+            toggleOnStartNode(event.target.id);
+        }
+    }
 
+    // What happens when a node is selected (left-clicked) for new edge endpoint
+    function selectableForEdgeEnd(event) {
         // BELOW: Left click with no shift (creates edges)
         if (start_node === null || event.target.id === start_node) { // Cannot create edge to self
             return; 
@@ -878,26 +1070,32 @@ document.getElementById("create_edge_btn").addEventListener("click", function(ev
             toggleOffStartNode(start_node);
             let nodes = document.getElementsByClassName("node");
             for (let i = 0; i < nodes.length; i++) {
-                nodes[i].removeEventListener("click", selectableForEdge);
+                nodes[i].removeEventListener("click", selectableForEdgeEnd);
+                nodes[i].removeEventListener("contextmenu", selectableForEdgeStart);
                 nodes[i].addEventListener("click", standardNodeSelect);
+                nodes[i].addEventListener("contextmenu", handleNodeRightClick);
+                nodes[i].contentEditable = true;
             }
             document.removeEventListener("keydown", keydown);
-            toggleButtonPanelMaskOff();
+            toggleBannerOff();
+            toggleButtons(true);
         }
     }
 
     if (userGraph.num_nodes === 0) {return;}
 
     let start_node = null; // stores the ID of a node
-    toggleButtonPanelMaskOn("&quotESC&quot to quit");
+    toggleBannerOn("<b class=\"banner_bold\">Right-click:</b> start of edge | <b class=\"banner_bold\">Left-click:</b> end of edge | <b class=\"banner_bold\">ESC:</b> finish");
+    toggleButtons(false);
 
-    let endpoint_node_ids = [];
-    let latest_edge_preview = null;
     // Allow every node to be selected
     let nodes = document.getElementsByClassName("node");
     for (let i = 0; i < nodes.length; i++) {
-        nodes[i].addEventListener("click", selectableForEdge);
+        nodes[i].addEventListener("click", selectableForEdgeEnd); // Edge end
+        nodes[i].addEventListener("contextmenu", selectableForEdgeStart); // Edge start
         nodes[i].removeEventListener("click", standardNodeSelect);
+        nodes[i].removeEventListener("contextmenu", handleNodeRightClick);
+        nodes[i].contentEditable = false;
     }
     document.addEventListener("keydown", keydown);
 });
@@ -937,14 +1135,22 @@ function standardNodeSelect(event) {
     return;
 }
 
-// Functions for showing and hidding the side panel mask. When toggling on, provide message to display.
-function toggleButtonPanelMaskOff() {
-    document.getElementById("button_panel_mask").style.display = "none";
-    document.getElementById("mask_text").innerHTML = "";
+// Enable (true) or disable (false) all buttons that a user should not interact with
+function toggleButtons(on_off) {
+    // Disbale graph edit buttons
+    let graph_btns = document.getElementsByClassName("graph_btn");
+    for (const btn of graph_btns) {
+        btn.disabled = !on_off;
+    }
 }
-function toggleButtonPanelMaskOn(message) {
-    document.getElementById("button_panel_mask").style.display = "flex";
-    document.getElementById("mask_text").innerHTML = message;
+
+// Functions for showing and hidding the side panel mask. When toggling on, provide message to display.
+function toggleBannerOff() {
+    document.getElementById("dropdown_banner").style.top = "-40px";
+}
+function toggleBannerOn(message) {
+    document.getElementById("banner_text").innerHTML = message;
+    document.getElementById("dropdown_banner").style.top = "0";
 }
 
 // Defines the functionality of deleting when a node is clicked
@@ -974,19 +1180,22 @@ document.getElementById("delete_btn").addEventListener("click", function(event) 
     // Listen for cancel "ESC"
     function keydown(event) {
         if (event.key === "Escape") {
-            toggleButtonPanelMaskOff();
+            toggleBannerOff();
+            toggleButtons(true);
             applyClassOnNodes("delete_node", false);
             applyClickEventOnNodes(standardNodeSelect, true);
             applyClickEventOnNodes(deleteOnClick, false);
+            cssSetVars.style.setProperty('--edge-hitbox-display', 'none');
         }
     }
     
     // Prep screen for delete mode
-    toggleButtonPanelMaskOn("&quotESC&quot to quit");
+    toggleBannerOn("<b class=\"banner_bold\">Left-click:</b> delete node or edge | <b class=\"banner_bold\">ESC:</b> finish");
+    toggleButtons(false);
     applyClassOnNodes("delete_node", true);
     applyClickEventOnNodes(standardNodeSelect, false);
     applyClickEventOnNodes(deleteOnClick, true);
-
+    cssSetVars.style.setProperty('--edge-hitbox-display', 'block');
     
     document.addEventListener("keydown", keydown);
 });
@@ -1000,8 +1209,8 @@ function promptUserYesNo(new_graph_type, message) {
     function promptButtonClick(event) {
         if (event.target.innerHTML === "Yes") {
             // Reset the screen (delete all nodes, edges, and matrix entries)
-            userGraph.changeGraphType(new_graph_type);     
-            // toggleInfoPanelOff();
+            userGraph.changeGraphType(new_graph_type);    
+            closeAlgorithm(); 
             graph_type = new_graph_type; // "undirected", "directed", ...
             document.getElementById("graph_type_display").innerHTML = graph_type_display_names[graph_type];
             document.getElementById(`${graph_type}_radio`).checked = true;
@@ -1079,6 +1288,7 @@ function exportGraph() {
 // Clears the graph in its entirety
 function clearGraph() {
     userGraph.clearGraph();
+    closeAlgorithm();
 }
 
 function toggleWeights() {
@@ -1095,11 +1305,21 @@ function toggleWeights() {
 let algorithm;
 function toggleAlgorithmAboutSection(algorithm_choice, on_off) {
     let about_section = document.getElementById("algorithm_about_section");
+    
+    // Close panel
     if (!on_off) {
         about_section.style.left = "-401px";
+        resetNodeClassesInAlgorithm();
+        document.getElementById("path_result").innerHTML = "";
+        path, nodes_to_visit = null;
+        document.getElementById("start_algorithm_btn").disabled = true;
+        toggleButtons(true);
+        toggleAdjItemsDisable(true);
+        if (document.getElementById("weights_checkbox").checked) { toggleWeightsChangeable(true); }
         return;
     }
 
+    // Open panel (below)
     algorithm = algorithm_choice;
     let info_presets = {
         "dfs": {
@@ -1119,9 +1339,11 @@ function toggleAlgorithmAboutSection(algorithm_choice, on_off) {
     // Set contents of about section to match chosen algorithm
     document.getElementById("algorithm_name").innerHTML = info_presets[algorithm_choice]["title"];
     document.getElementById("algorithm_about_text").innerHTML = info_presets[algorithm_choice]["about"];
-
-    // Reveal the about section
     about_section.style.left = "0px";
+    toggleButtons(false);
+    toggleAdjItems(); // Hide AdjMatrix and AdjList
+    toggleAdjItemsDisable(false);
+    toggleWeightsChangeable(false);
 }
 
 // A click event to be applied to nodes for algorithms
@@ -1143,7 +1365,8 @@ function selectNodeforStart(event) {
 
 // Handles logic for choosing a start node for the selected algorithm
 function allowStartNodeSelection() {
-    toggleButtonPanelMaskOn("Select a node. \"ESC\" to finish.");
+    toggleBannerOn("<b class=\"banner_bold\">Left-click:</b> start of search | <b class=\"banner_bold\">ESC:</b> finish");
+    toggleButtons(false);
     document.addEventListener("keydown", keydown); // Listen for ESC
     applyClickEventOnNodes(standardNodeSelect, false);
     applyClickEventOnNodes(selectNodeforStart, true);
@@ -1151,7 +1374,7 @@ function allowStartNodeSelection() {
     // Listen for cancel "ESC"
     function keydown(event) {
         if (event.key === "Escape") {
-            toggleButtonPanelMaskOff();
+            toggleBannerOff();
             document.removeEventListener("keydown", keydown);
             applyClickEventOnNodes(standardNodeSelect, true);
             applyClickEventOnNodes(selectNodeforStart, false);
@@ -1211,10 +1434,10 @@ function togglePlayButton() {
 function changeAnimationSpeed(event) {
     let new_speed = event.target.value;
     animationSpeed = 2100 - new_speed;
-    document.getElementById("speed_value").innerHTML = (animationSpeed / 1000).toFixed(2);
+    document.getElementById("speed_value").innerHTML = (new_speed / 1000).toFixed(2);
 }
 
-var current_step = -1;
+var current_step = -2;
 var prev_step;
 function stepBackward() {
     if (current_step === -1) {return;}
@@ -1230,23 +1453,73 @@ function stepForward() {
     displayAlgorithmStep(current_step);
 }
 
+function resetClassesInPathResult() {
+        for (let i = 0; i < path.length; i++) {
+            let curr_node = path[i];
+            document.getElementById(`path_result_${curr_node}`).classList.remove("path_visited");
+            document.getElementById(`path_result_${curr_node}`).classList.remove("path_next_visit");
+            document.getElementById(`path_result_${curr_node}`).classList.remove("path_unvisited");
+            document.getElementById(`path_result_${curr_node}`).classList.add("path_unvisited");
+        } 
+}
+
 // Will display the given step in the algorithm's execution
 var path, nodes_to_visit = null;
 function displayAlgorithmStep(step) {
-    applyClassOnNodes("to_visit", false);
+    requestAnimationFrame(() => {
+    applyClassOnNodes("next_visit", false);
+    resetClassesInPathResult();
 
     if (current_step < prev_step) { // Backward step
         document.getElementById(path[prev_step]).classList.remove("visited");
     }
-    if (step === -1) {return;}
+    if (step === -1) {
+        document.getElementById(path[0]).classList.add("next_visit");
+        document.getElementById(`path_result_${path[0]}`).classList.add("path_next_visit");
+        return;
+    }
 
     let visiting_node = path[step];
-    let next_visits = nodes_to_visit[visiting_node];
     document.getElementById(visiting_node).classList.add("visited");
-    
-    for (let j = 0; j < next_visits.length; j++) {
-        document.getElementById(next_visits[j]).classList.add("to_visit");
+
+    if (step < path.length-1) { // Next to visit (if exists)
+        document.getElementById(path[step+1]).classList.add("next_visit");
     }
+
+    // Edit path result display
+    for (let i = 0; i < path.length; i++) {
+        let curr_node = path[i];
+        if (i <= step) {
+            document.getElementById(`path_result_${curr_node}`).classList.add("path_visited");
+        }
+        else if (i === step+1) {
+            document.getElementById(`path_result_${curr_node}`).classList.add("path_next_visit");
+        }
+        else {
+            document.getElementById(`path_result_${curr_node}`).classList.add("path_unvisited");
+        }
+    } 
+    });
+}
+
+// Will create the DOM necessary to show the path taken by the algorithm
+function displayAlgorithmResult(path) {
+    let path_display = document.getElementById("path_result");
+
+    requestAnimationFrame(() => { // Needed to render the new DOM elements below after JS is finished with other tasks
+        for (let i = 0; i < path.length; i++) {
+            let new_span = document.createElement("span");
+            new_span.classList.add("path_unvisited");
+            new_span.id = `path_result_${path[i]}`; // Ex: path_result_node0
+            let label = document.getElementById(path[i]).innerHTML; // Node label
+            new_span.textContent = label;
+            path_display.appendChild(new_span);
+
+            if (i < path.length-1) { // Add arrow between nodes in path display
+                path_display.appendChild(document.createTextNode(" → "));
+            }
+        }
+    });
 }
 
 function runAlgorithm() {
@@ -1254,18 +1527,26 @@ function runAlgorithm() {
     switch (chosen_algorithm) {
         case "dfs":
             [path, nodes_to_visit] = DFS(start_node_id);
+            displayAlgorithmResult(path);
             stepForward();
             break;
     }
 }
 
-function resetAlgorithm() {
-    // Remove necessary classes and event listeners from nodes
+// Removes all algorithm-specific classes from the graph
+function resetNodeClassesInAlgorithm() {
     applyClassOnNodes("visited", false);
+    applyClassOnNodes("next_visit", false);
     applyClassOnNodes("to_visit", false);
     applyClassOnNodes("algorithmStartNode", false);
-    // start_node_id = null;
-    current_step = -1;
+}
+
+function resetAlgorithm() {
+    // Remove necessary classes and event listeners from nodes
+    resetNodeClassesInAlgorithm();
+    resetClassesInPathResult();
+    current_step = -2;
+    stepForward();
     if (isPlaying) {togglePlayButton();}
 }
 
@@ -1329,7 +1610,7 @@ function visit(node_id, visited, path, nodes_to_visit) {
 // Graph type menu functionality
 document.getElementById(`undirected_radio`).checked = true; // default
 function changeGraphType(event) {
-    promptUserYesNo(event.target.value, "Changing graph types will delete your current graph. Are you sure that you want to continue?");
+    promptUserYesNo(event.target.value, "Changing graph types will delete your current graph. Do you want to continue?");
 }
 let graph_type_radios = document.getElementsByName("graph_type");
 for (let i = 0; i < graph_type_radios.length; i++) {
