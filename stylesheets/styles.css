@@ -61,7 +61,11 @@ body {
 }
 
 #adj_list_box {
-    display: none;
+    /* display: none; */
+    display: flex;
+    flex-direction: column;
+    padding: 10px 0px;
+    gap: 10px;
 }
 
 #adj_matrix_box {
@@ -86,11 +90,34 @@ body {
     border: 1px solid black;
 }
 
+.adj_list_item {
+    width: 100%;
+    min-height: 30px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    font-size: 25pt;
+}
+.adj_list_node_name {
+    padding: 0px 20px;
+    font-weight: bold;
+}
+.adj_list_adj_nodes {
+    flex-grow: 1;
+    padding-left: 20px;
+    border-left: 1px solid black;
+    text-wrap: wrap;
+}
+.adj_list_adj_nodes span:not(:first-child) {
+    margin-left: 8px;
+}
+
 /* Node Styles */
 .node {
     width: var(--node-size);
     aspect-ratio: 1/1;
-    background-color: rgb(204, 204, 204);
+    background-color: rgb(218, 218, 218);
     border: 2px solid var(--edge-color);
     border-radius: 50%;
     position: absolute;
@@ -104,23 +131,23 @@ body {
     text-align: center;
 }
 .node:hover {
-    background-color: green;
+    background-color: rgb(170, 168, 168);
     cursor: move;
 }
 
 /* Style applied to the start node of edge creation */
 .create_edge_start {
-    box-shadow: 0px 0px 3px 3px green;
+    outline: 5px solid rgb(55, 175, 0);
 }
 
 /* Style applied to the end nodes of edge creation */
 .create_edge_end {
-    box-shadow: 0px 0px 3px 3px blue;
+    outline: 5px solid rgb(255, 187, 0);
 }
 
 /* Style applied to each node when delete mode is activated */
 .delete_node {
-    box-shadow: 0px 0px 3px 3px red;
+    outline: 5px solid red;
 }
 
 .visited {

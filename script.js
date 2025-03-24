@@ -1,7 +1,55 @@
 
+class AdjacencyListVisual {
+    addNode(node_id) {
+        // Entire section of adjList with ndoe and adjacencies
+        let new_section = document.createElement("div");
+        new_section.classList.add("adj_list_item");
+        new_section.id = `adj_list_section_${node_id}`;
+
+        // Name of node in question
+        let node_name = document.createElement("p");
+        node_name.classList.add("adj_list_node_name");
+        node_name.classList.add(`label_for_${node_id}`);
+        node_name.innerText = document.getElementById(node_id).innerText;
+
+        // List of adjacent nodes
+        let adj_nodes = document.createElement("p");
+        adj_nodes.classList.add("adj_list_adj_nodes");
+        adj_nodes.id = `adj_list_adj_nodes_of_${node_id}`;
+        adj_nodes.innerHTML = "&thinsp;"; // Need some content to show right-border
+
+        // Add the new elements to the DOM
+        new_section.appendChild(node_name);
+        new_section.appendChild(adj_nodes);
+        document.getElementById("adj_list_box").appendChild(new_section);
+    }
+
+    // Removes a node section. Must call removeAdjacencyfromNode on all other sections
+    removeNode(node_id) {
+        document.getElementById(`adj_list_section_${node_id}`).remove();
+    }
+
+    addAdjacencyToNode(node_id, adj_node_id) {
+        let new_span = document.createElement("span");
+        new_span.classList.add(`label_for_${adj_node_id}`);
+        new_span.id = `adj_list_${node_id}_to_${adj_node_id}`;
+        new_span.innerText = document.getElementById(adj_node_id).innerText;
+        document.getElementById(`adj_list_adj_nodes_of_${node_id}`).appendChild(new_span);
+    }
+
+    removeAdjacencyFromNode(node_id, adj_node_id) {
+        document.getElementById(`adj_list_${node_id}_to_${adj_node_id}`).remove();
+    }
+
+    clearList() {
+        document.getElementById("adj_list_box").innerHTML = "";
+    }
+} // END AdjacencyListVisual
+
 class AdjacencyList {
     constructor() {
         this.adj_lists = {}; // Maps node IDs to a list of node IDs they are connected to
+        this.adjListVisual = new AdjacencyListVisual();
     }
 
     // Adds an entry for the given node ID to the adjacency list
@@ -13,6 +61,7 @@ class AdjacencyList {
         }
         else {
             this.adj_lists[node_id] = [];
+            this.adjListVisual.addNode(node_id);
             return 0;
         }
     } // END addNode
@@ -23,12 +72,14 @@ class AdjacencyList {
         // Check that node exists
         if (node_id in this.adj_lists) {
             delete this.adj_lists[node_id];
+            this.adjListVisual.removeNode(node_id);
 
             // Remove any associated entries in other adj lists
             let keys = Object.keys(this.adj_lists);
             for (let i = 0; i < keys.length; i++) {
                 try {
                     this.removeAdjacencyFromNode(keys[i], node_id);
+                    this.adjListVisual.removeAdjacencyFromNode(keys[i], node_id);
                 }
                 catch(err) {continue;}
             }
@@ -51,6 +102,7 @@ class AdjacencyList {
         }
         else {
             this.adj_lists[node_id].push(adj_node_id);
+            this.adjListVisual.addAdjacencyToNode(node_id, adj_node_id);
             return 0;
         }
     } // END addAdjacencyToNode
@@ -65,6 +117,7 @@ class AdjacencyList {
         else {
             let index = this.adj_lists[node_id].indexOf(adj_node_id);
             this.adj_lists[node_id].splice(index, 1);
+            this.adjListVisual.removeAdjacencyFromNode(node_id, adj_node_id);
             return 0;
         }
     } // END removeAdjacencyFromNode
@@ -96,6 +149,7 @@ class AdjacencyList {
     // Completely clears the adjacency list of all its contents
     clearList() {
         this.adj_lists = {};
+        this.adjListVisual.clearList();
         return 0;
     } // END clearList
 
@@ -712,7 +766,7 @@ function toggleAdjMatrix() {
 function toggleAdjList() {
     let adj_list = document.getElementById("adj_list_box");
     if (document.getElementById("adj_list_checkbox").checked) {
-        adj_list.style.display = "block";
+        adj_list.style.display = "flex";
     }
     else {
         adj_list.style.display = "none";
