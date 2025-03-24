@@ -340,17 +340,19 @@ class Graph {
         this.num_nodes = 0;
         this.graph_type = graph_type;
         this.hasWeightLabels = false; // Default (hides labels)
+        this.node_numbers = []; // Used to keep track of gaps in labels; contains ints
     }
 
     // Given an (x,y) position in the preview section, will add the node to all necessary places in the program
     addNode(posX, posY) {
-        let node_id = `node${this.num_nodes+1}`;
+        let node_num = this.getNextLabelNum(); // For filling in gaps in the labeling due to deletion
+        let node_id = `node${node_num}`;
 
         let placed_node = document.createElement("div");
         placed_node.classList.add("node");
         placed_node.id = node_id;
         placed_node.classList.add(`label_for_${placed_node.id}`);
-        placed_node.innerHTML = this.getLetterLabel(this.num_nodes+1);
+        placed_node.innerText = this.getLetterLabel(node_num);
         placed_node.addEventListener("input", handleNodeLabelChange);
         placed_node.addEventListener("contextmenu", handleNodeRightClick);
         placed_node.contentEditable = true;
@@ -382,6 +384,11 @@ class Graph {
     removeNode(node_id) {
         document.getElementById(node_id).remove(); // Remove the node element
 
+        // Remove the label number from the list
+        let label_index_to_remove = this.node_numbers.indexOf(Number(node_id.slice(4)));
+        this.node_numbers.splice(label_index_to_remove, 1);
+        console.log(`After removal: ${this.node_numbers}`);
+
         // Get IDs of all edge elements to remove
         let edge_IDs_to_remove = [];
         switch (this.graph_type) {
@@ -408,6 +415,7 @@ class Graph {
 
         let index_to_remove = this.node_ids.indexOf(node_id);
         this.node_ids.splice(index_to_remove, 1);
+        this.num_nodes -= 1;
     } // END removeNode
 
     // Will completely clear the contents of the graph in all locations of the program
@@ -562,6 +570,27 @@ class Graph {
     }
 
     // === HELPER FUNCTIONS ===
+
+    // Determines the value of the next label to assign to a node.
+    // Fills in any missing gaps in the lettering
+    getNextLabelNum() {
+        this.node_numbers = this.node_numbers.sort();
+        console.log(`Before: ${this.node_numbers}`);
+        let gap_num = null;
+        for (let i = 0; i < this.node_numbers.length; i++) {
+            if (i+1 !== this.node_numbers[i]) { // Found gap
+                gap_num = i+1;
+                break;
+            }
+        }
+
+        if (gap_num === null) {
+            gap_num = this.num_nodes+1;
+        }
+        // console.log(gap_num);
+        this.node_numbers.push(gap_num);
+        return gap_num;
+    }
 
     // Converts the given value into a string of letters.
     // Values above 26 start at 'AA', then 'AB', etc.

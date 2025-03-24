@@ -61,8 +61,8 @@ body {
 }
 
 #adj_list_box {
-    /* display: none; */
-    display: flex;
+    display: none;
+    /* display: flex; */
     flex-direction: column;
     padding: 10px 0px;
     gap: 10px;
@@ -79,10 +79,16 @@ body {
     text-align: center;
     border-spacing: 0px;
     font-size: 20pt;
+    box-sizing: border-box;
+    table-layout: fixed;
+}
+#adj_matrix th, #adj_matrix td {
+    overflow: hidden;
 }
 #adj_matrix th {
     color: black;
     text-align: center;
+    white-space: nowrap;
 }
 #adj_matrix td {
     background-color: rgb(78, 78, 78);
