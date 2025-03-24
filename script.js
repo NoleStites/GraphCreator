@@ -16,7 +16,7 @@ class AdjacencyListVisual {
         let adj_nodes = document.createElement("p");
         adj_nodes.classList.add("adj_list_adj_nodes");
         adj_nodes.id = `adj_list_adj_nodes_of_${node_id}`;
-        adj_nodes.innerHTML = "&thinsp;"; // Need some content to show right-border
+        adj_nodes.innerHTML = "&hairsp;"; // Need some content to show right-border
 
         // Add the new elements to the DOM
         new_section.appendChild(node_name);
@@ -32,6 +32,7 @@ class AdjacencyListVisual {
     addAdjacencyToNode(node_id, adj_node_id) {
         let new_span = document.createElement("span");
         new_span.classList.add(`label_for_${adj_node_id}`);
+        new_span.classList.add("comma");
         new_span.id = `adj_list_${node_id}_to_${adj_node_id}`;
         new_span.innerText = document.getElementById(adj_node_id).innerText;
         document.getElementById(`adj_list_adj_nodes_of_${node_id}`).appendChild(new_span);

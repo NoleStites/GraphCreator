@@ -105,12 +105,30 @@ body {
 }
 .adj_list_adj_nodes {
     flex-grow: 1;
-    padding-left: 20px;
+    padding: 0px 20px;
     border-left: 1px solid black;
-    text-wrap: wrap;
+    overflow-x: auto;
+    box-sizing: border-box;
+    text-wrap: nowrap;
+} 
+/* Commas between list entries */
+.comma:first-child:empty ~ .comma:not(:empty) {
+    margin-left: 0;  
 }
-.adj_list_adj_nodes span:not(:first-child) {
-    margin-left: 8px;
+.comma:first-child:empty ~ .comma:not(:empty) ~ .comma:not(:empty) {
+    margin-left: -.3em;  
+}
+.comma:empty {
+    display: none;
+}
+.comma:not(:first-child):before {
+    content: ", ";
+}
+.comma:empty + .comma:not(:empty):before {
+    content : "";
+}
+.comma:not(:empty) ~ .comma:empty + .comma:not(:empty):before {
+    content : ", ";
 }
 
 /* Node Styles */
