@@ -63,8 +63,6 @@ class AdjacencyListVisual {
             }
         }
         // To be placed at end of list
-        // document.getElementById("adj_list_box").appendChild(new_section);
-
         document.getElementById(`adj_list_adj_nodes_of_${node_id}`).appendChild(new_span);
     }
 
@@ -211,17 +209,38 @@ class AdjacencyMatrixVisual {
         new_data.classList.add("matrix_data_cell");
         new_data.innerHTML = 0;
 
-        // Add new column (label and data) at the end of every row so far
+        // Add new column (label and data) in order within every row so far
         let rows = document.getElementsByClassName("matrix_row");
+        let insert_location = Number(node_id.slice(4));
         for (let i = 0; i < rows.length; i++) {
-            if (i === 0) { // Label row
-                rows[i].appendChild(new_label.cloneNode("deep"));
+            let row_cells = rows[i].children;
+            let hasInserted = false;
+            for (let j = 0; j < row_cells.length; j++) {
+                if (j === insert_location) {
+                    if (i === 0) { // Label row
+                        rows[i].insertBefore(new_label.cloneNode("deep"), row_cells[j]);
+                    }
+                    else {
+                        let data_clone = new_data.cloneNode("deep");
+                        let row_node = rows[i].id.slice(4); // Remove the 'row_' in 'row_nodeX'
+                        data_clone.id = `data_${row_node}_${node_id}`;
+                        rows[i].insertBefore(data_clone, row_cells[j]);
+                    }
+                    hasInserted = true;
+                    break;
+                }
             }
-            else {
-                let data_clone = new_data.cloneNode("deep");
-                let row_node = rows[i].id.slice(4); // Remove the 'row_' in 'row_nodeX'
-                data_clone.id = `data_${row_node}_${node_id}`;
-                rows[i].appendChild(data_clone);
+
+            if (!hasInserted) {
+                if (i === 0) { // Label row
+                    rows[i].appendChild(new_label.cloneNode("deep"));
+                }
+                else {
+                    let data_clone = new_data.cloneNode("deep");
+                    let row_node = rows[i].id.slice(4); // Remove the 'row_' in 'row_nodeX'
+                    data_clone.id = `data_${row_node}_${node_id}`;
+                    rows[i].appendChild(data_clone);
+                }
             }
         }
 
@@ -240,6 +259,13 @@ class AdjacencyMatrixVisual {
             }
             data_clone.id = `data_${node_id}_${row_node}`;
             new_row.appendChild(data_clone);
+        }
+
+        for (let i = 0; i < rows.length; i++) {
+            if (i === insert_location) {
+                matrix.insertBefore(new_row, rows[i]);
+                return;
+            }
         }
         matrix.appendChild(new_row);
     } // END addNode
@@ -417,7 +443,6 @@ class Graph {
         // Remove the label number from the list
         let label_index_to_remove = this.node_numbers.indexOf(Number(node_id.slice(4)));
         this.node_numbers.splice(label_index_to_remove, 1);
-        console.log(`After removal: ${this.node_numbers}`);
 
         // Get IDs of all edge elements to remove
         let edge_IDs_to_remove = [];
@@ -605,7 +630,6 @@ class Graph {
     // Fills in any missing gaps in the lettering
     getNextLabelNum() {
         this.node_numbers = this.node_numbers.sort();
-        console.log(`Before: ${this.node_numbers}`);
         let gap_num = null;
         for (let i = 0; i < this.node_numbers.length; i++) {
             if (i+1 !== this.node_numbers[i]) { // Found gap
