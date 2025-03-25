@@ -5,6 +5,7 @@
     --edge-hitbox-size: 40px;
     --edge-hitbox-display: none;
     --edge-color: rgb(34, 34, 34);
+    --hover-color: rgb(230, 230, 230);
     --weight-label-opacity: 0;
     --arrow-width-factor: 5;
     --arrow-width: calc(var(--edge-thickness)*var(--arrow-width-factor));
@@ -325,7 +326,7 @@ body {
     border-radius: 25%;
 }
 #algorithm_about_close_bar img:hover {
-    background-color: lightgray;
+    background-color: var(--hover-color);
     cursor: pointer;
 }
 

@@ -883,6 +883,7 @@ document.getElementById("create_node_btn").addEventListener("click", function(ev
         document.getElementById("preview_section").removeEventListener("click", click);
         toggleBannerOff();
         toggleButtons(true);
+        toggleAlgorithmButtonFunctionality(true);
         setNodePointerEvents("all");
         new_node.remove();
     }
@@ -903,6 +904,7 @@ document.getElementById("create_node_btn").addEventListener("click", function(ev
 
     toggleBannerOn("<b class=\"banner_bold\">Left-click:</b> place node | <b class=\"banner_bold\">ESC:</b> finish");
     toggleButtons(false);
+    toggleAlgorithmButtonFunctionality(false);
 
     // Create and add a new node cursor to the page
     let new_node = document.createElement("div");
@@ -1079,6 +1081,7 @@ document.getElementById("create_edge_btn").addEventListener("click", function(ev
             document.removeEventListener("keydown", keydown);
             toggleBannerOff();
             toggleButtons(true);
+            toggleAlgorithmButtonFunctionality(true);
         }
     }
 
@@ -1087,6 +1090,7 @@ document.getElementById("create_edge_btn").addEventListener("click", function(ev
     let start_node = null; // stores the ID of a node
     toggleBannerOn("<b class=\"banner_bold\">Right-click:</b> start of edge | <b class=\"banner_bold\">Left-click:</b> end of edge | <b class=\"banner_bold\">ESC:</b> finish");
     toggleButtons(false);
+    toggleAlgorithmButtonFunctionality(false);
 
     // Allow every node to be selected
     let nodes = document.getElementsByClassName("node");
@@ -1182,6 +1186,7 @@ document.getElementById("delete_btn").addEventListener("click", function(event) 
         if (event.key === "Escape") {
             toggleBannerOff();
             toggleButtons(true);
+            toggleAlgorithmButtonFunctionality(true);
             applyClassOnNodes("delete_node", false);
             applyClickEventOnNodes(standardNodeSelect, true);
             applyClickEventOnNodes(deleteOnClick, false);
@@ -1192,6 +1197,7 @@ document.getElementById("delete_btn").addEventListener("click", function(event) 
     // Prep screen for delete mode
     toggleBannerOn("<b class=\"banner_bold\">Left-click:</b> delete node or edge | <b class=\"banner_bold\">ESC:</b> finish");
     toggleButtons(false);
+    toggleAlgorithmButtonFunctionality(false);
     applyClassOnNodes("delete_node", true);
     applyClickEventOnNodes(standardNodeSelect, false);
     applyClickEventOnNodes(deleteOnClick, true);
@@ -1297,6 +1303,23 @@ function toggleWeights() {
     }
     else {
         userGraph.toggleWeightsAndLabels(false);
+    }
+}
+
+// Disables (false) or enables (true) the clicking of the algorithm buttons
+function toggleAlgorithmButtonFunctionality(on_off) {
+    let btns = document.getElementsByClassName("alg_btn");
+    for (const btn of btns) {
+        if (!on_off) {
+            btn.removeEventListener("click", algorithmClickHandler);
+            btn.classList.add("alg_btn_disabled");
+            btn.parentElement.classList.add("alg_btn_parent_disabled");
+        }
+        else {
+            btn.addEventListener("click", algorithmClickHandler);
+            btn.classList.remove("alg_btn_disabled");
+            btn.parentElement.classList.remove("alg_btn_parent_disabled");
+        }
     }
 }
 
@@ -1645,9 +1668,13 @@ document.getElementById("adj_matrix_checkbox").checked = false;
 document.getElementById("adj_list_checkbox").checked = false;
 
 // Algorithms
-document.getElementById("dfs_btn").addEventListener("click", function () {openAlgorithm("dfs");});
-document.getElementById("bfs_btn").addEventListener("click", function () {openAlgorithm("bfs");});
-document.getElementById("dijkstra_btn").addEventListener("click", function () {openAlgorithm("dijkstra");});
+function algorithmClickHandler(event) {
+    let alg_choice = event.target.id.slice(0,-4);
+    openAlgorithm(alg_choice);
+}
+document.getElementById("dfs_btn").addEventListener("click", algorithmClickHandler);
+document.getElementById("bfs_btn").addEventListener("click", algorithmClickHandler);
+document.getElementById("dijkstra_btn").addEventListener("click", algorithmClickHandler);
 
 // Algorithm About Section
 document.getElementById("alg_about_close").addEventListener("click", closeAlgorithm);
