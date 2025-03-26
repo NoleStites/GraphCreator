@@ -1398,8 +1398,11 @@ function allowStartNodeSelection() {
     toggleBannerOn("<b class=\"banner_bold\">Left-click:</b> start of search | <b class=\"banner_bold\">ESC:</b> finish");
     toggleButtons(false);
     document.addEventListener("keydown", keydown); // Listen for ESC
+    resetAlgorithmNodesAndEdges();
+    clearAlgorithmResultPath();
     applyClickEventOnNodes(standardNodeSelect, false);
     applyClickEventOnNodes(selectNodeforStart, true);
+    document.getElementById("start_algorithm_btn").disabled = true;
 
     // Listen for cancel "ESC"
     function keydown(event) {
@@ -1425,17 +1428,22 @@ function openAlgorithm(algorithm_choice) {
     toggleAlgorithmAboutSection(algorithm_choice, true);
 }
 
+function resetAlgorithmNodesAndEdges() {
+    applyClassOnNodes("visited", false);
+    applyClassOnNodes("next_visit", false);
+    applyClassOnNodes("algorithmStartNode", false);
+    applyClassOnEdges("edge_unvisited", false);
+    applyClickEventOnNodes(standardNodeSelect, true);
+    applyClickEventOnNodes(selectNodeforStart, false);
+}
+
 // All functionality required when the little 'x' is clicked
 function closeAlgorithm() {
     toggleAlgorithmAboutSection("", false);
     if (isPlaying) {togglePlayButton();}
 
     // Remove necessary classes and event listeners from nodes
-    applyClassOnNodes("visited", false);
-    applyClassOnNodes("algorithmStartNode", false);
-    applyClassOnEdges("edge_unvisited", false);
-    applyClickEventOnNodes(standardNodeSelect, true);
-    applyClickEventOnNodes(selectNodeforStart, false);
+    resetAlgorithmNodesAndEdges();
     start_node_id = null;
 }
 

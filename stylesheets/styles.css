@@ -45,6 +45,7 @@ body {
 #adj_box {
     width: 400px;
     height: fit-content;
+    max-height: 100%;
     position: absolute;
     bottom: 0%;
     display: flex;
@@ -182,6 +183,7 @@ body {
 }
 .next_visit {
     background-color: goldenrod;
+    /* background: repeating-linear-gradient(45deg, goldenrod, goldenrod 10px, white 10px, white 20px) !important;     */
 }
 
 .algorithmStartNode {
