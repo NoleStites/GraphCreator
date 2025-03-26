@@ -629,8 +629,9 @@ class Graph {
     // Determines the value of the next label to assign to a node.
     // Fills in any missing gaps in the lettering
     getNextLabelNum() {
-        this.node_numbers = this.node_numbers.sort();
+        this.node_numbers = this.node_numbers.sort(function(a, b){return a-b}); // Sort function because JS sorts numbers as strings, not ints
         let gap_num = null;
+        console.log(this.node_numbers);
         for (let i = 0; i < this.node_numbers.length; i++) {
             if (i+1 !== this.node_numbers[i]) { // Found gap
                 gap_num = i+1;
