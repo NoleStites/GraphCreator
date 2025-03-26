@@ -22,20 +22,20 @@ class AdjacencyListVisual {
         new_section.appendChild(node_name);
         new_section.appendChild(adj_nodes);
 
-        let adj_list_box = document.getElementById("adj_list_box");
-        let sections = adj_list_box.children;
+        let adj_list_content = document.getElementById("adj_list_content");
+        let sections = adj_list_content.children;
         
         // Insert in order
         for (const section of sections) {
             let section_node_id = Number(section.id.slice(21));
             let to_insert_node_id = Number(node_id.slice(4));
             if (section_node_id > to_insert_node_id) {
-                adj_list_box.insertBefore(new_section, section); // Insert in order
+                adj_list_content.insertBefore(new_section, section); // Insert in order
                 return;
             }
         }
         // To be placed at end of list
-        document.getElementById("adj_list_box").appendChild(new_section);
+        document.getElementById("adj_list_content").appendChild(new_section);
     }
 
     // Removes a node section. Must call removeAdjacencyfromNode on all other sections
@@ -71,7 +71,7 @@ class AdjacencyListVisual {
     }
 
     clearList() {
-        document.getElementById("adj_list_box").innerHTML = "";
+        document.getElementById("adj_list_content").innerHTML = "";
     }
 } // END AdjacencyListVisual
 
@@ -202,9 +202,15 @@ class AdjacencyMatrixVisual {
         let matrix = document.getElementById("adj_matrix");
 
         // Create new label and data elements
+        let new_label_inside = document.createElement("div");
+        new_label_inside.classList.add("adj_matrix_label_inside");
+        new_label_inside.classList.add(`label_for_${node_id}`);
+        new_label_inside.innerHTML = node_label;
+
         let new_label = document.createElement("th");
-        new_label.classList.add(`label_for_${node_id}`);
-        new_label.innerHTML = node_label;
+
+        new_label.appendChild(new_label_inside);
+
         let new_data = document.createElement("td");
         new_data.classList.add("matrix_data_cell");
         new_data.innerHTML = 0;
@@ -629,9 +635,8 @@ class Graph {
     // Determines the value of the next label to assign to a node.
     // Fills in any missing gaps in the lettering
     getNextLabelNum() {
-        this.node_numbers = this.node_numbers.sort(function(a, b){return a-b}); // Sort function because JS sorts numbers as strings, not ints
+        this.node_numbers = this.node_numbers.sort(function(a, b){return a-b}); // Function in sort() because JS sorts numbers as strings, not ints
         let gap_num = null;
-        console.log(this.node_numbers);
         for (let i = 0; i < this.node_numbers.length; i++) {
             if (i+1 !== this.node_numbers[i]) { // Found gap
                 gap_num = i+1;
@@ -840,7 +845,7 @@ function toggleAdjItems() {
 function toggleAdjMatrix() {
     let adj_matrix = document.getElementById("adj_matrix_box");
     if (document.getElementById("adj_matrix_checkbox").checked) {
-        adj_matrix.style.display = "block";
+        adj_matrix.style.display = "flex";
     }
     else {
         adj_matrix.style.display = "none";

@@ -9,6 +9,7 @@
     --weight-label-opacity: 0;
     --arrow-width-factor: 5;
     --arrow-width: calc(var(--edge-thickness)*var(--arrow-width-factor));
+    --adj-matrix-min-cell-size: 50px;
 }
 
 * {
@@ -44,8 +45,7 @@ body {
 /* ADJACENCY MATRIX AND LIST STYLES */
 #adj_box {
     width: 400px;
-    height: fit-content;
-    max-height: 100%;
+    height: 100%;
     position: absolute;
     bottom: 0%;
     display: flex;
@@ -54,53 +54,69 @@ body {
     z-index: 98;
 }
 
+.adj_header {
+    display: block;
+}
+
 #adj_list_box, #adj_matrix_box {
     width: 100%;
-    height: fit-content;
+    height: 50%;
     background-color: rgba(255, 255, 255, 0.616);
     border-top: 1px solid black;
     border-right: 1px solid black;
-}
-
-#adj_list_box {
     display: none;
-    /* display: flex; */
     flex-direction: column;
-    padding: 10px 0px;
-    gap: 10px;
+    padding: 15px;
+    box-sizing: border-box;
 }
 
-#adj_matrix_box {
-    display: none;
+#adj_matrix_content {
+    display: block;
+    width: 100%;
+    height: 100%;
+    overflow: scroll;
 }
 
 #adj_matrix {
     width: 100%;
-    padding: 5px;
     aspect-ratio: 1/1;
     text-align: center;
     border-spacing: 0px;
     font-size: 20pt;
-    box-sizing: border-box;
     table-layout: fixed;
 }
 #adj_matrix th, #adj_matrix td {
     overflow: hidden;
+    width: clamp(var(--adj-matrix-min-cell-size), var(--adj-matrix-min-cell-size), var(--adj-matrix-min-cell-size));
+    height: clamp(var(--adj-matrix-min-cell-size), var(--adj-matrix-min-cell-size), var(--adj-matrix-min-cell-size));
 }
 #adj_matrix th {
     color: black;
+    padding: 5px;
+}
+.adj_matrix_label_inside {
+    width: 100%;
+    height: 100%;
     text-align: center;
-    white-space: nowrap;
+    overflow-x: auto;
 }
 #adj_matrix td {
     background-color: rgb(78, 78, 78);
+    /* background-color: rgb(218, 218, 218); */
     color: white;
     border: 1px solid black;
 }
 
+#adj_list_content {
+    display: flex;
+    flex-direction: column;
+    padding: 10px 0px;
+    gap: 10px;
+    overflow-y: auto;
+}
+
 .adj_list_item {
     width: 100%;
-    min-height: 30px;
     box-sizing: border-box;
     display: flex;
     flex-direction: row;
@@ -108,10 +124,12 @@ body {
     font-size: 25pt;
 }
 .adj_list_node_name {
+    height: 100%;
     padding: 0px 20px;
     font-weight: bold;
 }
 .adj_list_adj_nodes {
+    height: 100%;
     flex-grow: 1;
     padding: 0px 20px;
     border-left: 1px solid black;
@@ -119,6 +137,7 @@ body {
     box-sizing: border-box;
     text-wrap: nowrap;
 } 
+
 /* Commas between list entries */
 .comma:first-child:empty ~ .comma:not(:empty) {
     margin-left: 0;  
