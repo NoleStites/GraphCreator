@@ -1162,6 +1162,15 @@ function deleteOnClick(event) {
     userGraph.removeNode(event.target.id);
 }
 
+// The given class name will either be added (true) or removed (false) from every edge
+function applyClassOnEdges(class_name, doApply) {
+    let edges = document.getElementsByClassName("edge_mask");
+    for (let i = 0; i < edges.length; i++) {
+        let edge = edges[i];
+        doApply ? edge.classList.add(class_name) : edge.classList.remove(class_name);
+    }
+}
+
 // The given class name will either be added (true) or removed (false) from every node
 function applyClassOnNodes(class_name, doApply) {
     let nodes = document.getElementsByClassName("node");
@@ -1333,7 +1342,7 @@ function toggleAlgorithmAboutSection(algorithm_choice, on_off) {
     if (!on_off) {
         about_section.style.left = "-401px";
         resetNodeClassesInAlgorithm();
-        document.getElementById("path_result").innerHTML = "";
+        clearAlgorithmResultPath();
         path, nodes_to_visit = null;
         document.getElementById("start_algorithm_btn").disabled = true;
         toggleButtons(true);
@@ -1375,7 +1384,6 @@ function toggleAlgorithmAboutSection(algorithm_choice, on_off) {
 let start_node_id = null;
 function selectNodeforStart(event) {
     if (event.target.id === start_node_id) {
-        document.getElementById("start_algorithm_btn").disabled = true;
         event.target.classList.remove("algorithmStartNode");
         start_node_id = null;
         return;
@@ -1383,7 +1391,6 @@ function selectNodeforStart(event) {
     start_node_id = event.target.id;
     applyClassOnNodes("algorithmStartNode", false);
     event.target.classList.add("algorithmStartNode");
-    document.getElementById("start_algorithm_btn").disabled = false;
 }
 
 // Handles logic for choosing a start node for the selected algorithm
@@ -1401,6 +1408,12 @@ function allowStartNodeSelection() {
             document.removeEventListener("keydown", keydown);
             applyClickEventOnNodes(standardNodeSelect, true);
             applyClickEventOnNodes(selectNodeforStart, false);
+            if (start_node_id !== null) {
+                document.getElementById("start_algorithm_btn").disabled = false;
+            }
+            else {
+                document.getElementById("start_algorithm_btn").disabled = true;
+            }
         }
     }
 }
@@ -1420,6 +1433,7 @@ function closeAlgorithm() {
     // Remove necessary classes and event listeners from nodes
     applyClassOnNodes("visited", false);
     applyClassOnNodes("algorithmStartNode", false);
+    applyClassOnEdges("edge_unvisited", false);
     applyClickEventOnNodes(standardNodeSelect, true);
     applyClickEventOnNodes(selectNodeforStart, false);
     start_node_id = null;
@@ -1495,6 +1509,9 @@ function displayAlgorithmStep(step) {
 
     if (current_step < prev_step) { // Backward step
         document.getElementById(path[prev_step]).classList.remove("visited");
+        if (prev_step > 0) {
+            document.getElementById(incoming_edge[path[prev_step]]).classList.add("edge_unvisited");
+        }
     }
     if (step === -1) {
         document.getElementById(path[0]).classList.add("next_visit");
@@ -1504,6 +1521,10 @@ function displayAlgorithmStep(step) {
 
     let visiting_node = path[step];
     document.getElementById(visiting_node).classList.add("visited");
+    let edge_id = incoming_edge[visiting_node];
+    if (edge_id !== "") {
+        document.getElementById(edge_id).classList.remove("edge_unvisited");
+    }
 
     if (step < path.length-1) { // Next to visit (if exists)
         document.getElementById(path[step+1]).classList.add("next_visit");
@@ -1545,7 +1566,18 @@ function displayAlgorithmResult(path) {
     });
 }
 
+// Removes all elements from the DOM for the algorithm path result
+function clearAlgorithmResultPath() {
+    document.getElementById("path_result").innerHTML = "";
+}
+
 function runAlgorithm() {
+    // Reset algorithm if already running
+    resetNodeClassesInAlgorithm();
+    applyClassOnEdges("edge_unvisited", true);
+    clearAlgorithmResultPath();
+    current_step = -2;
+    
     document.getElementById(start_node_id).classList.remove("algorithmStartNode");
     switch (chosen_algorithm) {
         case "dfs":
@@ -1568,6 +1600,7 @@ function resetAlgorithm() {
     // Remove necessary classes and event listeners from nodes
     resetNodeClassesInAlgorithm();
     resetClassesInPathResult();
+    applyClassOnEdges("edge_unvisited", true);
     current_step = -2;
     stepForward();
     if (isPlaying) {togglePlayButton();}
@@ -1577,6 +1610,7 @@ function resetAlgorithm() {
 // Uses the graph's adjacency list to perform.
 // Given the node ID for the start of the search, will prepare necessary vars
 // before calling recursive function to perform search.
+let incoming_edge = {} // Maps node IDs to an edge ID that leads to it in the path
 function DFS(start_node_id) {
     // Initialize visited dictionary to all false except for start node
     let node_ids = userGraph.adjList.getKeys();
@@ -1588,6 +1622,7 @@ function DFS(start_node_id) {
         else {
             visited[node_ids[i]] = false;
         }
+        incoming_edge[node_ids[i]] = "";
     }
 
     let path = []; // An ordered array of the path taken by the algorithm
@@ -1616,7 +1651,20 @@ function visit(node_id, visited, path, nodes_to_visit) {
     stack = stack.sort();
     for (let i = 0; i < stack.length; i++) {
         let to_visit = stack[i];
-            [visited, path, nodes_to_visit] = visit(to_visit, visited, path, nodes_to_visit);
+
+        // Node ID order to append to end of new element ID
+        let node_order_id; // Either 'nodeX_nodeY' or 'nodeY_nodeX'
+        switch (userGraph.graph_type) {
+            case "undirected": // Create id with smallest node listed first
+                node_order_id = `${userGraph.createMinMaxNodeID(node_id, to_visit)}`;
+                break;
+            case "directed": // Enforce order of selected nodes in ID
+                node_order_id = `${node_id}_${to_visit}`;
+                break;
+        }
+        incoming_edge[to_visit] = `edge_mask_${node_order_id}`;
+        
+        [visited, path, nodes_to_visit] = visit(to_visit, visited, path, nodes_to_visit);
     }
 
     return [visited, path, nodes_to_visit];

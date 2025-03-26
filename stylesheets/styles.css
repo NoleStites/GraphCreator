@@ -175,6 +175,8 @@ body {
     outline: 5px solid red;
 }
 
+
+/* Algorithm graph styles */
 .visited {
     background-color: rgb(43, 139, 14);
 }
@@ -185,6 +187,10 @@ body {
 .algorithmStartNode {
     outline: 8px solid lime;
     outline-offset: 0px;
+}
+.edge_unvisited {
+    background-color: none !important;
+    background: repeating-linear-gradient(90deg, grey, grey 20px, transparent 20px, transparent 40px) !important;    
 }
 
 /* Edge, Weight, and Arrow Styles */
