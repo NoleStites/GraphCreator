@@ -31,6 +31,13 @@ body {
     position: relative;
 }
 
+button {
+    cursor: pointer;
+}
+button:disabled {
+    cursor: not-allowed;
+}
+
 /* PREVIEW SECTION STYLES */
 #preview_section {
     width: 100%;
@@ -238,6 +245,9 @@ body {
     background-color: none !important;
     background: repeating-linear-gradient(90deg, grey, grey 20px, transparent 20px, transparent 40px) !important;    
 }
+.edge_unvisited > .arrow {
+    background-color: grey !important;
+}
 
 /* Edge, Weight, and Arrow Styles */
 .edge {
@@ -307,7 +317,7 @@ body {
     justify-content: center;
     align-items: center;
     display: none;
-    z-index: 10;
+    z-index: 102;
 }
 
 #prompt_box {
@@ -419,6 +429,10 @@ body {
 .pre_alg_btn {
     font-size: 14pt;
     padding: 5px;
+    background-color: white;
+}
+.pre_alg_btn:hover, .pre_alg_btn:disabled {
+    background-color: var(--hover-color);
 }
 
 #path_result {
@@ -457,9 +471,10 @@ body {
     background-size: auto 80%;
     background-position: center;
     background-repeat: no-repeat;
+    background-color: white;
 }
-.step_btn:disabled {
-    background-color: red;
+.step_btn:hover, .step_btn:disabled {
+    background-color: var(--hover-color);
 }
 #step_backward {
     background-image: url("/assets/left-arrow.svg");
