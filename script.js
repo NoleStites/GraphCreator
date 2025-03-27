@@ -991,7 +991,7 @@ function dragElement(elmnt) {
         // stop moving when mouse button is released:
         document.onmouseup = null;
         document.onmousemove = null;
-        document.getElementById(e.target.id).style.zIndex = node_zIndex;
+        elmnt.style.zIndex = node_zIndex;
     }
 }
 
