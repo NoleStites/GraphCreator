@@ -96,13 +96,12 @@ body {
 }
 .adj_matrix_label_inside {
     width: 100%;
-    height: 100%;
+    height: fit-content;
     text-align: center;
     overflow-x: auto;
 }
 #adj_matrix td {
     background-color: rgb(78, 78, 78);
-    /* background-color: rgb(218, 218, 218); */
     color: white;
     border: 1px solid black;
 }
@@ -113,6 +112,7 @@ body {
     padding: 10px 0px;
     gap: 10px;
     overflow-y: auto;
+    text-wrap: nowrap;
 }
 
 .adj_list_item {
@@ -124,19 +124,26 @@ body {
     font-size: 25pt;
 }
 .adj_list_node_name {
+    max-width: 30%;
     height: 100%;
-    padding: 0px 20px;
+    padding: 0px 10px;
+    box-sizing: border-box;
+}
+.adj_list_node_name_inside {
     font-weight: bold;
+    overflow-x: auto;
 }
 .adj_list_adj_nodes {
+    width: 70%;
     height: 100%;
-    flex-grow: 1;
-    padding: 0px 20px;
+    padding: 0px 10px;
     border-left: 1px solid black;
-    overflow-x: auto;
+    flex-grow: 1;
     box-sizing: border-box;
-    text-wrap: nowrap;
 } 
+.adj_list_adj_nodes_inside {
+    overflow-x: auto;
+}
 
 /* Commas between list entries */
 .comma:first-child:empty ~ .comma:not(:empty) {

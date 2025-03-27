@@ -7,16 +7,22 @@ class AdjacencyListVisual {
         new_section.id = `adj_list_section_${node_id}`;
 
         // Name of node in question
-        let node_name = document.createElement("p");
+        let node_name_inside = document.createElement("p");
+        node_name_inside.classList.add("adj_list_node_name_inside");
+        node_name_inside.classList.add(`label_for_${node_id}`);
+        node_name_inside.innerText = document.getElementById(node_id).innerText;
+        let node_name = document.createElement("div");
         node_name.classList.add("adj_list_node_name");
-        node_name.classList.add(`label_for_${node_id}`);
-        node_name.innerText = document.getElementById(node_id).innerText;
+        node_name.appendChild(node_name_inside);
 
         // List of adjacent nodes
-        let adj_nodes = document.createElement("p");
+        let adj_nodes_inside = document.createElement("p");
+        adj_nodes_inside.classList.add("adj_list_adj_nodes_inside");
+        adj_nodes_inside.id = `adj_list_adj_nodes_of_${node_id}`;
+        let adj_nodes = document.createElement("div");
         adj_nodes.classList.add("adj_list_adj_nodes");
-        adj_nodes.id = `adj_list_adj_nodes_of_${node_id}`;
-        adj_nodes.innerHTML = "&hairsp;"; // Need some content to show right-border
+        adj_nodes_inside.innerHTML = "&hairsp;"; // Need some content to show right-border
+        adj_nodes.appendChild(adj_nodes_inside);
 
         // Add the new elements to the DOM
         new_section.appendChild(node_name);
