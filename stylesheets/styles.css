@@ -458,6 +458,9 @@ body {
     background-position: center;
     background-repeat: no-repeat;
 }
+.step_btn:disabled {
+    background-color: red;
+}
 #step_backward {
     background-image: url("/assets/left-arrow.svg");
 }

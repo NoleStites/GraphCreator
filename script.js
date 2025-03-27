@@ -894,7 +894,7 @@ document.getElementById("create_node_btn").addEventListener("click", function(ev
         document.removeEventListener("mousemove", mousemove);
         document.getElementById("preview_section").removeEventListener("click", click);
         toggleBannerOff();
-        toggleButtons(true);
+        toggleGraphButtons(true);
         toggleAlgorithmButtonFunctionality(true);
         setNodePointerEvents("all");
         new_node.remove();
@@ -915,7 +915,7 @@ document.getElementById("create_node_btn").addEventListener("click", function(ev
     }
 
     toggleBannerOn("<b class=\"banner_bold\">Left-click:</b> place node | <b class=\"banner_bold\">ESC:</b> finish");
-    toggleButtons(false);
+    toggleGraphButtons(false);
     toggleAlgorithmButtonFunctionality(false);
 
     // Create and add a new node cursor to the page
@@ -1092,7 +1092,7 @@ document.getElementById("create_edge_btn").addEventListener("click", function(ev
             }
             document.removeEventListener("keydown", keydown);
             toggleBannerOff();
-            toggleButtons(true);
+            toggleGraphButtons(true);
             toggleAlgorithmButtonFunctionality(true);
         }
     }
@@ -1101,7 +1101,7 @@ document.getElementById("create_edge_btn").addEventListener("click", function(ev
 
     let start_node = null; // stores the ID of a node
     toggleBannerOn("<b class=\"banner_bold\">Right-click:</b> start of edge | <b class=\"banner_bold\">Left-click:</b> end of edge | <b class=\"banner_bold\">ESC:</b> finish");
-    toggleButtons(false);
+    toggleGraphButtons(false);
     toggleAlgorithmButtonFunctionality(false);
 
     // Allow every node to be selected
@@ -1151,11 +1151,20 @@ function standardNodeSelect(event) {
     return;
 }
 
-// Enable (true) or disable (false) all buttons that a user should not interact with
-function toggleButtons(on_off) {
+// Enable (true) or disable (false) graph buttons
+function toggleGraphButtons(on_off) {
     // Disbale graph edit buttons
     let graph_btns = document.getElementsByClassName("graph_btn");
     for (const btn of graph_btns) {
+        btn.disabled = !on_off;
+    }
+}
+
+// Enable (true) or disable (false) all buttons that a user should not interact with
+function toggleStepButtons(on_off) {
+    // Disbale graph edit buttons
+    let step_btns = document.getElementsByClassName("step_btn");
+    for (const btn of step_btns) {
         btn.disabled = !on_off;
     }
 }
@@ -1206,7 +1215,7 @@ document.getElementById("delete_btn").addEventListener("click", function(event) 
     function keydown(event) {
         if (event.key === "Escape") {
             toggleBannerOff();
-            toggleButtons(true);
+            toggleGraphButtons(true);
             toggleAlgorithmButtonFunctionality(true);
             applyClassOnNodes("delete_node", false);
             applyClickEventOnNodes(standardNodeSelect, true);
@@ -1217,7 +1226,7 @@ document.getElementById("delete_btn").addEventListener("click", function(event) 
     
     // Prep screen for delete mode
     toggleBannerOn("<b class=\"banner_bold\">Left-click:</b> delete node or edge | <b class=\"banner_bold\">ESC:</b> finish");
-    toggleButtons(false);
+    toggleGraphButtons(false);
     toggleAlgorithmButtonFunctionality(false);
     applyClassOnNodes("delete_node", true);
     applyClickEventOnNodes(standardNodeSelect, false);
@@ -1357,8 +1366,9 @@ function toggleAlgorithmAboutSection(algorithm_choice, on_off) {
         clearAlgorithmResultPath();
         path, nodes_to_visit = null;
         document.getElementById("start_algorithm_btn").disabled = true;
-        toggleButtons(true);
+        toggleGraphButtons(true);
         toggleAdjItemsDisable(true);
+        toggleStepButtons(false);
         if (document.getElementById("weights_checkbox").checked) { toggleWeightsChangeable(true); }
         return;
     }
@@ -1384,10 +1394,11 @@ function toggleAlgorithmAboutSection(algorithm_choice, on_off) {
     document.getElementById("algorithm_name").innerHTML = info_presets[algorithm_choice]["title"];
     document.getElementById("algorithm_about_text").innerHTML = info_presets[algorithm_choice]["about"];
     about_section.style.left = "0px";
-    toggleButtons(false);
+    toggleGraphButtons(false);
     toggleAdjItems(); // Hide AdjMatrix and AdjList
     toggleAdjItemsDisable(false);
     toggleWeightsChangeable(false);
+    toggleStepButtons(false);
 }
 
 // A click event to be applied to nodes for algorithms
@@ -1408,13 +1419,15 @@ function selectNodeforStart(event) {
 // Handles logic for choosing a start node for the selected algorithm
 function allowStartNodeSelection() {
     toggleBannerOn("<b class=\"banner_bold\">Left-click:</b> start of search | <b class=\"banner_bold\">ESC:</b> finish");
-    toggleButtons(false);
+    toggleGraphButtons(false);
+    toggleStepButtons(false);
     document.addEventListener("keydown", keydown); // Listen for ESC
     resetAlgorithmNodesAndEdges();
     clearAlgorithmResultPath();
     applyClickEventOnNodes(standardNodeSelect, false);
     applyClickEventOnNodes(selectNodeforStart, true);
     document.getElementById("start_algorithm_btn").disabled = true;
+    if (isPlaying) {togglePlayButton();}
 
     // Listen for cancel "ESC"
     function keydown(event) {
@@ -1596,6 +1609,7 @@ function runAlgorithm() {
     resetNodeClassesInAlgorithm();
     applyClassOnEdges("edge_unvisited", true);
     clearAlgorithmResultPath();
+    document.getElementById("start_algorithm_btn").disabled = true;
     current_step = -2;
     
     document.getElementById(start_node_id).classList.remove("algorithmStartNode");
@@ -1606,6 +1620,7 @@ function runAlgorithm() {
             stepForward();
             break;
     }
+    toggleStepButtons(true);
 }
 
 // Removes all algorithm-specific classes from the graph
@@ -1751,8 +1766,16 @@ document.getElementById("start_algorithm_btn").addEventListener("click", runAlgo
 document.getElementById("start_algorithm_btn").disabled = true;
 document.getElementById("reset_algorithm").addEventListener("click", resetAlgorithm);
 document.getElementById("play_pause").addEventListener("click", togglePlayButton);
-document.getElementById("step_backward").addEventListener("click", stepBackward);
-document.getElementById("step_forward").addEventListener("click", stepForward);
+document.getElementById("step_backward").addEventListener("click", 
+    function() {
+        if (isPlaying) {togglePlayButton();}
+        stepBackward();
+    });
+document.getElementById("step_forward").addEventListener("click", 
+    function() {
+        if (isPlaying) {togglePlayButton();}
+        stepForward();
+});
 document.getElementById("animation_speed").addEventListener("input", changeAnimationSpeed);
 document.getElementById("animation_speed").value = animationSpeed;
 document.getElementById("speed_value").innerHTML = (animationSpeed / 1000).toFixed(2);
