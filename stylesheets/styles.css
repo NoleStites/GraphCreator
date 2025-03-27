@@ -52,22 +52,37 @@ body {
     flex-direction: column;
     justify-content: end;
     z-index: 98;
+    pointer-events: none;
 }
 
 .adj_header {
+    height: fit-content;
     display: block;
+    font-weight: lighter;
+    box-shadow: 0px 0px 8px black;
+    background-color: rgb(54, 54, 54);
+    color: white;
+    padding: 5px;
+    text-align: center;
 }
 
 #adj_list_box, #adj_matrix_box {
     width: 100%;
-    height: 50%;
     background-color: rgba(255, 255, 255, 0.616);
     border-top: 1px solid black;
     border-right: 1px solid black;
     display: none;
     flex-direction: column;
-    padding: 15px;
     box-sizing: border-box;
+    overflow: hidden;
+    pointer-events: all;
+}
+#adj_matrix_box {
+    height: 50%;
+}
+#adj_list_box {
+    height: fit-content;
+    max-height: 50%;
 }
 
 #adj_matrix_content {
@@ -75,6 +90,8 @@ body {
     width: 100%;
     height: 100%;
     overflow: scroll;
+    padding: 5px;
+    box-sizing: border-box;
 }
 
 #adj_matrix {
@@ -82,6 +99,7 @@ body {
     aspect-ratio: 1/1;
     text-align: center;
     border-spacing: 0px;
+    border-collapse: collapse;
     font-size: 20pt;
     table-layout: fixed;
 }
@@ -101,15 +119,15 @@ body {
     overflow-x: auto;
 }
 #adj_matrix td {
-    background-color: rgb(78, 78, 78);
-    color: white;
+    background-color: var(--hover-color);
+    color: black;
     border: 1px solid black;
 }
 
 #adj_list_content {
     display: flex;
     flex-direction: column;
-    padding: 10px 0px;
+    padding: 10px;
     gap: 10px;
     overflow-y: auto;
     text-wrap: nowrap;
