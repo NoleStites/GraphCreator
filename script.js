@@ -1558,7 +1558,7 @@ function resetClassesInPathResult() {
 }
 
 // Will display the given step in the algorithm's execution
-var path, nodes_to_visit = null;
+var path, nodes_to_visit, incoming_edge = null;
 function displayAlgorithmStep(step) {
     requestAnimationFrame(() => {
     applyClassOnNodes("next_visit", false);
@@ -1611,6 +1611,7 @@ function displayAlgorithmResult(path) {
         for (let i = 0; i < path.length; i++) {
             let new_span = document.createElement("span");
             new_span.classList.add("path_unvisited");
+            new_span.classList.add(`label_for_${path[i]}`);
             new_span.id = `path_result_${path[i]}`; // Ex: path_result_node0
             let label = document.getElementById(path[i]).innerHTML; // Node label
             new_span.textContent = label;
@@ -1639,7 +1640,8 @@ function runAlgorithm() {
     document.getElementById(start_node_id).classList.remove("algorithmStartNode");
     switch (chosen_algorithm) {
         case "dfs":
-            [path, nodes_to_visit] = DFS(start_node_id);
+            // [path, nodes_to_visit] = DFS(start_node_id);
+            [path, incoming_edge] = DFS(start_node_id, [], {}, "");
             displayAlgorithmResult(path);
             stepForward();
             break;
@@ -1665,68 +1667,38 @@ function resetAlgorithm() {
     if (isPlaying) {togglePlayButton();}
 }
 
-// Entry point to the algorithm.
-// Uses the graph's adjacency list to perform.
-// Given the node ID for the start of the search, will prepare necessary vars
-// before calling recursive function to perform search.
-let incoming_edge = {} // Maps node IDs to an edge ID that leads to it in the path
-function DFS(start_node_id) {
-    // Initialize visited dictionary to all false except for start node
-    let node_ids = userGraph.adjList.getKeys();
-    let visited = {};
-    for (let i = 0; i < node_ids.length; i++) {
-        if (node_ids[i] === start_node_id) {
-            visited[node_ids[i]] = true;
-        }
-        else {
-            visited[node_ids[i]] = false;
-        }
-        incoming_edge[node_ids[i]] = "";
+// visited: A list of node IDs that have been visited by the algorithm (the path)
+// incoming_edge: A dictionary mapping node IDs to the edge ID leading into them
+// prev_node_id: Not for the algorithm. Used to create edge IDs for the visual
+function DFS(node_id, visited, incoming_edge, prev_node_id) {
+    visited.push(node_id); // Mark as visited (add to path)
+
+    // Get edge ID connecting to previously-visited node
+    if (prev_node_id === "") { // First node in path
+        incoming_edge[node_id] = "";
     }
-
-    let path = []; // An ordered array of the path taken by the algorithm
-    let nodes_to_visit = {}; // Maps node IDs to an array of node IDs that they would visit during the algorithm
-
-    [visited, path, nodes_to_visit] = visit(start_node_id, visited, path, nodes_to_visit);
-    return [path, nodes_to_visit];
-}
-
-// DFS recursive helper
-function visit(node_id, visited, path, nodes_to_visit) {
-    path.push(node_id);
-    nodes_to_visit[node_id] = []; // Initialize entry to no to-visit adjacencies
-
-    // Mark all adjacencies that have not yet been visited as visited and put in stack
-    let stack = [];
-    let adjs = userGraph.adjList.getAdjacencies(node_id); 
-    for (let i = 0; i < adjs.length; i++) {
-        if (!visited[adjs[i]]) {
-            stack.push(adjs[i]);
-            nodes_to_visit[node_id].push(adjs[i]);
-            visited[adjs[i]] = true;
-        }
-    }
-    // Recursively visit each adj node in stack
-    stack = stack.sort();
-    for (let i = 0; i < stack.length; i++) {
-        let to_visit = stack[i];
-
-        // Node ID order to append to end of new element ID
+    else { // All other node in path
         let node_order_id; // Either 'nodeX_nodeY' or 'nodeY_nodeX'
         switch (userGraph.graph_type) {
             case "undirected": // Create id with smallest node listed first
-                node_order_id = `${userGraph.createMinMaxNodeID(node_id, to_visit)}`;
+                node_order_id = `${userGraph.createMinMaxNodeID(prev_node_id, node_id)}`;
                 break;
             case "directed": // Enforce order of selected nodes in ID
-                node_order_id = `${node_id}_${to_visit}`;
+                node_order_id = `${prev_node_id}_${node_id}`;
                 break;
         }
-        incoming_edge[to_visit] = `edge_mask_${node_order_id}`;
-        
-        [visited, path, nodes_to_visit] = visit(to_visit, visited, path, nodes_to_visit);
+        incoming_edge[node_id] = `edge_mask_${node_order_id}`;
     }
 
-    return [visited, path, nodes_to_visit];
+    let adjs = userGraph.adjList.getAdjacencies(node_id); 
+    for (const adj of adjs) {
+        if (!visited.includes(adj)) { // Visit adj node if not already visited
+            [visited, incoming_edge] = DFS(adj, visited, incoming_edge, node_id);
+        }
+    }
+
+    return [visited, incoming_edge];
+
 }
 
 

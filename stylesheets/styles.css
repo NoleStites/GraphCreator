@@ -441,7 +441,7 @@ button:disabled {
 
 #path_result {
     width: 100%;
-    height: 50px;
+    height: fit-content;
     display: block;
     text-align: center;
     font-size: 16pt;
