@@ -556,6 +556,7 @@ class Graph {
         weight.id = `weight_${node_order_id}`; // Ex: 'weight_node0_node1'
         weight.innerHTML = '1';
         weight.addEventListener("input", handleWeightLabelChange); // Called when label is editted
+        weight.addEventListener("focusout", enforceWeightLabelValue);
         if (this.hasWeightLabels) { weight.contentEditable = true; }
         new_edge.appendChild(weight);
 
@@ -794,6 +795,29 @@ class Graph {
     // Returns the distance between two points
     calculateDistance(x1, y1, x2, y2) {
         return Math.sqrt((x2-x1)**2 + (y2-y1)**2);
+    }
+}
+
+// Ensure that an edited weight label actually has a value
+function enforceWeightLabelValue(event) {
+    let value = event.target.textContent;
+
+    // Do not let a weight have no value
+    if (value === "") {
+        event.target.innerText = "1";
+        handleWeightLabelChange(event);
+        return;
+    }
+
+    // Check to see if inputed value is a number
+    let num = Number(value);
+    let isNum = (Number.isNaN(num)) ? false : true;
+    
+    // Only allow numeric labels for these graph types
+    if ((graph_type === "undirected" || graph_type === "directed") && !isNum) {
+        event.target.innerText = "1";
+        handleWeightLabelChange(event);
+        return;
     }
 }
 
