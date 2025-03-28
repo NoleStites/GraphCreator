@@ -116,6 +116,7 @@ button:disabled {
 }
 #adj_matrix th, #adj_matrix td {
     overflow: hidden;
+    text-wrap: nowrap;
     width: clamp(var(--adj-matrix-min-cell-size), var(--adj-matrix-min-cell-size), var(--adj-matrix-min-cell-size));
     height: clamp(var(--adj-matrix-min-cell-size), var(--adj-matrix-min-cell-size), var(--adj-matrix-min-cell-size));
 }
@@ -203,13 +204,15 @@ button:disabled {
     border-radius: 50%;
     position: absolute;
     z-index: var(--node-z-index);
-    display: flex;
-    justify-content: center;
-    align-items: center;
     font-size: 20pt;
     font-family: sans-serif;
-    text-wrap: wrap;
-    text-align: center;
+    padding: 5px;
+    box-sizing: border-box;
+    /* overflow-x: auto; */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-wrap: nowrap;
 }
 .node:hover {
     background-color: rgb(170, 168, 168);
@@ -445,6 +448,7 @@ button:disabled {
     display: block;
     text-align: center;
     font-size: 16pt;
+    overflow-x: auto;
 }
 
 .path_unvisited {
