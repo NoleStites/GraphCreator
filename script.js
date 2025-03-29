@@ -1776,6 +1776,26 @@ document.getElementById("animation_speed").addEventListener("input", changeAnima
 document.getElementById("animation_speed").value = animationSpeed;
 document.getElementById("speed_value").innerHTML = (animationSpeed / 1000).toFixed(2);
 
+// Verify that all nodes are in the preview section and move them if not
+function checkNodesInPreviewSection() {
+    let preview_box = document.getElementById("preview_section").getBoundingClientRect();
+    let nodes = document.getElementsByClassName("node");
+    
+    // Go through each node
+    for (const node of nodes) {
+        // Check right bound
+        if (node.offsetLeft > preview_box.width - node_size) {
+            node.style.left = preview_box.width - node_size + "px";
+        }
+
+        // Check bottom bound
+        if (node.offsetTop > preview_box.height - node_size) {
+            node.style.top = preview_box.height - node_size + "px";
+        }
+    }
+}
+window.addEventListener("resize", checkNodesInPreviewSection);
+
 // Import necessary styles from stylesheet
 const css_styles = getComputedStyle(document.documentElement); // Or any specific element
 const cssSetVars = document.documentElement; // To use: cssSetVars.style.setProperty('--var-name', 'new_value')
@@ -1785,3 +1805,6 @@ var node_zIndex = Number(css_styles.getPropertyValue("--node-z-index"));
 var arrow_width = edge_thickness * Number(css_styles.getPropertyValue("--arrow-width-factor"));
 var arrow_space_to_node = 0; // Number of pixels of spacing between arrow tip and node it points to
 var double_edge_offset = 20; // px
+
+
+
