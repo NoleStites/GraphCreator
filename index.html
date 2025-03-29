@@ -72,13 +72,13 @@
                     <div id="algorithms_section_bottom" class="menu_section_bottom"></div>
                     <div id="algorithms_dropdown" class="menu_dropdown">
                         <div class="dropdown_item">
-                            <label id="dfs_btn" class="dropdown_label">Depth-First Search (DFS)</label>
+                            <label id="dfs_btn" class="dropdown_label alg_btn">Depth-First Search (DFS)</label>
                         </div>
                         <div class="dropdown_item">
-                            <label id="bfs_btn" class="dropdown_label">Breadth-First Search (DFS)</label>
+                            <label id="bfs_btn" class="dropdown_label alg_btn">Breadth-First Search (DFS)</label>
                         </div>
                         <div class="dropdown_item">
-                            <label id="dijkstra_btn" class="dropdown_label">Dijkstra's Algorithm</label>
+                            <label id="dijkstra_btn" class="dropdown_label alg_btn">Dijkstra's Algorithm</label>
                         </div>
                     </div>
                 </div>
@@ -92,6 +92,24 @@
 
             <div id="preview_section">
                 <div id="dropdown_banner"><p id="banner_text">This is some testing text.</p></div>
+                
+                <div id="adj_box">
+                    <div id="adj_list_box">
+                        <h1 class="adj_header">Adjacency List</h1>
+                        <div id="adj_list_content"></div>
+                    </div>
+                    <div id="adj_matrix_box">
+                        <h1 class="adj_header">Adjacency Matrix</h1>
+                        <div id="adj_matrix_content">
+                            <div id="adj_matrix_wrapper">
+                                <table id="adj_matrix">
+                                    <tr id="matrix_top_labels" class="matrix_row"><th></th></tr>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <div id="algorithm_about_section">
                     <div id="algorithm_about_close_bar"><img id="alg_about_close" src="./assets/close.svg"></div>
                     <h1 id="algorithm_name"></h1>
@@ -114,15 +132,6 @@
                         <h3 id="speed_display">Animation Speed:<br><span id="speed_value">1.00</span> steps/second</h3>
                         <input id="animation_speed" type="range" min="100" max="2000" step="100">
                     </div>
-                </div>
-            </div>
-
-            <div id="adj_box">
-                <div id="adj_list_box"></div>
-                <div id="adj_matrix_box">
-                    <table id="adj_matrix">
-                        <tr id="matrix_top_labels" class="matrix_row"><th></th></tr>
-                    </table>
                 </div>
             </div>
 

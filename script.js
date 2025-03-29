@@ -7,35 +7,41 @@ class AdjacencyListVisual {
         new_section.id = `adj_list_section_${node_id}`;
 
         // Name of node in question
-        let node_name = document.createElement("p");
+        let node_name_inside = document.createElement("p");
+        node_name_inside.classList.add("adj_list_node_name_inside");
+        node_name_inside.classList.add(`label_for_${node_id}`);
+        node_name_inside.innerText = document.getElementById(node_id).innerText;
+        let node_name = document.createElement("div");
         node_name.classList.add("adj_list_node_name");
-        node_name.classList.add(`label_for_${node_id}`);
-        node_name.innerText = document.getElementById(node_id).innerText;
+        node_name.appendChild(node_name_inside);
 
         // List of adjacent nodes
-        let adj_nodes = document.createElement("p");
+        let adj_nodes_inside = document.createElement("p");
+        adj_nodes_inside.classList.add("adj_list_adj_nodes_inside");
+        adj_nodes_inside.id = `adj_list_adj_nodes_of_${node_id}`;
+        let adj_nodes = document.createElement("div");
         adj_nodes.classList.add("adj_list_adj_nodes");
-        adj_nodes.id = `adj_list_adj_nodes_of_${node_id}`;
-        adj_nodes.innerHTML = "&hairsp;"; // Need some content to show right-border
+        adj_nodes_inside.innerHTML = "&hairsp;"; // Need some content to show right-border
+        adj_nodes.appendChild(adj_nodes_inside);
 
         // Add the new elements to the DOM
         new_section.appendChild(node_name);
         new_section.appendChild(adj_nodes);
 
-        let adj_list_box = document.getElementById("adj_list_box");
-        let sections = adj_list_box.children;
+        let adj_list_content = document.getElementById("adj_list_content");
+        let sections = adj_list_content.children;
         
         // Insert in order
         for (const section of sections) {
             let section_node_id = Number(section.id.slice(21));
             let to_insert_node_id = Number(node_id.slice(4));
             if (section_node_id > to_insert_node_id) {
-                adj_list_box.insertBefore(new_section, section); // Insert in order
+                adj_list_content.insertBefore(new_section, section); // Insert in order
                 return;
             }
         }
         // To be placed at end of list
-        document.getElementById("adj_list_box").appendChild(new_section);
+        document.getElementById("adj_list_content").appendChild(new_section);
     }
 
     // Removes a node section. Must call removeAdjacencyfromNode on all other sections
@@ -71,7 +77,7 @@ class AdjacencyListVisual {
     }
 
     clearList() {
-        document.getElementById("adj_list_box").innerHTML = "";
+        document.getElementById("adj_list_content").innerHTML = "";
     }
 } // END AdjacencyListVisual
 
@@ -202,9 +208,15 @@ class AdjacencyMatrixVisual {
         let matrix = document.getElementById("adj_matrix");
 
         // Create new label and data elements
+        let new_label_inside = document.createElement("div");
+        new_label_inside.classList.add("adj_matrix_label_inside");
+        new_label_inside.classList.add(`label_for_${node_id}`);
+        new_label_inside.innerHTML = node_label;
+
         let new_label = document.createElement("th");
-        new_label.classList.add(`label_for_${node_id}`);
-        new_label.innerHTML = node_label;
+
+        new_label.appendChild(new_label_inside);
+
         let new_data = document.createElement("td");
         new_data.classList.add("matrix_data_cell");
         new_data.innerHTML = 0;
@@ -544,6 +556,7 @@ class Graph {
         weight.id = `weight_${node_order_id}`; // Ex: 'weight_node0_node1'
         weight.innerHTML = '1';
         weight.addEventListener("input", handleWeightLabelChange); // Called when label is editted
+        weight.addEventListener("focusout", enforceWeightLabelValue);
         if (this.hasWeightLabels) { weight.contentEditable = true; }
         new_edge.appendChild(weight);
 
@@ -629,7 +642,7 @@ class Graph {
     // Determines the value of the next label to assign to a node.
     // Fills in any missing gaps in the lettering
     getNextLabelNum() {
-        this.node_numbers = this.node_numbers.sort();
+        this.node_numbers = this.node_numbers.sort(function(a, b){return a-b}); // Function in sort() because JS sorts numbers as strings, not ints
         let gap_num = null;
         for (let i = 0; i < this.node_numbers.length; i++) {
             if (i+1 !== this.node_numbers[i]) { // Found gap
@@ -785,6 +798,29 @@ class Graph {
     }
 }
 
+// Ensure that an edited weight label actually has a value
+function enforceWeightLabelValue(event) {
+    let value = event.target.textContent;
+
+    // Do not let a weight have no value
+    if (value === "") {
+        event.target.innerText = "1";
+        handleWeightLabelChange(event);
+        return;
+    }
+
+    // Check to see if inputed value is a number
+    let num = Number(value);
+    let isNum = (Number.isNaN(num)) ? false : true;
+    
+    // Only allow numeric labels for these graph types
+    if ((graph_type === "undirected" || graph_type === "directed") && !isNum) {
+        event.target.innerText = "1";
+        handleWeightLabelChange(event);
+        return;
+    }
+}
+
 // Functionality of changing a weight label
 function handleWeightLabelChange(event) {
     let label = event.target;
@@ -839,7 +875,7 @@ function toggleAdjItems() {
 function toggleAdjMatrix() {
     let adj_matrix = document.getElementById("adj_matrix_box");
     if (document.getElementById("adj_matrix_checkbox").checked) {
-        adj_matrix.style.display = "block";
+        adj_matrix.style.display = "flex";
     }
     else {
         adj_matrix.style.display = "none";
@@ -882,7 +918,8 @@ document.getElementById("create_node_btn").addEventListener("click", function(ev
         document.removeEventListener("mousemove", mousemove);
         document.getElementById("preview_section").removeEventListener("click", click);
         toggleBannerOff();
-        toggleButtons(true);
+        toggleGraphButtons(true);
+        toggleAlgorithmButtonFunctionality(true);
         setNodePointerEvents("all");
         new_node.remove();
     }
@@ -902,7 +939,8 @@ document.getElementById("create_node_btn").addEventListener("click", function(ev
     }
 
     toggleBannerOn("<b class=\"banner_bold\">Left-click:</b> place node | <b class=\"banner_bold\">ESC:</b> finish");
-    toggleButtons(false);
+    toggleGraphButtons(false);
+    toggleAlgorithmButtonFunctionality(false);
 
     // Create and add a new node cursor to the page
     let new_node = document.createElement("div");
@@ -977,7 +1015,7 @@ function dragElement(elmnt) {
         // stop moving when mouse button is released:
         document.onmouseup = null;
         document.onmousemove = null;
-        document.getElementById(e.target.id).style.zIndex = node_zIndex;
+        elmnt.style.zIndex = node_zIndex;
     }
 }
 
@@ -1078,7 +1116,8 @@ document.getElementById("create_edge_btn").addEventListener("click", function(ev
             }
             document.removeEventListener("keydown", keydown);
             toggleBannerOff();
-            toggleButtons(true);
+            toggleGraphButtons(true);
+            toggleAlgorithmButtonFunctionality(true);
         }
     }
 
@@ -1086,7 +1125,8 @@ document.getElementById("create_edge_btn").addEventListener("click", function(ev
 
     let start_node = null; // stores the ID of a node
     toggleBannerOn("<b class=\"banner_bold\">Right-click:</b> start of edge | <b class=\"banner_bold\">Left-click:</b> end of edge | <b class=\"banner_bold\">ESC:</b> finish");
-    toggleButtons(false);
+    toggleGraphButtons(false);
+    toggleAlgorithmButtonFunctionality(false);
 
     // Allow every node to be selected
     let nodes = document.getElementsByClassName("node");
@@ -1135,11 +1175,20 @@ function standardNodeSelect(event) {
     return;
 }
 
-// Enable (true) or disable (false) all buttons that a user should not interact with
-function toggleButtons(on_off) {
+// Enable (true) or disable (false) graph buttons
+function toggleGraphButtons(on_off) {
     // Disbale graph edit buttons
     let graph_btns = document.getElementsByClassName("graph_btn");
     for (const btn of graph_btns) {
+        btn.disabled = !on_off;
+    }
+}
+
+// Enable (true) or disable (false) all buttons that a user should not interact with
+function toggleStepButtons(on_off) {
+    // Disbale graph edit buttons
+    let step_btns = document.getElementsByClassName("step_btn");
+    for (const btn of step_btns) {
         btn.disabled = !on_off;
     }
 }
@@ -1156,6 +1205,15 @@ function toggleBannerOn(message) {
 // Defines the functionality of deleting when a node is clicked
 function deleteOnClick(event) {
     userGraph.removeNode(event.target.id);
+}
+
+// The given class name will either be added (true) or removed (false) from every edge
+function applyClassOnEdges(class_name, doApply) {
+    let edges = document.getElementsByClassName("edge_mask");
+    for (let i = 0; i < edges.length; i++) {
+        let edge = edges[i];
+        doApply ? edge.classList.add(class_name) : edge.classList.remove(class_name);
+    }
 }
 
 // The given class name will either be added (true) or removed (false) from every node
@@ -1181,7 +1239,8 @@ document.getElementById("delete_btn").addEventListener("click", function(event) 
     function keydown(event) {
         if (event.key === "Escape") {
             toggleBannerOff();
-            toggleButtons(true);
+            toggleGraphButtons(true);
+            toggleAlgorithmButtonFunctionality(true);
             applyClassOnNodes("delete_node", false);
             applyClickEventOnNodes(standardNodeSelect, true);
             applyClickEventOnNodes(deleteOnClick, false);
@@ -1191,7 +1250,8 @@ document.getElementById("delete_btn").addEventListener("click", function(event) 
     
     // Prep screen for delete mode
     toggleBannerOn("<b class=\"banner_bold\">Left-click:</b> delete node or edge | <b class=\"banner_bold\">ESC:</b> finish");
-    toggleButtons(false);
+    toggleGraphButtons(false);
+    toggleAlgorithmButtonFunctionality(false);
     applyClassOnNodes("delete_node", true);
     applyClickEventOnNodes(standardNodeSelect, false);
     applyClickEventOnNodes(deleteOnClick, true);
@@ -1300,6 +1360,23 @@ function toggleWeights() {
     }
 }
 
+// Disables (false) or enables (true) the clicking of the algorithm buttons
+function toggleAlgorithmButtonFunctionality(on_off) {
+    let btns = document.getElementsByClassName("alg_btn");
+    for (const btn of btns) {
+        if (!on_off) {
+            btn.removeEventListener("click", algorithmClickHandler);
+            btn.classList.add("alg_btn_disabled");
+            btn.parentElement.classList.add("alg_btn_parent_disabled");
+        }
+        else {
+            btn.addEventListener("click", algorithmClickHandler);
+            btn.classList.remove("alg_btn_disabled");
+            btn.parentElement.classList.remove("alg_btn_parent_disabled");
+        }
+    }
+}
+
 // Toggles the about info panel for the algorithms. On: true, Off: false
 // Called by the algorithm buttons
 let algorithm;
@@ -1310,11 +1387,12 @@ function toggleAlgorithmAboutSection(algorithm_choice, on_off) {
     if (!on_off) {
         about_section.style.left = "-401px";
         resetNodeClassesInAlgorithm();
-        document.getElementById("path_result").innerHTML = "";
+        clearAlgorithmResultPath();
         path, nodes_to_visit = null;
         document.getElementById("start_algorithm_btn").disabled = true;
-        toggleButtons(true);
+        toggleGraphButtons(true);
         toggleAdjItemsDisable(true);
+        toggleStepButtons(false);
         if (document.getElementById("weights_checkbox").checked) { toggleWeightsChangeable(true); }
         return;
     }
@@ -1340,10 +1418,11 @@ function toggleAlgorithmAboutSection(algorithm_choice, on_off) {
     document.getElementById("algorithm_name").innerHTML = info_presets[algorithm_choice]["title"];
     document.getElementById("algorithm_about_text").innerHTML = info_presets[algorithm_choice]["about"];
     about_section.style.left = "0px";
-    toggleButtons(false);
+    toggleGraphButtons(false);
     toggleAdjItems(); // Hide AdjMatrix and AdjList
     toggleAdjItemsDisable(false);
     toggleWeightsChangeable(false);
+    toggleStepButtons(false);
 }
 
 // A click event to be applied to nodes for algorithms
@@ -1352,7 +1431,6 @@ function toggleAlgorithmAboutSection(algorithm_choice, on_off) {
 let start_node_id = null;
 function selectNodeforStart(event) {
     if (event.target.id === start_node_id) {
-        document.getElementById("start_algorithm_btn").disabled = true;
         event.target.classList.remove("algorithmStartNode");
         start_node_id = null;
         return;
@@ -1360,16 +1438,20 @@ function selectNodeforStart(event) {
     start_node_id = event.target.id;
     applyClassOnNodes("algorithmStartNode", false);
     event.target.classList.add("algorithmStartNode");
-    document.getElementById("start_algorithm_btn").disabled = false;
 }
 
 // Handles logic for choosing a start node for the selected algorithm
 function allowStartNodeSelection() {
     toggleBannerOn("<b class=\"banner_bold\">Left-click:</b> start of search | <b class=\"banner_bold\">ESC:</b> finish");
-    toggleButtons(false);
+    toggleGraphButtons(false);
+    toggleStepButtons(false);
     document.addEventListener("keydown", keydown); // Listen for ESC
+    resetAlgorithmNodesAndEdges();
+    clearAlgorithmResultPath();
     applyClickEventOnNodes(standardNodeSelect, false);
     applyClickEventOnNodes(selectNodeforStart, true);
+    document.getElementById("start_algorithm_btn").disabled = true;
+    if (isPlaying) {togglePlayButton();}
 
     // Listen for cancel "ESC"
     function keydown(event) {
@@ -1378,6 +1460,12 @@ function allowStartNodeSelection() {
             document.removeEventListener("keydown", keydown);
             applyClickEventOnNodes(standardNodeSelect, true);
             applyClickEventOnNodes(selectNodeforStart, false);
+            if (start_node_id !== null) {
+                document.getElementById("start_algorithm_btn").disabled = false;
+            }
+            else {
+                document.getElementById("start_algorithm_btn").disabled = true;
+            }
         }
     }
 }
@@ -1389,16 +1477,22 @@ function openAlgorithm(algorithm_choice) {
     toggleAlgorithmAboutSection(algorithm_choice, true);
 }
 
+function resetAlgorithmNodesAndEdges() {
+    applyClassOnNodes("visited", false);
+    applyClassOnNodes("next_visit", false);
+    applyClassOnNodes("algorithmStartNode", false);
+    applyClassOnEdges("edge_unvisited", false);
+    applyClickEventOnNodes(standardNodeSelect, true);
+    applyClickEventOnNodes(selectNodeforStart, false);
+}
+
 // All functionality required when the little 'x' is clicked
 function closeAlgorithm() {
     toggleAlgorithmAboutSection("", false);
     if (isPlaying) {togglePlayButton();}
 
     // Remove necessary classes and event listeners from nodes
-    applyClassOnNodes("visited", false);
-    applyClassOnNodes("algorithmStartNode", false);
-    applyClickEventOnNodes(standardNodeSelect, true);
-    applyClickEventOnNodes(selectNodeforStart, false);
+    resetAlgorithmNodesAndEdges();
     start_node_id = null;
 }
 
@@ -1464,7 +1558,7 @@ function resetClassesInPathResult() {
 }
 
 // Will display the given step in the algorithm's execution
-var path, nodes_to_visit = null;
+var path, nodes_to_visit, incoming_edge = null;
 function displayAlgorithmStep(step) {
     requestAnimationFrame(() => {
     applyClassOnNodes("next_visit", false);
@@ -1472,6 +1566,9 @@ function displayAlgorithmStep(step) {
 
     if (current_step < prev_step) { // Backward step
         document.getElementById(path[prev_step]).classList.remove("visited");
+        if (prev_step > 0) {
+            document.getElementById(incoming_edge[path[prev_step]]).classList.add("edge_unvisited");
+        }
     }
     if (step === -1) {
         document.getElementById(path[0]).classList.add("next_visit");
@@ -1481,6 +1578,10 @@ function displayAlgorithmStep(step) {
 
     let visiting_node = path[step];
     document.getElementById(visiting_node).classList.add("visited");
+    let edge_id = incoming_edge[visiting_node];
+    if (edge_id !== "") {
+        document.getElementById(edge_id).classList.remove("edge_unvisited");
+    }
 
     if (step < path.length-1) { // Next to visit (if exists)
         document.getElementById(path[step+1]).classList.add("next_visit");
@@ -1510,6 +1611,7 @@ function displayAlgorithmResult(path) {
         for (let i = 0; i < path.length; i++) {
             let new_span = document.createElement("span");
             new_span.classList.add("path_unvisited");
+            new_span.classList.add(`label_for_${path[i]}`);
             new_span.id = `path_result_${path[i]}`; // Ex: path_result_node0
             let label = document.getElementById(path[i]).innerHTML; // Node label
             new_span.textContent = label;
@@ -1522,15 +1624,29 @@ function displayAlgorithmResult(path) {
     });
 }
 
+// Removes all elements from the DOM for the algorithm path result
+function clearAlgorithmResultPath() {
+    document.getElementById("path_result").innerHTML = "";
+}
+
 function runAlgorithm() {
+    // Reset algorithm if already running
+    resetNodeClassesInAlgorithm();
+    applyClassOnEdges("edge_unvisited", true);
+    clearAlgorithmResultPath();
+    document.getElementById("start_algorithm_btn").disabled = true;
+    current_step = -2;
+    
     document.getElementById(start_node_id).classList.remove("algorithmStartNode");
     switch (chosen_algorithm) {
         case "dfs":
-            [path, nodes_to_visit] = DFS(start_node_id);
+            // [path, nodes_to_visit] = DFS(start_node_id);
+            [path, incoming_edge] = DFS(start_node_id, [], {}, "");
             displayAlgorithmResult(path);
             stepForward();
             break;
     }
+    toggleStepButtons(true);
 }
 
 // Removes all algorithm-specific classes from the graph
@@ -1545,58 +1661,44 @@ function resetAlgorithm() {
     // Remove necessary classes and event listeners from nodes
     resetNodeClassesInAlgorithm();
     resetClassesInPathResult();
+    applyClassOnEdges("edge_unvisited", true);
     current_step = -2;
     stepForward();
     if (isPlaying) {togglePlayButton();}
 }
 
-// Entry point to the algorithm.
-// Uses the graph's adjacency list to perform.
-// Given the node ID for the start of the search, will prepare necessary vars
-// before calling recursive function to perform search.
-function DFS(start_node_id) {
-    // Initialize visited dictionary to all false except for start node
-    let node_ids = userGraph.adjList.getKeys();
-    let visited = {};
-    for (let i = 0; i < node_ids.length; i++) {
-        if (node_ids[i] === start_node_id) {
-            visited[node_ids[i]] = true;
+// visited: A list of node IDs that have been visited by the algorithm (the path)
+// incoming_edge: A dictionary mapping node IDs to the edge ID leading into them
+// prev_node_id: Not for the algorithm. Used to create edge IDs for the visual
+function DFS(node_id, visited, incoming_edge, prev_node_id) {
+    visited.push(node_id); // Mark as visited (add to path)
+
+    // Get edge ID connecting to previously-visited node
+    if (prev_node_id === "") { // First node in path
+        incoming_edge[node_id] = "";
+    }
+    else { // All other node in path
+        let node_order_id; // Either 'nodeX_nodeY' or 'nodeY_nodeX'
+        switch (userGraph.graph_type) {
+            case "undirected": // Create id with smallest node listed first
+                node_order_id = `${userGraph.createMinMaxNodeID(prev_node_id, node_id)}`;
+                break;
+            case "directed": // Enforce order of selected nodes in ID
+                node_order_id = `${prev_node_id}_${node_id}`;
+                break;
         }
-        else {
-            visited[node_ids[i]] = false;
-        }
+        incoming_edge[node_id] = `edge_mask_${node_order_id}`;
     }
 
-    let path = []; // An ordered array of the path taken by the algorithm
-    let nodes_to_visit = {}; // Maps node IDs to an array of node IDs that they would visit during the algorithm
-
-    [visited, path, nodes_to_visit] = visit(start_node_id, visited, path, nodes_to_visit);
-    return [path, nodes_to_visit];
-}
-
-// DFS recursive helper
-function visit(node_id, visited, path, nodes_to_visit) {
-    path.push(node_id);
-    nodes_to_visit[node_id] = []; // Initialize entry to no to-visit adjacencies
-
-    // Mark all adjacencies that have not yet been visited as visited and put in stack
-    let stack = [];
     let adjs = userGraph.adjList.getAdjacencies(node_id); 
-    for (let i = 0; i < adjs.length; i++) {
-        if (!visited[adjs[i]]) {
-            stack.push(adjs[i]);
-            nodes_to_visit[node_id].push(adjs[i]);
-            visited[adjs[i]] = true;
+    for (const adj of adjs) {
+        if (!visited.includes(adj)) { // Visit adj node if not already visited
+            [visited, incoming_edge] = DFS(adj, visited, incoming_edge, node_id);
         }
     }
-    // Recursively visit each adj node in stack
-    stack = stack.sort();
-    for (let i = 0; i < stack.length; i++) {
-        let to_visit = stack[i];
-            [visited, path, nodes_to_visit] = visit(to_visit, visited, path, nodes_to_visit);
-    }
 
-    return [visited, path, nodes_to_visit];
+    return [visited, incoming_edge];
+
 }
 
 
@@ -1645,9 +1747,13 @@ document.getElementById("adj_matrix_checkbox").checked = false;
 document.getElementById("adj_list_checkbox").checked = false;
 
 // Algorithms
-document.getElementById("dfs_btn").addEventListener("click", function () {openAlgorithm("dfs");});
-document.getElementById("bfs_btn").addEventListener("click", function () {openAlgorithm("bfs");});
-document.getElementById("dijkstra_btn").addEventListener("click", function () {openAlgorithm("dijkstra");});
+function algorithmClickHandler(event) {
+    let alg_choice = event.target.id.slice(0,-4);
+    openAlgorithm(alg_choice);
+}
+document.getElementById("dfs_btn").addEventListener("click", algorithmClickHandler);
+document.getElementById("bfs_btn").addEventListener("click", algorithmClickHandler);
+document.getElementById("dijkstra_btn").addEventListener("click", algorithmClickHandler);
 
 // Algorithm About Section
 document.getElementById("alg_about_close").addEventListener("click", closeAlgorithm);
@@ -1656,8 +1762,16 @@ document.getElementById("start_algorithm_btn").addEventListener("click", runAlgo
 document.getElementById("start_algorithm_btn").disabled = true;
 document.getElementById("reset_algorithm").addEventListener("click", resetAlgorithm);
 document.getElementById("play_pause").addEventListener("click", togglePlayButton);
-document.getElementById("step_backward").addEventListener("click", stepBackward);
-document.getElementById("step_forward").addEventListener("click", stepForward);
+document.getElementById("step_backward").addEventListener("click", 
+    function() {
+        if (isPlaying) {togglePlayButton();}
+        stepBackward();
+    });
+document.getElementById("step_forward").addEventListener("click", 
+    function() {
+        if (isPlaying) {togglePlayButton();}
+        stepForward();
+});
 document.getElementById("animation_speed").addEventListener("input", changeAnimationSpeed);
 document.getElementById("animation_speed").value = animationSpeed;
 document.getElementById("speed_value").innerHTML = (animationSpeed / 1000).toFixed(2);
