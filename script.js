@@ -858,15 +858,20 @@ function toggleWeightsChangeable(on_off) {
 
 // Disables (false) or enables (true) the graph feature checkboxes
 function toggleAdjItemsDisable(on_off) {
-    document.getElementById("adj_matrix_checkbox").disabled = !on_off;
-    document.getElementById("adj_list_checkbox").disabled = !on_off;
-    document.getElementById("weights_checkbox").disabled = !on_off;
+    document.getElementById("adj_matrix_checkbox1").disabled = !on_off;
+    document.getElementById("adj_matrix_checkbox2").disabled = !on_off;
+    document.getElementById("adj_list_checkbox1").disabled = !on_off;
+    document.getElementById("adj_list_checkbox2").disabled = !on_off;
+    document.getElementById("weights_checkbox1").disabled = !on_off;
+    document.getElementById("weights_checkbox2").disabled = !on_off;
 }
 
 // Called programitcally to hise AdjMatrix and AdjList and automatically unchecks checkboxes
 function toggleAdjItems() {
-    document.getElementById("adj_matrix_checkbox").checked = false;
-    document.getElementById("adj_list_checkbox").checked = false;
+    document.getElementById("adj_matrix_checkbox1").checked = false;
+    document.getElementById("adj_matrix_checkbox2").checked = false;
+    document.getElementById("adj_list_checkbox1").checked = false;
+    document.getElementById("adj_list_checkbox2").checked = false;
     toggleAdjMatrix();
     toggleAdjList();
 }
@@ -1282,10 +1287,12 @@ function promptUserYesNo(new_graph_type, message) {
             closeAlgorithm(); 
             graph_type = new_graph_type; // "undirected", "directed", ...
             document.getElementById("graph_type_display").innerHTML = graph_type_display_names[graph_type];
-            document.getElementById(`${graph_type}_radio`).checked = true;
+            document.getElementById(`${graph_type}_radio1`).checked = true;
+            document.getElementById(`${graph_type}_radio2`).checked = true;
         }
         else {
-            document.getElementById(`${graph_type}_radio`).checked = true; // return radios to previous state
+            document.getElementById(`${graph_type}_radio1`).checked = true; // return radios to previous state
+            document.getElementById(`${graph_type}_radio2`).checked = true; // return radios to previous state
         }
 
         // Remove event listeners from buttons
@@ -1407,7 +1414,7 @@ function toggleAlgorithmAboutSection(algorithm_choice, on_off) {
         toggleGraphButtons(true);
         toggleAdjItemsDisable(true);
         toggleStepButtons(false);
-        if (document.getElementById("weights_checkbox").checked) { toggleWeightsChangeable(true); }
+        if (document.getElementById("weights_checkbox1").checked) { toggleWeightsChangeable(true); }
         return;
     }
 
@@ -1724,11 +1731,19 @@ function DFS(node_id, visited, incoming_edge, prev_node_id) {
 */
 
 // Graph type menu functionality
-document.getElementById(`undirected_radio`).checked = true; // default
 function changeGraphType(event) {
+    // Adjust the value of the other radio button pairs
+    let radio_pair_num = Number(event.target.name.slice(-1));
+    let other_box_num = radio_pair_num === 1 ? 2 : 1;
+    document.getElementById(event.target.id.slice(0,-1) + `${other_box_num}`).checked = true;
+
     promptUserYesNo(event.target.value, "Changing graph types will delete your current graph. Do you want to continue?");
 }
-let graph_type_radios = document.getElementsByName("graph_type");
+let graph_type_radios = document.getElementsByName("graph_type1");
+for (let i = 0; i < graph_type_radios.length; i++) {
+    graph_type_radios[i].addEventListener("change", changeGraphType);
+}
+graph_type_radios = document.getElementsByName("graph_type2");
 for (let i = 0; i < graph_type_radios.length; i++) {
     graph_type_radios[i].addEventListener("change", changeGraphType);
 }
@@ -1741,7 +1756,8 @@ let graph_type_display_names = {
     "nfa": "NFA"
 }
 document.getElementById("graph_type_display").innerHTML = graph_type_display_names[graph_type];
-document.getElementById(`${graph_type}_radio`).checked = true;
+document.getElementById(`${graph_type}_radio1`).checked = true;
+document.getElementById(`${graph_type}_radio2`).checked = true;
 
 // Initialize a Graph object
 var userGraph = new Graph(graph_type);
