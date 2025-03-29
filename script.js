@@ -872,23 +872,33 @@ function toggleAdjItems() {
 }
 
 // Toggles the adjacency matrix visual on/off depending on checkbox value
-function toggleAdjMatrix() {
+function toggleAdjMatrix(event) {
+    let checkbox_num = Number(event.target.id.slice(-1));
+    let other_box_num = checkbox_num === 1 ? 2 : 1;
+
     let adj_matrix = document.getElementById("adj_matrix_box");
-    if (document.getElementById("adj_matrix_checkbox").checked) {
+    if (event.target.checked) {
+        document.getElementById(`adj_matrix_checkbox${other_box_num}`).checked = true;
         adj_matrix.style.display = "flex";
     }
     else {
+        document.getElementById(`adj_matrix_checkbox${other_box_num}`).checked = false;
         adj_matrix.style.display = "none";
     }
 }
 
 // Toggles the adjacency list visual on/off depending on checkbox value
-function toggleAdjList() {
+function toggleAdjList(event) {
+    let checkbox_num = Number(event.target.id.slice(-1));
+    let other_box_num = checkbox_num === 1 ? 2 : 1;
+
     let adj_list = document.getElementById("adj_list_box");
-    if (document.getElementById("adj_list_checkbox").checked) {
+    if (event.target.checked) {
+        document.getElementById(`adj_list_checkbox${other_box_num}`).checked = true;
         adj_list.style.display = "flex";
     }
     else {
+        document.getElementById(`adj_list_checkbox${other_box_num}`).checked = false;
         adj_list.style.display = "none";
     }
 }
@@ -1350,11 +1360,16 @@ function clearGraph() {
     closeAlgorithm();
 }
 
-function toggleWeights() {
-    if (document.getElementById("weights_checkbox").checked) {
+function toggleWeights(event) {
+    let checkbox_num = Number(event.target.id.slice(-1));
+    let other_box_num = checkbox_num === 1 ? 2 : 1;
+
+    if (event.target.checked) {
+        document.getElementById(`weights_checkbox${other_box_num}`).checked = true;
         userGraph.toggleWeightsAndLabels(true);
     }
     else {
+        document.getElementById(`weights_checkbox${other_box_num}`).checked = false;
         userGraph.toggleWeightsAndLabels(false);
     }
 }
@@ -1737,13 +1752,19 @@ document.getElementById("export_btn").addEventListener("click", exportGraph);
 document.getElementById("clear_btn").addEventListener("click", clearGraph);
 
 // Graph features
-document.getElementById("weights_checkbox").addEventListener("change", toggleWeights);
-document.getElementById("adj_matrix_checkbox").addEventListener("change", toggleAdjMatrix);
-document.getElementById("adj_list_checkbox").addEventListener("change", toggleAdjList);
+document.getElementById("weights_checkbox1").addEventListener("change", toggleWeights);
+document.getElementById("weights_checkbox2").addEventListener("change", toggleWeights);
+document.getElementById("adj_matrix_checkbox1").addEventListener("change", toggleAdjMatrix);
+document.getElementById("adj_matrix_checkbox2").addEventListener("change", toggleAdjMatrix);
+document.getElementById("adj_list_checkbox1").addEventListener("change", toggleAdjList);
+document.getElementById("adj_list_checkbox2").addEventListener("change", toggleAdjList);
 
-document.getElementById("weights_checkbox").checked = false;
-document.getElementById("adj_matrix_checkbox").checked = false;
-document.getElementById("adj_list_checkbox").checked = false;
+document.getElementById("weights_checkbox1").checked = false;
+document.getElementById("weights_checkbox2").checked = false;
+document.getElementById("adj_matrix_checkbox1").checked = false;
+document.getElementById("adj_matrix_checkbox2").checked = false;
+document.getElementById("adj_list_checkbox1").checked = false;
+document.getElementById("adj_list_checkbox2").checked = false;
 
 // Algorithms
 function algorithmClickHandler(event) {
@@ -1790,6 +1811,14 @@ function checkNodesInPreviewSection() {
         // Check bottom bound
         if (node.offsetTop > preview_box.height - node_size) {
             node.style.top = preview_box.height - node_size + "px";
+        }
+
+        // Update the edges
+        let edge_IDs_to_move = getIncomingAndOutgoingEdges(node.id);
+        for (let i = 0; i < edge_IDs_to_move.length; i++) {
+            let node_ids = edge_IDs_to_move[i].slice(5);
+            let node1_node2 = node_ids.split('_');
+            userGraph.moveEdge(node1_node2[0], node1_node2[1]);
         }
     }
 }
