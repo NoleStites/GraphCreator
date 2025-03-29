@@ -964,7 +964,6 @@ document.getElementById("create_node_btn").addEventListener("click", function(ev
 // Make the DIV element draggable
 function dragElement(elmnt) {
     var pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
-    let preview_box = document.getElementById("preview_section").getBoundingClientRect();
     let elmnt_props = elmnt.getBoundingClientRect();
     var edge_IDs_to_move;
 
@@ -1778,7 +1777,7 @@ document.getElementById("speed_value").innerHTML = (animationSpeed / 1000).toFix
 
 // Verify that all nodes are in the preview section and move them if not
 function checkNodesInPreviewSection() {
-    let preview_box = document.getElementById("preview_section").getBoundingClientRect();
+    preview_box = document.getElementById("preview_section").getBoundingClientRect();
     let nodes = document.getElementsByClassName("node");
     
     // Go through each node
@@ -1805,6 +1804,8 @@ var node_zIndex = Number(css_styles.getPropertyValue("--node-z-index"));
 var arrow_width = edge_thickness * Number(css_styles.getPropertyValue("--arrow-width-factor"));
 var arrow_space_to_node = 0; // Number of pixels of spacing between arrow tip and node it points to
 var double_edge_offset = 20; // px
+var preview_box = document.getElementById("preview_section").getBoundingClientRect(); // Updated when window is resized
+
 
 
 
