@@ -48,12 +48,16 @@
     display: flex;
     justify-content: center;
     align-items: center;
+    text-align: center;
     transition: top 0.5s;
 }
 #banner_text {
-    width: fit-content;
+    width: 95%;
     font-size: 15pt;
     color: white;
+    overflow-x: auto;
+    text-wrap: nowrap;
+    text-overflow: ellipsis;
 }
 .banner_bold {
     color: rgb(0, 247, 255);
