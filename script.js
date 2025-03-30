@@ -866,14 +866,17 @@ function toggleAdjItemsDisable(on_off) {
     document.getElementById("weights_checkbox2").disabled = !on_off;
 }
 
-// Called programitcally to hise AdjMatrix and AdjList and automatically unchecks checkboxes
+// Called programitcally to hide AdjMatrix and AdjList and automatically unchecks checkboxes
 function toggleAdjItems() {
-    document.getElementById("adj_matrix_checkbox1").checked = false;
-    document.getElementById("adj_matrix_checkbox2").checked = false;
-    document.getElementById("adj_list_checkbox1").checked = false;
-    document.getElementById("adj_list_checkbox2").checked = false;
-    toggleAdjMatrix();
-    toggleAdjList();
+    let matrix_checkbox = document.getElementById("adj_matrix_checkbox1");
+    let list_checkbox = document.getElementById("adj_list_checkbox1");
+
+    // Simulate a click of the checkbox in graph features
+    matrix_checkbox.checked = false;
+    list_checkbox.checked = false;
+    const event = new Event("change");
+    matrix_checkbox.dispatchEvent(event);
+    list_checkbox.dispatchEvent(event);
 }
 
 // Toggles the adjacency matrix visual on/off depending on checkbox value
@@ -1784,12 +1787,15 @@ document.getElementById("adj_list_checkbox2").checked = false;
 
 // Algorithms
 function algorithmClickHandler(event) {
-    let alg_choice = event.target.id.slice(0,-4);
+    let alg_choice = event.target.id.slice(0,-5);
     openAlgorithm(alg_choice);
 }
-document.getElementById("dfs_btn").addEventListener("click", algorithmClickHandler);
-document.getElementById("bfs_btn").addEventListener("click", algorithmClickHandler);
-document.getElementById("dijkstra_btn").addEventListener("click", algorithmClickHandler);
+document.getElementById("dfs_btn1").addEventListener("click", algorithmClickHandler);
+document.getElementById("dfs_btn2").addEventListener("click", algorithmClickHandler);
+document.getElementById("bfs_btn1").addEventListener("click", algorithmClickHandler);
+document.getElementById("bfs_btn2").addEventListener("click", algorithmClickHandler);
+document.getElementById("dijkstra_btn1").addEventListener("click", algorithmClickHandler);
+document.getElementById("dijkstra_btn2").addEventListener("click", algorithmClickHandler);
 
 // Algorithm About Section
 document.getElementById("alg_about_close").addEventListener("click", closeAlgorithm);

@@ -51,7 +51,7 @@ button:disabled {
 
 /* ADJACENCY MATRIX AND LIST STYLES */
 #adj_box {
-    width: 400px;
+    width: clamp(300px, 20%, 20%);
     height: 100%;
     position: absolute;
     bottom: 0%;
@@ -71,6 +71,7 @@ button:disabled {
     color: white;
     padding: 5px;
     text-align: center;
+    font-size: 1.75rem;
 }
 
 #adj_list_box, #adj_matrix_box {
@@ -84,6 +85,11 @@ button:disabled {
     overflow: hidden;
     pointer-events: all;
 }
+
+.adj_list_item, #adj_matrix {
+    font-size: 20pt;
+}
+
 #adj_matrix_box {
     height: 50%;
 }
@@ -111,7 +117,6 @@ button:disabled {
     text-align: center;
     border-spacing: 0px;
     border-collapse: collapse;
-    font-size: 20pt;
     table-layout: fixed;
 }
 #adj_matrix th, #adj_matrix td {
@@ -151,7 +156,6 @@ button:disabled {
     display: flex;
     flex-direction: row;
     align-items: center;
-    font-size: 25pt;
 }
 .adj_list_node_name {
     max-width: 30%;
