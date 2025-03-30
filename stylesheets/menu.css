@@ -269,9 +269,14 @@ label {
     }
 }
 
-/* Move graph features dropdown to hamburger */
+/* Move menu title to hamburger */
 @media screen and (max-width: 550px) {
     #page_title {
         display: none;
+    }
+
+    #graph_buttons {
+        gap: 0;
+        justify-content: space-evenly;
     }
 }
