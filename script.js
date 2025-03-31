@@ -1818,6 +1818,57 @@ document.getElementById("animation_speed").addEventListener("input", changeAnima
 document.getElementById("animation_speed").value = animationSpeed;
 document.getElementById("speed_value").innerHTML = (animationSpeed / 1000).toFixed(2);
 
+// Make the DIV element size-adjustable
+// x_or_y: a string 'x' or 'y' to determine which direction to adjust
+function adjustElement(elmnt, x_or_y) {
+    var pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+    let elmnt_props = elmnt.getBoundingClientRect();
+
+    elmnt.onmousedown = dragMouseDown;
+
+    function dragMouseDown(e) {
+        if (e.buttons === 2) {return;} // No right-click
+        e.preventDefault();
+
+        // Get the mouse cursor position at startup:
+        pos3 = e.clientX;
+        pos4 = e.clientY;
+        document.onmouseup = closeDragElement;
+        
+        // Call a function whenever the cursor moves:
+        document.onmousemove = elementDrag;
+    }
+
+    function elementDrag(e) {
+        e.preventDefault();
+        // calculate the new cursor position:
+        pos1 = pos3 - e.clientX;
+        pos2 = pos4 - e.clientY;
+        pos3 = e.clientX;
+        pos4 = e.clientY;
+        // set the element's new position:
+        // let new_top = elmnt.offsetTop - pos2;
+        // let new_left = elmnt.offsetLeft - pos1;
+
+        // Do not let the node leave the preview area
+        // if (new_top < 0) {new_top = 0;}
+        // else if (new_top > preview_box.height - elmnt_props.width) {new_top = preview_box.height - elmnt_props.width;}
+        // if (new_left < 0) {new_left = 0;}
+        // else if (new_left > preview_box.width - elmnt_props.width) {new_left = preview_box.width - elmnt_props.width;}
+
+        // elmnt.style.top = new_top + "px";
+        // elmnt.style.left = new_left + "px";
+        elmnt.parentElement.style.width = `clamp(${pos3}px, 20%, 20%)`;
+    }
+
+    function closeDragElement(e) {
+        // stop moving when mouse button is released:
+        document.onmouseup = null;
+        document.onmousemove = null;
+    }
+}
+adjustElement(document.getElementById("adj_width_adjuster"), 'x'); // Make it adjustable
+
 // Verify that all nodes are in the preview section and move them if not
 function checkNodesInPreviewSection() {
     preview_box = document.getElementById("preview_section").getBoundingClientRect();

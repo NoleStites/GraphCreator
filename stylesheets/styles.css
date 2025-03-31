@@ -10,6 +10,7 @@
     --arrow-width-factor: 5;
     --arrow-width: calc(var(--edge-thickness)*var(--arrow-width-factor));
     --adj-matrix-min-cell-size: 50px;
+    --dimension-adjuster-thickness: 20px;
 }
 
 * {
@@ -378,6 +379,21 @@ button:disabled {
     cursor: pointer;
 }
 
+.width_adjuster {
+    width: var(--dimension-adjuster-thickness);
+    height: 50%;
+    border-radius: 5px;
+    background-color: rgba(255, 0, 0, 0.253);
+    position: absolute;
+    right: calc(-1/2 * var(--dimension-adjuster-thickness));
+    top: 25%;
+    opacity: 0;
+    pointer-events: all;
+}
+.width_adjuster:hover {
+    opacity: 1;
+    cursor: pointer;
+}
 
 
 /* Once all of the menu section go into hamburger */
@@ -402,42 +418,3 @@ button:disabled {
         max-height: none;
     }
 }
-
-
-/* #adj_list_box, #adj_matrix_box {
-    width: 100%;
-    background-color: rgba(255, 255, 255, 0.616);
-    border-top: 1px solid black;
-    border-right: 1px solid black;
-    display: none;
-    flex-direction: column;
-    box-sizing: border-box;
-    overflow: hidden;
-    pointer-events: all;
-}
-
-.adj_list_item, #adj_matrix {
-    font-size: 20pt;
-}
-
-#adj_matrix_box {
-    height: 50%;
-}
-#adj_list_box {
-    height: fit-content;
-    max-height: 50%;
-}
-
-
-
-#adj_box {
-    width: clamp(300px, 20%, 20%);
-    height: 100%;
-    position: absolute;
-    bottom: 0%;
-    display: flex;
-    flex-direction: column;
-    justify-content: end;
-    z-index: 98;
-    pointer-events: none;
-} */

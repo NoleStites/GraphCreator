@@ -10,6 +10,8 @@
     background-color: rgba(238, 238, 238, 0.527);
     border-right: 1px solid black;
     transition: left 0.3s ease-in-out;
+    display: flex;
+    flex-direction: column;
 }
 
 #algorithm_about_close_bar {
@@ -49,6 +51,11 @@
     box-shadow: 0px 0px 1px 0.3px grey;
 }
 
+#algorithm_scroll_section {
+    height: 100%;
+    overflow-y: scroll;
+}
+
 #algorithm_about_text {
     display: block;
     font-size: 14pt;
@@ -65,6 +72,7 @@
     height: fit-content;
 }
 .pre_alg_btn {
+    width: 100%;
     font-size: 14pt;
     padding: 5px;
     background-color: white;
@@ -93,19 +101,19 @@
 }
 
 #step_buttons {
-    display: block;
+    width: 100%;
     height: fit-content;
+    margin-top: 10px;
     display: flex;
     justify-content: center;
-    gap: 20px;
-    padding: 20px;
+    flex-direction: row;
     box-sizing: border-box;
+    gap: 10px;
 }
 .step_btn {
-    height: 40px;
-    aspect-ratio: 2/1;
+    width: 100%;
+    height: 35px;
     font-size: 20pt;
-    line-height: 30px;
 
     background-size: auto 80%;
     background-position: center;
@@ -130,14 +138,17 @@
 
 #speed_slider_box {
     width: 100%;
+    margin-top: 10px;
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 30px;
-    gap: 20px;
+    flex-direction: row;
+    height: fit-content;
+    gap: 10px;
+    /* background-color: blue; */
 }
-#algorithm_speed {
-    width: 80%;
+input[type="range"] {
+    width: 50%;
 }
 #speed_display {
     text-align: center;
