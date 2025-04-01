@@ -165,6 +165,9 @@ input[type="range"] {
         justify-content: start;
         bottom: 0%;
     }
+    #algorithm_about_close_bar {
+        height: 30px;
+    }
     #algorithm_name {
         font-size: 16pt
     }

@@ -1407,11 +1407,8 @@ let algorithm;
 function toggleAlgorithmAboutSection(algorithm_choice, on_off) {
     let about_section = document.getElementById("algorithm_about_section");
     let vw = window.innerWidth; // Less than 760 means phone screen
-    console.log(`Width: ${about_section.offsetWidth}; Left: ${about_section.offsetLeft}`);
 
     // Close panel
-    let section_width = about_section.offsetWidth;
-    let section_left = about_section.offsetLeft;
     if (!on_off) {
         if (vw > 760) {
             about_section.style.left = -1 * about_section.offsetWidth + 'px';
@@ -1775,8 +1772,8 @@ document.getElementById(`${graph_type}_radio2`).checked = true;
 var userGraph = new Graph(graph_type);
 
 // Hamburger menu buttons
-document.getElementById("import_btn").addEventListener("click", importGraph);
-document.getElementById("export_btn").addEventListener("click", exportGraph);
+// document.getElementById("import_btn").addEventListener("click", importGraph);
+// document.getElementById("export_btn").addEventListener("click", exportGraph);
 document.getElementById("clear_btn").addEventListener("click", clearGraph);
 
 // Graph features
@@ -1801,10 +1798,10 @@ function algorithmClickHandler(event) {
 }
 document.getElementById("dfs_btn1").addEventListener("click", algorithmClickHandler);
 document.getElementById("dfs_btn2").addEventListener("click", algorithmClickHandler);
-document.getElementById("bfs_btn1").addEventListener("click", algorithmClickHandler);
-document.getElementById("bfs_btn2").addEventListener("click", algorithmClickHandler);
-document.getElementById("dijkstra_btn1").addEventListener("click", algorithmClickHandler);
-document.getElementById("dijkstra_btn2").addEventListener("click", algorithmClickHandler);
+// document.getElementById("bfs_btn1").addEventListener("click", algorithmClickHandler);
+// document.getElementById("bfs_btn2").addEventListener("click", algorithmClickHandler);
+// document.getElementById("dijkstra_btn1").addEventListener("click", algorithmClickHandler);
+// document.getElementById("dijkstra_btn2").addEventListener("click", algorithmClickHandler);
 
 // Algorithm About Section
 document.getElementById("alg_about_close").addEventListener("click", closeAlgorithm);
@@ -1876,7 +1873,7 @@ function adjustElement(elmnt, x_or_y) {
         document.onmousemove = null;
     }
 }
-adjustElement(document.getElementById("adj_width_adjuster"), 'x'); // Make it adjustable
+// adjustElement(document.getElementById("adj_width_adjuster"), 'x'); // Make it adjustable
 
 // Verify that all nodes are in the preview section and move them if not
 function checkNodesInPreviewSection() {

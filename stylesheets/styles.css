@@ -386,7 +386,7 @@ button:disabled {
     width: var(--dimension-adjuster-thickness);
     height: 50%;
     border-radius: 5px;
-    background-color: rgba(255, 0, 0, 0.253);
+    background-color: rgba(5, 107, 107, 0.253);
     position: absolute;
     right: calc(-1/2 * var(--dimension-adjuster-thickness));
     top: 25%;
