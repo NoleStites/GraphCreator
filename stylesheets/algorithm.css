@@ -3,7 +3,7 @@
     width: clamp(300px, 20%, 20%);
     height: 100%;
     position: absolute;
-    left: -401px;
+    left: calc(-1*max(300px, 20%));
     z-index: 98;
     padding: 10px;
     box-sizing: border-box;
@@ -145,7 +145,6 @@
     flex-direction: row;
     height: fit-content;
     gap: 10px;
-    /* background-color: blue; */
 }
 input[type="range"] {
     width: 50%;
@@ -153,4 +152,26 @@ input[type="range"] {
 #speed_display {
     text-align: center;
     font-size: 12pt;
+}
+
+
+/* Once all of the menu section go into hamburger */
+@media screen and (max-width: 760px) {
+    #algorithm_about_section {
+        width: 100%;
+        height: 40%;
+        left: -100%;
+        flex-direction: column;
+        justify-content: start;
+        bottom: 0%;
+    }
+    #algorithm_name {
+        font-size: 16pt
+    }
+    #algorithm_below_name_divider {
+        display: none;
+    }
+    #algorithm_about_text {
+        font-size: 12pt;
+    }
 }

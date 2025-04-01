@@ -1406,10 +1406,19 @@ function toggleAlgorithmButtonFunctionality(on_off) {
 let algorithm;
 function toggleAlgorithmAboutSection(algorithm_choice, on_off) {
     let about_section = document.getElementById("algorithm_about_section");
-    
+    let vw = window.innerWidth; // Less than 760 means phone screen
+    console.log(`Width: ${about_section.offsetWidth}; Left: ${about_section.offsetLeft}`);
+
     // Close panel
+    let section_width = about_section.offsetWidth;
+    let section_left = about_section.offsetLeft;
     if (!on_off) {
-        about_section.style.left = "-401px";
+        if (vw > 760) {
+            about_section.style.left = -1 * about_section.offsetWidth + 'px';
+        }
+        else {
+            about_section.style.left = "-100%";
+        }
         resetNodeClassesInAlgorithm();
         clearAlgorithmResultPath();
         path, nodes_to_visit = null;

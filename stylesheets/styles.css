@@ -9,7 +9,7 @@
     --weight-label-opacity: 0;
     --arrow-width-factor: 5;
     --arrow-width: calc(var(--edge-thickness)*var(--arrow-width-factor));
-    --adj-matrix-min-cell-size: 50px;
+    --adj-matrix-min-cell-size: 35px;
     --dimension-adjuster-thickness: 20px;
 }
 
@@ -22,6 +22,7 @@ body {
     width: 100vw;
     height: 100vh;
     font-family: sans-serif;
+    overflow: hidden;
 }
 
 #page {
@@ -114,6 +115,8 @@ button:disabled {
 
 #adj_matrix {
     width: 100%;
+    max-width: 100%;
+    max-height: 100%;
     aspect-ratio: 1/1;
     text-align: center;
     border-spacing: 0px;
