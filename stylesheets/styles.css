@@ -420,4 +420,7 @@ button:disabled {
     #adj_list_box {
         max-height: none;
     }
+    #prompt_box {
+        width: 75%;
+    }
 }
