@@ -223,7 +223,6 @@ button:disabled {
     font-family: sans-serif;
     padding: 5px;
     box-sizing: border-box;
-    /* overflow-x: auto; */
     display: flex;
     align-items: center;
     justify-content: center;

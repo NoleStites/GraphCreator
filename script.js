@@ -438,7 +438,6 @@ class Graph {
         placed_node.style.top = top + 'px';
         placed_node.style.left = left + 'px';
         placed_node.style.pointerEvents = "none";
-        // placed_node.addEventListener("click", standardNodeSelect);
         document.getElementById("preview_section").appendChild(placed_node);
         dragElement(placed_node); // make node draggable
 
@@ -984,24 +983,33 @@ function dragElement(elmnt) {
     var pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
     let elmnt_props = elmnt.getBoundingClientRect();
     var edge_IDs_to_move;
+    let dragTimeout;
 
     elmnt.onmousedown = dragMouseDown;
 
     function dragMouseDown(e) {
         if (e.buttons === 2) {return;} // No right-click
-        edge_IDs_to_move = getIncomingAndOutgoingEdges(e.target.id);
 
-        document.getElementById(e.target.id).style.zIndex = node_zIndex+1; // Resolve issues with cursor detecting different node when on it
-        e.preventDefault();
-        // Get the mouse cursor position at startup:
-        pos3 = e.clientX;
-        pos4 = e.clientY;
-        document.onmouseup = closeDragElement;
-        // Call a function whenever the cursor moves:
-        document.onmousemove = elementDrag;
+        // Start a timer to detect if it's a drag and hold or just left-click
+        dragTimeout = setTimeout(() => {
+            edge_IDs_to_move = getIncomingAndOutgoingEdges(e.target.id);
+
+            document.getElementById(e.target.id).style.zIndex = node_zIndex+1; // Resolve issues with cursor detecting different node when on it
+            // Get the mouse cursor position at startup:
+            pos3 = e.clientX;
+            pos4 = e.clientY;
+            document.onmouseup = closeDragElement;
+            document.onmousemove = elementDrag;
+        }, 50); // Adjust delay as needed
+
+        // If user releases mouse before the delay, it cancels drag
+        document.onmouseup = () => {
+            clearTimeout(dragTimeout);
+        };
     }
 
     function elementDrag(e) {
+        elmnt.contentEditable = false;
         e.preventDefault();
         // calculate the new cursor position:
         pos1 = pos3 - e.clientX;
@@ -1033,6 +1041,7 @@ function dragElement(elmnt) {
         document.onmouseup = null;
         document.onmousemove = null;
         elmnt.style.zIndex = node_zIndex;
+        elmnt.contentEditable = true;
     }
 }
 
@@ -1127,7 +1136,6 @@ document.getElementById("create_edge_btn").addEventListener("click", function(ev
             for (let i = 0; i < nodes.length; i++) {
                 nodes[i].removeEventListener("click", selectableForEdgeEnd);
                 nodes[i].removeEventListener("contextmenu", selectableForEdgeStart);
-                nodes[i].addEventListener("click", standardNodeSelect);
                 nodes[i].addEventListener("contextmenu", handleNodeRightClick);
                 nodes[i].contentEditable = true;
             }
@@ -1150,7 +1158,6 @@ document.getElementById("create_edge_btn").addEventListener("click", function(ev
     for (let i = 0; i < nodes.length; i++) {
         nodes[i].addEventListener("click", selectableForEdgeEnd); // Edge end
         nodes[i].addEventListener("contextmenu", selectableForEdgeStart); // Edge start
-        nodes[i].removeEventListener("click", standardNodeSelect);
         nodes[i].removeEventListener("contextmenu", handleNodeRightClick);
         nodes[i].contentEditable = false;
     }
@@ -1183,13 +1190,6 @@ function toggleInfoPanelOn(node_id) {
 function toggleInfoPanelOff() {
     document.getElementById("node_info_section").style.display = "none";
     document.getElementById("label_input").removeEventListener("input", updateLabel);
-}
-
-// What to do when a node is selected normally
-function standardNodeSelect(event) {
-    // toggleInfoPanelOff();
-    // toggleInfoPanelOn(event.target.id);
-    return;
 }
 
 // Enable (true) or disable (false) graph buttons
@@ -1259,7 +1259,6 @@ document.getElementById("delete_btn").addEventListener("click", function(event) 
             toggleGraphButtons(true);
             toggleAlgorithmButtonFunctionality(true);
             applyClassOnNodes("delete_node", false);
-            applyClickEventOnNodes(standardNodeSelect, true);
             applyClickEventOnNodes(deleteOnClick, false);
             cssSetVars.style.setProperty('--edge-hitbox-display', 'none');
         }
@@ -1270,7 +1269,6 @@ document.getElementById("delete_btn").addEventListener("click", function(event) 
     toggleGraphButtons(false);
     toggleAlgorithmButtonFunctionality(false);
     applyClassOnNodes("delete_node", true);
-    applyClickEventOnNodes(standardNodeSelect, false);
     applyClickEventOnNodes(deleteOnClick, true);
     cssSetVars.style.setProperty('--edge-hitbox-display', 'block');
     
@@ -1384,6 +1382,21 @@ function toggleWeights(event) {
     }
 }
 
+// Depending on the viewport, will properly position the algorithm about section to avoid bugs
+function positionAlgorithmSection() {
+    let about_section = document.getElementById("algorithm_about_section");
+    let vw = window.innerWidth; // Less than 760 means phone screen
+    
+    if (about_section.offsetLeft !== 0) {
+        if (vw > 760) {
+            about_section.style.left = -350 + 'px';
+        }
+        else {
+            about_section.style.left = "-100%";
+        }
+    }
+}
+
 // Disables (false) or enables (true) the clicking of the algorithm buttons
 function toggleAlgorithmButtonFunctionality(on_off) {
     let btns = document.getElementsByClassName("alg_btn");
@@ -1477,7 +1490,6 @@ function allowStartNodeSelection() {
     document.addEventListener("keydown", keydown); // Listen for ESC
     resetAlgorithmNodesAndEdges();
     clearAlgorithmResultPath();
-    applyClickEventOnNodes(standardNodeSelect, false);
     applyClickEventOnNodes(selectNodeforStart, true);
     document.getElementById("start_algorithm_btn").disabled = true;
     if (isPlaying) {togglePlayButton();}
@@ -1487,7 +1499,6 @@ function allowStartNodeSelection() {
         if (event.key === "Escape") {
             toggleBannerOff();
             document.removeEventListener("keydown", keydown);
-            applyClickEventOnNodes(standardNodeSelect, true);
             applyClickEventOnNodes(selectNodeforStart, false);
             if (start_node_id !== null) {
                 document.getElementById("start_algorithm_btn").disabled = false;
@@ -1511,7 +1522,6 @@ function resetAlgorithmNodesAndEdges() {
     applyClassOnNodes("next_visit", false);
     applyClassOnNodes("algorithmStartNode", false);
     applyClassOnEdges("edge_unvisited", false);
-    applyClickEventOnNodes(standardNodeSelect, true);
     applyClickEventOnNodes(selectNodeforStart, false);
 }
 
@@ -1901,6 +1911,7 @@ function checkNodesInPreviewSection() {
     }
 }
 window.addEventListener("resize", checkNodesInPreviewSection);
+window.addEventListener("resize", positionAlgorithmSection);
 
 // Import necessary styles from stylesheet
 const css_styles = getComputedStyle(document.documentElement); // Or any specific element

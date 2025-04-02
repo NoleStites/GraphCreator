@@ -1,9 +1,9 @@
 /* ALGORITHM ABOUT SECTION */
 #algorithm_about_section {
-    width: clamp(300px, 20%, 20%);
+    width: 350px;
     height: 100%;
     position: absolute;
-    left: calc(-1*max(300px, 20%));
+    left: -350px;
     z-index: 98;
     padding: 10px;
     box-sizing: border-box;
