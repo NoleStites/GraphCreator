@@ -124,16 +124,16 @@
     background-color: var(--hover-color);
 }
 #step_backward {
-    background-image: url("/assets/left-arrow.svg");
+    background-image: url("../assets/left-arrow.svg");
 }
 #reset_algorithm {
-    background-image: url("/assets/reset.svg");
+    background-image: url("../assets/reset.svg");
 }
 #play_pause {
-    background-image: url("/assets/play.svg");
+    background-image: url("../assets/play.svg");
 }
 #step_forward {
-    background-image: url("/assets/right-arrow.svg");
+    background-image: url("../assets/right-arrow.svg");
 }
 
 #speed_slider_box {
