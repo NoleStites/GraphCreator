@@ -422,7 +422,6 @@ class Graph {
         placed_node.classList.add(`label_for_${placed_node.id}`);
         placed_node.innerText = this.getLetterLabel(node_num);
         placed_node.addEventListener("input", handleNodeLabelChange);
-        placed_node.addEventListener("contextmenu", handleNodeRightClick);
         placed_node.contentEditable = true;
         // placed_node.innerHTML = num_nodes-1;
         
@@ -842,11 +841,6 @@ function handleNodeLabelChange(event) {
     }
 }
 
-// Right click on node
-function handleNodeRightClick(event) {
-    event.preventDefault(); // Prevent standard right-click window to appearing
-}
-
 // Makes weights editable (true) or uneditable (false)
 function toggleWeightsChangeable(on_off) {
     let weight_labels = document.getElementsByClassName("weight_label");
@@ -1136,7 +1130,6 @@ document.getElementById("create_edge_btn").addEventListener("click", function(ev
             for (let i = 0; i < nodes.length; i++) {
                 nodes[i].removeEventListener("click", selectableForEdgeEnd);
                 nodes[i].removeEventListener("contextmenu", selectableForEdgeStart);
-                nodes[i].addEventListener("contextmenu", handleNodeRightClick);
                 nodes[i].contentEditable = true;
             }
             document.removeEventListener("keydown", keydown);
@@ -1158,7 +1151,6 @@ document.getElementById("create_edge_btn").addEventListener("click", function(ev
     for (let i = 0; i < nodes.length; i++) {
         nodes[i].addEventListener("click", selectableForEdgeEnd); // Edge end
         nodes[i].addEventListener("contextmenu", selectableForEdgeStart); // Edge start
-        nodes[i].removeEventListener("contextmenu", handleNodeRightClick);
         nodes[i].contentEditable = false;
     }
     document.addEventListener("keydown", keydown);
