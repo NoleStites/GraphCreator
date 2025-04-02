@@ -422,7 +422,6 @@ class Graph {
         placed_node.classList.add(`label_for_${placed_node.id}`);
         placed_node.innerText = this.getLetterLabel(node_num);
         placed_node.addEventListener("input", handleNodeLabelChange);
-        placed_node.addEventListener("contextmenu", handleNodeRightClick);
         placed_node.contentEditable = true;
         // placed_node.innerHTML = num_nodes-1;
         
@@ -438,7 +437,6 @@ class Graph {
         placed_node.style.top = top + 'px';
         placed_node.style.left = left + 'px';
         placed_node.style.pointerEvents = "none";
-        // placed_node.addEventListener("click", standardNodeSelect);
         document.getElementById("preview_section").appendChild(placed_node);
         dragElement(placed_node); // make node draggable
 
@@ -843,11 +841,6 @@ function handleNodeLabelChange(event) {
     }
 }
 
-// Right click on node
-function handleNodeRightClick(event) {
-    event.preventDefault(); // Prevent standard right-click window to appearing
-}
-
 // Makes weights editable (true) or uneditable (false)
 function toggleWeightsChangeable(on_off) {
     let weight_labels = document.getElementsByClassName("weight_label");
@@ -858,37 +851,55 @@ function toggleWeightsChangeable(on_off) {
 
 // Disables (false) or enables (true) the graph feature checkboxes
 function toggleAdjItemsDisable(on_off) {
-    document.getElementById("adj_matrix_checkbox").disabled = !on_off;
-    document.getElementById("adj_list_checkbox").disabled = !on_off;
-    document.getElementById("weights_checkbox").disabled = !on_off;
+    document.getElementById("adj_matrix_checkbox1").disabled = !on_off;
+    document.getElementById("adj_matrix_checkbox2").disabled = !on_off;
+    document.getElementById("adj_list_checkbox1").disabled = !on_off;
+    document.getElementById("adj_list_checkbox2").disabled = !on_off;
+    document.getElementById("weights_checkbox1").disabled = !on_off;
+    document.getElementById("weights_checkbox2").disabled = !on_off;
 }
 
-// Called programitcally to hise AdjMatrix and AdjList and automatically unchecks checkboxes
+// Called programitcally to hide AdjMatrix and AdjList and automatically unchecks checkboxes
 function toggleAdjItems() {
-    document.getElementById("adj_matrix_checkbox").checked = false;
-    document.getElementById("adj_list_checkbox").checked = false;
-    toggleAdjMatrix();
-    toggleAdjList();
+    let matrix_checkbox = document.getElementById("adj_matrix_checkbox1");
+    let list_checkbox = document.getElementById("adj_list_checkbox1");
+
+    // Simulate a click of the checkbox in graph features
+    matrix_checkbox.checked = false;
+    list_checkbox.checked = false;
+    const event = new Event("change");
+    matrix_checkbox.dispatchEvent(event);
+    list_checkbox.dispatchEvent(event);
 }
 
 // Toggles the adjacency matrix visual on/off depending on checkbox value
-function toggleAdjMatrix() {
+function toggleAdjMatrix(event) {
+    let checkbox_num = Number(event.target.id.slice(-1));
+    let other_box_num = checkbox_num === 1 ? 2 : 1;
+
     let adj_matrix = document.getElementById("adj_matrix_box");
-    if (document.getElementById("adj_matrix_checkbox").checked) {
+    if (event.target.checked) {
+        document.getElementById(`adj_matrix_checkbox${other_box_num}`).checked = true;
         adj_matrix.style.display = "flex";
     }
     else {
+        document.getElementById(`adj_matrix_checkbox${other_box_num}`).checked = false;
         adj_matrix.style.display = "none";
     }
 }
 
 // Toggles the adjacency list visual on/off depending on checkbox value
-function toggleAdjList() {
+function toggleAdjList(event) {
+    let checkbox_num = Number(event.target.id.slice(-1));
+    let other_box_num = checkbox_num === 1 ? 2 : 1;
+
     let adj_list = document.getElementById("adj_list_box");
-    if (document.getElementById("adj_list_checkbox").checked) {
+    if (event.target.checked) {
+        document.getElementById(`adj_list_checkbox${other_box_num}`).checked = true;
         adj_list.style.display = "flex";
     }
     else {
+        document.getElementById(`adj_list_checkbox${other_box_num}`).checked = false;
         adj_list.style.display = "none";
     }
 }
@@ -964,27 +975,35 @@ document.getElementById("create_node_btn").addEventListener("click", function(ev
 // Make the DIV element draggable
 function dragElement(elmnt) {
     var pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
-    let preview_box = document.getElementById("preview_section").getBoundingClientRect();
     let elmnt_props = elmnt.getBoundingClientRect();
     var edge_IDs_to_move;
+    let dragTimeout;
 
     elmnt.onmousedown = dragMouseDown;
 
     function dragMouseDown(e) {
         if (e.buttons === 2) {return;} // No right-click
-        edge_IDs_to_move = getIncomingAndOutgoingEdges(e.target.id);
 
-        document.getElementById(e.target.id).style.zIndex = node_zIndex+1; // Resolve issues with cursor detecting different node when on it
-        e.preventDefault();
-        // Get the mouse cursor position at startup:
-        pos3 = e.clientX;
-        pos4 = e.clientY;
-        document.onmouseup = closeDragElement;
-        // Call a function whenever the cursor moves:
-        document.onmousemove = elementDrag;
+        // Start a timer to detect if it's a drag and hold or just left-click
+        dragTimeout = setTimeout(() => {
+            edge_IDs_to_move = getIncomingAndOutgoingEdges(e.target.id);
+
+            document.getElementById(e.target.id).style.zIndex = node_zIndex+1; // Resolve issues with cursor detecting different node when on it
+            // Get the mouse cursor position at startup:
+            pos3 = e.clientX;
+            pos4 = e.clientY;
+            document.onmouseup = closeDragElement;
+            document.onmousemove = elementDrag;
+        }, 50); // Adjust delay as needed
+
+        // If user releases mouse before the delay, it cancels drag
+        document.onmouseup = () => {
+            clearTimeout(dragTimeout);
+        };
     }
 
     function elementDrag(e) {
+        elmnt.contentEditable = false;
         e.preventDefault();
         // calculate the new cursor position:
         pos1 = pos3 - e.clientX;
@@ -1016,6 +1035,7 @@ function dragElement(elmnt) {
         document.onmouseup = null;
         document.onmousemove = null;
         elmnt.style.zIndex = node_zIndex;
+        elmnt.contentEditable = true;
     }
 }
 
@@ -1110,8 +1130,6 @@ document.getElementById("create_edge_btn").addEventListener("click", function(ev
             for (let i = 0; i < nodes.length; i++) {
                 nodes[i].removeEventListener("click", selectableForEdgeEnd);
                 nodes[i].removeEventListener("contextmenu", selectableForEdgeStart);
-                nodes[i].addEventListener("click", standardNodeSelect);
-                nodes[i].addEventListener("contextmenu", handleNodeRightClick);
                 nodes[i].contentEditable = true;
             }
             document.removeEventListener("keydown", keydown);
@@ -1133,8 +1151,6 @@ document.getElementById("create_edge_btn").addEventListener("click", function(ev
     for (let i = 0; i < nodes.length; i++) {
         nodes[i].addEventListener("click", selectableForEdgeEnd); // Edge end
         nodes[i].addEventListener("contextmenu", selectableForEdgeStart); // Edge start
-        nodes[i].removeEventListener("click", standardNodeSelect);
-        nodes[i].removeEventListener("contextmenu", handleNodeRightClick);
         nodes[i].contentEditable = false;
     }
     document.addEventListener("keydown", keydown);
@@ -1166,13 +1182,6 @@ function toggleInfoPanelOn(node_id) {
 function toggleInfoPanelOff() {
     document.getElementById("node_info_section").style.display = "none";
     document.getElementById("label_input").removeEventListener("input", updateLabel);
-}
-
-// What to do when a node is selected normally
-function standardNodeSelect(event) {
-    // toggleInfoPanelOff();
-    // toggleInfoPanelOn(event.target.id);
-    return;
 }
 
 // Enable (true) or disable (false) graph buttons
@@ -1242,7 +1251,6 @@ document.getElementById("delete_btn").addEventListener("click", function(event) 
             toggleGraphButtons(true);
             toggleAlgorithmButtonFunctionality(true);
             applyClassOnNodes("delete_node", false);
-            applyClickEventOnNodes(standardNodeSelect, true);
             applyClickEventOnNodes(deleteOnClick, false);
             cssSetVars.style.setProperty('--edge-hitbox-display', 'none');
         }
@@ -1253,7 +1261,6 @@ document.getElementById("delete_btn").addEventListener("click", function(event) 
     toggleGraphButtons(false);
     toggleAlgorithmButtonFunctionality(false);
     applyClassOnNodes("delete_node", true);
-    applyClickEventOnNodes(standardNodeSelect, false);
     applyClickEventOnNodes(deleteOnClick, true);
     cssSetVars.style.setProperty('--edge-hitbox-display', 'block');
     
@@ -1273,10 +1280,12 @@ function promptUserYesNo(new_graph_type, message) {
             closeAlgorithm(); 
             graph_type = new_graph_type; // "undirected", "directed", ...
             document.getElementById("graph_type_display").innerHTML = graph_type_display_names[graph_type];
-            document.getElementById(`${graph_type}_radio`).checked = true;
+            document.getElementById(`${graph_type}_radio1`).checked = true;
+            document.getElementById(`${graph_type}_radio2`).checked = true;
         }
         else {
-            document.getElementById(`${graph_type}_radio`).checked = true; // return radios to previous state
+            document.getElementById(`${graph_type}_radio1`).checked = true; // return radios to previous state
+            document.getElementById(`${graph_type}_radio2`).checked = true; // return radios to previous state
         }
 
         // Remove event listeners from buttons
@@ -1351,12 +1360,32 @@ function clearGraph() {
     closeAlgorithm();
 }
 
-function toggleWeights() {
-    if (document.getElementById("weights_checkbox").checked) {
+function toggleWeights(event) {
+    let checkbox_num = Number(event.target.id.slice(-1));
+    let other_box_num = checkbox_num === 1 ? 2 : 1;
+
+    if (event.target.checked) {
+        document.getElementById(`weights_checkbox${other_box_num}`).checked = true;
         userGraph.toggleWeightsAndLabels(true);
     }
     else {
+        document.getElementById(`weights_checkbox${other_box_num}`).checked = false;
         userGraph.toggleWeightsAndLabels(false);
+    }
+}
+
+// Depending on the viewport, will properly position the algorithm about section to avoid bugs
+function positionAlgorithmSection() {
+    let about_section = document.getElementById("algorithm_about_section");
+    let vw = window.innerWidth; // Less than 760 means phone screen
+    
+    if (about_section.offsetLeft !== 0) {
+        if (vw > 760) {
+            about_section.style.left = -350 + 'px';
+        }
+        else {
+            about_section.style.left = "-100%";
+        }
     }
 }
 
@@ -1382,10 +1411,16 @@ function toggleAlgorithmButtonFunctionality(on_off) {
 let algorithm;
 function toggleAlgorithmAboutSection(algorithm_choice, on_off) {
     let about_section = document.getElementById("algorithm_about_section");
-    
+    let vw = window.innerWidth; // Less than 760 means phone screen
+
     // Close panel
     if (!on_off) {
-        about_section.style.left = "-401px";
+        if (vw > 760) {
+            about_section.style.left = -1 * about_section.offsetWidth + 'px';
+        }
+        else {
+            about_section.style.left = "-100%";
+        }
         resetNodeClassesInAlgorithm();
         clearAlgorithmResultPath();
         path, nodes_to_visit = null;
@@ -1393,7 +1428,7 @@ function toggleAlgorithmAboutSection(algorithm_choice, on_off) {
         toggleGraphButtons(true);
         toggleAdjItemsDisable(true);
         toggleStepButtons(false);
-        if (document.getElementById("weights_checkbox").checked) { toggleWeightsChangeable(true); }
+        if (document.getElementById("weights_checkbox1").checked) { toggleWeightsChangeable(true); }
         return;
     }
 
@@ -1443,12 +1478,10 @@ function selectNodeforStart(event) {
 // Handles logic for choosing a start node for the selected algorithm
 function allowStartNodeSelection() {
     toggleBannerOn("<b class=\"banner_bold\">Left-click:</b> start of search | <b class=\"banner_bold\">ESC:</b> finish");
-    toggleGraphButtons(false);
     toggleStepButtons(false);
     document.addEventListener("keydown", keydown); // Listen for ESC
     resetAlgorithmNodesAndEdges();
     clearAlgorithmResultPath();
-    applyClickEventOnNodes(standardNodeSelect, false);
     applyClickEventOnNodes(selectNodeforStart, true);
     document.getElementById("start_algorithm_btn").disabled = true;
     if (isPlaying) {togglePlayButton();}
@@ -1458,7 +1491,6 @@ function allowStartNodeSelection() {
         if (event.key === "Escape") {
             toggleBannerOff();
             document.removeEventListener("keydown", keydown);
-            applyClickEventOnNodes(standardNodeSelect, true);
             applyClickEventOnNodes(selectNodeforStart, false);
             if (start_node_id !== null) {
                 document.getElementById("start_algorithm_btn").disabled = false;
@@ -1482,7 +1514,6 @@ function resetAlgorithmNodesAndEdges() {
     applyClassOnNodes("next_visit", false);
     applyClassOnNodes("algorithmStartNode", false);
     applyClassOnEdges("edge_unvisited", false);
-    applyClickEventOnNodes(standardNodeSelect, true);
     applyClickEventOnNodes(selectNodeforStart, false);
 }
 
@@ -1710,11 +1741,19 @@ function DFS(node_id, visited, incoming_edge, prev_node_id) {
 */
 
 // Graph type menu functionality
-document.getElementById(`undirected_radio`).checked = true; // default
 function changeGraphType(event) {
+    // Adjust the value of the other radio button pairs
+    let radio_pair_num = Number(event.target.name.slice(-1));
+    let other_box_num = radio_pair_num === 1 ? 2 : 1;
+    document.getElementById(event.target.id.slice(0,-1) + `${other_box_num}`).checked = true;
+
     promptUserYesNo(event.target.value, "Changing graph types will delete your current graph. Do you want to continue?");
 }
-let graph_type_radios = document.getElementsByName("graph_type");
+let graph_type_radios = document.getElementsByName("graph_type1");
+for (let i = 0; i < graph_type_radios.length; i++) {
+    graph_type_radios[i].addEventListener("change", changeGraphType);
+}
+graph_type_radios = document.getElementsByName("graph_type2");
 for (let i = 0; i < graph_type_radios.length; i++) {
     graph_type_radios[i].addEventListener("change", changeGraphType);
 }
@@ -1727,33 +1766,43 @@ let graph_type_display_names = {
     "nfa": "NFA"
 }
 document.getElementById("graph_type_display").innerHTML = graph_type_display_names[graph_type];
-document.getElementById(`${graph_type}_radio`).checked = true;
+document.getElementById(`${graph_type}_radio1`).checked = true;
+document.getElementById(`${graph_type}_radio2`).checked = true;
 
 // Initialize a Graph object
 var userGraph = new Graph(graph_type);
 
 // Hamburger menu buttons
-document.getElementById("import_btn").addEventListener("click", importGraph);
-document.getElementById("export_btn").addEventListener("click", exportGraph);
+// document.getElementById("import_btn").addEventListener("click", importGraph);
+// document.getElementById("export_btn").addEventListener("click", exportGraph);
 document.getElementById("clear_btn").addEventListener("click", clearGraph);
 
 // Graph features
-document.getElementById("weights_checkbox").addEventListener("change", toggleWeights);
-document.getElementById("adj_matrix_checkbox").addEventListener("change", toggleAdjMatrix);
-document.getElementById("adj_list_checkbox").addEventListener("change", toggleAdjList);
+document.getElementById("weights_checkbox1").addEventListener("change", toggleWeights);
+document.getElementById("weights_checkbox2").addEventListener("change", toggleWeights);
+document.getElementById("adj_matrix_checkbox1").addEventListener("change", toggleAdjMatrix);
+document.getElementById("adj_matrix_checkbox2").addEventListener("change", toggleAdjMatrix);
+document.getElementById("adj_list_checkbox1").addEventListener("change", toggleAdjList);
+document.getElementById("adj_list_checkbox2").addEventListener("change", toggleAdjList);
 
-document.getElementById("weights_checkbox").checked = false;
-document.getElementById("adj_matrix_checkbox").checked = false;
-document.getElementById("adj_list_checkbox").checked = false;
+document.getElementById("weights_checkbox1").checked = false;
+document.getElementById("weights_checkbox2").checked = false;
+document.getElementById("adj_matrix_checkbox1").checked = false;
+document.getElementById("adj_matrix_checkbox2").checked = false;
+document.getElementById("adj_list_checkbox1").checked = false;
+document.getElementById("adj_list_checkbox2").checked = false;
 
 // Algorithms
 function algorithmClickHandler(event) {
-    let alg_choice = event.target.id.slice(0,-4);
+    let alg_choice = event.target.id.slice(0,-5);
     openAlgorithm(alg_choice);
 }
-document.getElementById("dfs_btn").addEventListener("click", algorithmClickHandler);
-document.getElementById("bfs_btn").addEventListener("click", algorithmClickHandler);
-document.getElementById("dijkstra_btn").addEventListener("click", algorithmClickHandler);
+document.getElementById("dfs_btn1").addEventListener("click", algorithmClickHandler);
+document.getElementById("dfs_btn2").addEventListener("click", algorithmClickHandler);
+// document.getElementById("bfs_btn1").addEventListener("click", algorithmClickHandler);
+// document.getElementById("bfs_btn2").addEventListener("click", algorithmClickHandler);
+// document.getElementById("dijkstra_btn1").addEventListener("click", algorithmClickHandler);
+// document.getElementById("dijkstra_btn2").addEventListener("click", algorithmClickHandler);
 
 // Algorithm About Section
 document.getElementById("alg_about_close").addEventListener("click", closeAlgorithm);
@@ -1776,6 +1825,86 @@ document.getElementById("animation_speed").addEventListener("input", changeAnima
 document.getElementById("animation_speed").value = animationSpeed;
 document.getElementById("speed_value").innerHTML = (animationSpeed / 1000).toFixed(2);
 
+// Make the DIV element size-adjustable
+// x_or_y: a string 'x' or 'y' to determine which direction to adjust
+function adjustElement(elmnt, x_or_y) {
+    var pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+    let elmnt_props = elmnt.getBoundingClientRect();
+
+    elmnt.onmousedown = dragMouseDown;
+
+    function dragMouseDown(e) {
+        if (e.buttons === 2) {return;} // No right-click
+        e.preventDefault();
+
+        // Get the mouse cursor position at startup:
+        pos3 = e.clientX;
+        pos4 = e.clientY;
+        document.onmouseup = closeDragElement;
+        
+        // Call a function whenever the cursor moves:
+        document.onmousemove = elementDrag;
+    }
+
+    function elementDrag(e) {
+        e.preventDefault();
+        // calculate the new cursor position:
+        pos1 = pos3 - e.clientX;
+        pos2 = pos4 - e.clientY;
+        pos3 = e.clientX;
+        pos4 = e.clientY;
+        // set the element's new position:
+        // let new_top = elmnt.offsetTop - pos2;
+        // let new_left = elmnt.offsetLeft - pos1;
+
+        // Do not let the node leave the preview area
+        // if (new_top < 0) {new_top = 0;}
+        // else if (new_top > preview_box.height - elmnt_props.width) {new_top = preview_box.height - elmnt_props.width;}
+        // if (new_left < 0) {new_left = 0;}
+        // else if (new_left > preview_box.width - elmnt_props.width) {new_left = preview_box.width - elmnt_props.width;}
+
+        // elmnt.style.top = new_top + "px";
+        // elmnt.style.left = new_left + "px";
+        elmnt.parentElement.style.width = `clamp(${pos3}px, 20%, 20%)`;
+    }
+
+    function closeDragElement(e) {
+        // stop moving when mouse button is released:
+        document.onmouseup = null;
+        document.onmousemove = null;
+    }
+}
+// adjustElement(document.getElementById("adj_width_adjuster"), 'x'); // Make it adjustable
+
+// Verify that all nodes are in the preview section and move them if not
+function checkNodesInPreviewSection() {
+    preview_box = document.getElementById("preview_section").getBoundingClientRect();
+    let nodes = document.getElementsByClassName("node");
+    
+    // Go through each node
+    for (const node of nodes) {
+        // Check right bound
+        if (node.offsetLeft > preview_box.width - node_size) {
+            node.style.left = preview_box.width - node_size + "px";
+        }
+
+        // Check bottom bound
+        if (node.offsetTop > preview_box.height - node_size) {
+            node.style.top = preview_box.height - node_size + "px";
+        }
+
+        // Update the edges
+        let edge_IDs_to_move = getIncomingAndOutgoingEdges(node.id);
+        for (let i = 0; i < edge_IDs_to_move.length; i++) {
+            let node_ids = edge_IDs_to_move[i].slice(5);
+            let node1_node2 = node_ids.split('_');
+            userGraph.moveEdge(node1_node2[0], node1_node2[1]);
+        }
+    }
+}
+window.addEventListener("resize", checkNodesInPreviewSection);
+window.addEventListener("resize", positionAlgorithmSection);
+
 // Import necessary styles from stylesheet
 const css_styles = getComputedStyle(document.documentElement); // Or any specific element
 const cssSetVars = document.documentElement; // To use: cssSetVars.style.setProperty('--var-name', 'new_value')
@@ -1785,3 +1914,8 @@ var node_zIndex = Number(css_styles.getPropertyValue("--node-z-index"));
 var arrow_width = edge_thickness * Number(css_styles.getPropertyValue("--arrow-width-factor"));
 var arrow_space_to_node = 0; // Number of pixels of spacing between arrow tip and node it points to
 var double_edge_offset = 20; // px
+var preview_box = document.getElementById("preview_section").getBoundingClientRect(); // Updated when window is resized
+
+
+
+

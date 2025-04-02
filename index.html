@@ -3,83 +3,139 @@
     <head>
         <title>Graph Creator</title>
         <link rel="icon" type="image/x-icon" href="./assets/favicon.png">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <link href="./stylesheets/styles.css" rel="stylesheet" />
         <link href="./stylesheets/menu.css" rel="stylesheet" />
+        <link href="./stylesheets/algorithm.css" rel="stylesheet" />
         <script src="./script.js" type="module" defer></script>
     </head>
     <body>
         <div id="page">
             <div id="menu">
-                <div id="hamburger" class="menu_item menu_section no_flex">
-                    <div class="menu_dropdown">
-                        <div class="dropdown_item">
-                            <label id="import_btn">Import</label>
-                        </div>
-                        <div class="dropdown_item">
-                            <label id="export_btn">Export</label>
-                        </div>
-                        <div class="dropdown_item">
-                            <label id="clear_btn">Clear</label>
-                        </div>
+                <div id="hamburger" class="menu_section no_flex">
+                    <div id="hamburger_dropdowns" class="menu_dropdown">
+                        <div>
+                            <div id="graph_type_hamburger" class="dropdown_item sub_dropdown_trigger">
+                                <label>Graph Type &rsaquo;</label>
+                                <div id="graph_type_dropdown" class="hamburger_sub_dropdown">
+                                    <div class="dropdown_item">
+                                        <input id="undirected_radio1" type="radio" name="graph_type1" value="undirected">
+                                        <label for="undirected_radio1" class="dropdown_label">Undirected</label>
+                                    </div>
+                                    <div class="dropdown_item">
+                                        <input id="directed_radio1" type="radio" name="graph_type1" value="directed">
+                                        <label for="directed_radio1" class="dropdown_label">Directed</label>
+                                    </div>
+                                    <!-- <div class="dropdown_item">
+                                        <input id="dfa_radio1" type="radio" name="graph_type1" value="dfa">
+                                        <label for="dfa_radio1" class="dropdown_label">DFA</label>
+                                    </div>
+                                    <div class="dropdown_item">
+                                        <input id="nfa_radio1" type="radio" name="graph_type1" value="nfa">
+                                        <label for="nfa_radio1" class="dropdown_label">NFA</label>
+                                    </div> -->
+                                </div>
+                            </div>
+                            <div id="graph_features_hamburger" class="dropdown_item sub_dropdown_trigger">
+                                <label>Graph Features &rsaquo;</label>
+                                <div id="graph_feature_dropdown" class="hamburger_sub_dropdown">
+                                    <div class="dropdown_item">
+                                        <input id="weights_checkbox1" type="checkbox">
+                                        <label for="weights_checkbox1" class="dropdown_label">Weights</label>
+                                    </div>
+                                    <div class="dropdown_item">
+                                        <input id="adj_matrix_checkbox1" type="checkbox">
+                                        <label for="adj_matrix_checkbox1" class="dropdown_label">Adj. Matrix</label>
+                                    </div>
+                                    <div class="dropdown_item">
+                                        <input id="adj_list_checkbox1" type="checkbox">
+                                        <label for="adj_list_checkbox1" class="dropdown_label">Adj. List</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div id="algorithms_hamburger" class="dropdown_item sub_dropdown_trigger">
+                                <label>Algorithms &rsaquo;</label>
+                                <div id="graph_feature_dropdown" class="hamburger_sub_dropdown">
+                                    <div class="dropdown_item">
+                                        <label id="dfs_btn1" class="dropdown_label alg_btn">Depth-First Search (DFS)</label>
+                                    </div>
+                                    <!-- <div class="dropdown_item">
+                                        <label id="bfs_btn1" class="dropdown_label alg_btn">Breadth-First Search (DFS)</label>
+                                    </div>
+                                    <div class="dropdown_item">
+                                        <label id="dijkstra_btn1" class="dropdown_label alg_btn">Dijkstra's Algorithm</label>
+                                    </div> -->
+                                </div>
+                            </div>
+                            <!-- <div class="dropdown_item">
+                                <label id="import_btn">Import</label>
+                            </div>
+                            <div class="dropdown_item">
+                                <label id="export_btn">Export</label>
+                            </div> -->
+                            <div id="clear_btn" class="dropdown_item">
+                                <label class="dropdown_label">Clear</label>
+                            </div>
+                        </div> 
                     </div>
                 </div>
                 <div id="page_title" class="menu_item no_flex"><h1>Graph Creator</h1></div>
-                <div class="menu_divider"></div>
+                <div id="graph_type_divider" class="menu_divider"></div>
                 <div id="graph_type" class="menu_item menu_section no_flex">
                     <h2 class="menu_section_title">Graph Type</h2>
-                    <div id="graph_type_display" class="menu_section_bottom">Directed</div>
+                    <div id="graph_type_display" class="menu_section_bottom"></div>
                     <div id="graph_type_dropdown" class="menu_dropdown">
                         <div class="dropdown_item">
-                            <input id="undirected_radio" type="radio" name="graph_type" value="undirected">
-                            <label for="undirected_radio" class="dropdown_label">Undirected</label>
+                            <input id="undirected_radio2" type="radio" name="graph_type2" value="undirected">
+                            <label for="undirected_radio2" class="dropdown_label">Undirected</label>
                         </div>
                         <div class="dropdown_item">
-                            <input id="directed_radio" type="radio" name="graph_type" value="directed">
-                            <label for="directed_radio" class="dropdown_label">Directed</label>
+                            <input id="directed_radio2" type="radio" name="graph_type2" value="directed">
+                            <label for="directed_radio2" class="dropdown_label">Directed</label>
+                        </div>
+                        <!-- <div class="dropdown_item">
+                            <input id="dfa_radio2" type="radio" name="graph_type2" value="dfa">
+                            <label for="dfa_radio2" class="dropdown_label">DFA</label>
                         </div>
                         <div class="dropdown_item">
-                            <input id="dfa_radio" type="radio" name="graph_type" value="dfa">
-                            <label for="dfa_radio" class="dropdown_label">DFA</label>
-                        </div>
-                        <div class="dropdown_item">
-                            <input id="nfa_radio" type="radio" name="graph_type" value="nfa">
-                            <label for="nfa_radio" class="dropdown_label">NFA</label>
-                        </div>
+                            <input id="nfa_radio2" type="radio" name="graph_type2" value="nfa">
+                            <label for="nfa_radio2" class="dropdown_label">NFA</label>
+                        </div> -->
                     </div>
                 </div>
-                <div class="menu_divider"></div>
+                <div id="graph_features_divider" class="menu_divider"></div>
                 <div id="graph_features" class="menu_item menu_section no_flex">
                     <h2 class="menu_section_title">Graph Features</h2>
                     <div id="graph_features_section_bottom" class="menu_section_bottom"></div>
                     <div id="graph_features_dropdown" class="menu_dropdown">
                         <div class="dropdown_item">
-                            <input id="weights_checkbox" type="checkbox">
-                            <label for="weights_checkbox" class="dropdown_label">Weights</label>
+                            <input id="weights_checkbox2" type="checkbox">
+                            <label for="weights_checkbox2" class="dropdown_label">Weights</label>
                         </div>
                         <div class="dropdown_item">
-                            <input id="adj_matrix_checkbox" type="checkbox">
-                            <label for="adj_matrix_checkbox" class="dropdown_label">Adj. Matrix</label>
+                            <input id="adj_matrix_checkbox2" type="checkbox">
+                            <label for="adj_matrix_checkbox2" class="dropdown_label">Adj. Matrix</label>
                         </div>
                         <div class="dropdown_item">
-                            <input id="adj_list_checkbox" type="checkbox">
-                            <label for="adj_list_checkbox" class="dropdown_label">Adj. List</label>
+                            <input id="adj_list_checkbox2" type="checkbox">
+                            <label for="adj_list_checkbox2" class="dropdown_label">Adj. List</label>
                         </div>
                     </div>
                 </div>
-                <div class="menu_divider"></div>
+                <div id="algorithms_divider" class="menu_divider"></div>
                 <div id="algorithms" class="menu_item menu_section no_flex">
                     <h2 class="menu_section_title">Algorithms</h2>
                     <div id="algorithms_section_bottom" class="menu_section_bottom"></div>
                     <div id="algorithms_dropdown" class="menu_dropdown">
                         <div class="dropdown_item">
-                            <label id="dfs_btn" class="dropdown_label alg_btn">Depth-First Search (DFS)</label>
+                            <label id="dfs_btn2" class="dropdown_label alg_btn">Depth-First Search (DFS)</label>
+                        </div>
+                        <!-- <div class="dropdown_item">
+                            <label id="bfs_btn2" class="dropdown_label alg_btn">Breadth-First Search (DFS)</label>
                         </div>
                         <div class="dropdown_item">
-                            <label id="bfs_btn" class="dropdown_label alg_btn">Breadth-First Search (DFS)</label>
-                        </div>
-                        <div class="dropdown_item">
-                            <label id="dijkstra_btn" class="dropdown_label alg_btn">Dijkstra's Algorithm</label>
-                        </div>
+                            <label id="dijkstra_btn2" class="dropdown_label alg_btn">Dijkstra's Algorithm</label>
+                        </div> -->
                     </div>
                 </div>
                 <div class="menu_divider"></div>
@@ -91,12 +147,14 @@
             </div>
 
             <div id="preview_section">
-                <div id="dropdown_banner"><p id="banner_text">This is some testing text.</p></div>
+                <div id="dropdown_banner"><p id="banner_text">Placeholder</p></div>
                 
                 <div id="adj_box">
                     <div id="adj_list_box">
                         <h1 class="adj_header">Adjacency List</h1>
-                        <div id="adj_list_content"></div>
+                        <div id="adj_list_content_wrapper">
+                            <div id="adj_list_content"></div>
+                        </div>
                     </div>
                     <div id="adj_matrix_box">
                         <h1 class="adj_header">Adjacency Matrix</h1>
@@ -108,29 +166,32 @@
                             </div>
                         </div>
                     </div>
+                    <!-- <div id="adj_width_adjuster" class="width_adjuster"></div> -->
                 </div>
-
+                
                 <div id="algorithm_about_section">
                     <div id="algorithm_about_close_bar"><img id="alg_about_close" src="./assets/close.svg"></div>
                     <h1 id="algorithm_name"></h1>
-                    <div class="horizontal_divider_outside"><div class="horizontal_divider"></div></div>
-                    <p id="algorithm_about_text"></p>
-                    <div class="horizontal_divider_outside"><div class="horizontal_divider"></div></div>
-                    <div id="pre_alg_btn_box">
-                        <button id="start_node_select_btn" class="pre_alg_btn">Select Start Node</button>
-                        <button id="start_algorithm_btn" class="pre_alg_btn" disabled>Run Algorithm</button>
-                    </div>
-                    <div class="horizontal_divider_outside"><div class="horizontal_divider"></div></div>
-                    <div id="path_result"></div>
-                    <div id="step_buttons">
-                        <button id="step_backward" class="step_btn"></button>
-                        <button id="reset_algorithm" class="step_btn"></button>
-                        <button id="play_pause" class="step_btn"></button>
-                        <button id="step_forward" class="step_btn"></button>
-                    </div>
-                    <div id="speed_slider_box">
-                        <h3 id="speed_display">Animation Speed:<br><span id="speed_value">1.00</span> steps/second</h3>
-                        <input id="animation_speed" type="range" min="100" max="2000" step="100">
+                    <div id="algorithm_below_name_divider" class="horizontal_divider_outside"><div class="horizontal_divider"></div></div>
+                    <div id="algorithm_scroll_section">
+                        <p id="algorithm_about_text"></p>
+                        <div class="horizontal_divider_outside"><div class="horizontal_divider"></div></div>
+                        <div id="pre_alg_btn_box">
+                            <button id="start_node_select_btn" class="pre_alg_btn">Select Start Node</button>
+                            <button id="start_algorithm_btn" class="pre_alg_btn" disabled>Run Algorithm</button>
+                        </div>
+                        <div class="horizontal_divider_outside"><div class="horizontal_divider"></div></div>
+                        <div id="path_result"></div>
+                        <div id="step_buttons">
+                                <button id="reset_algorithm" class="step_btn"></button>
+                                <button id="play_pause" class="step_btn"></button>
+                                <button id="step_backward" class="step_btn"></button>
+                                <button id="step_forward" class="step_btn"></button>
+                        </div>
+                        <div id="speed_slider_box">
+                            <h3 id="speed_display">Animation Speed:<br><span id="speed_value">1.00</span> steps/second</h3>
+                            <input id="animation_speed" type="range" min="100" max="2000" step="100">
+                        </div>
                     </div>
                 </div>
             </div>

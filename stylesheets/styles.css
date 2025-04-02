@@ -9,7 +9,8 @@
     --weight-label-opacity: 0;
     --arrow-width-factor: 5;
     --arrow-width: calc(var(--edge-thickness)*var(--arrow-width-factor));
-    --adj-matrix-min-cell-size: 50px;
+    --adj-matrix-min-cell-size: 35px;
+    --dimension-adjuster-thickness: 20px;
 }
 
 * {
@@ -21,6 +22,7 @@ body {
     width: 100vw;
     height: 100vh;
     font-family: sans-serif;
+    overflow: hidden;
 }
 
 #page {
@@ -51,7 +53,7 @@ button:disabled {
 
 /* ADJACENCY MATRIX AND LIST STYLES */
 #adj_box {
-    width: 400px;
+    width: clamp(300px, 20%, 20%);
     height: 100%;
     position: absolute;
     bottom: 0%;
@@ -71,6 +73,7 @@ button:disabled {
     color: white;
     padding: 5px;
     text-align: center;
+    font-size: 1.75rem;
 }
 
 #adj_list_box, #adj_matrix_box {
@@ -84,6 +87,11 @@ button:disabled {
     overflow: hidden;
     pointer-events: all;
 }
+
+.adj_list_item, #adj_matrix {
+    font-size: 20pt;
+}
+
 #adj_matrix_box {
     height: 50%;
 }
@@ -107,11 +115,12 @@ button:disabled {
 
 #adj_matrix {
     width: 100%;
+    max-width: 100%;
+    max-height: 100%;
     aspect-ratio: 1/1;
     text-align: center;
     border-spacing: 0px;
     border-collapse: collapse;
-    font-size: 20pt;
     table-layout: fixed;
 }
 #adj_matrix th, #adj_matrix td {
@@ -137,12 +146,19 @@ button:disabled {
 }
 
 #adj_list_content {
+    height: 100%;
     display: flex;
     flex-direction: column;
-    padding: 10px;
     gap: 10px;
     overflow-y: auto;
     text-wrap: nowrap;
+}
+#adj_list_content_wrapper {
+    width: 100%;
+    height: 100%;
+    padding: 10px;
+    overflow: hidden;
+    box-sizing: border-box;
 }
 
 .adj_list_item {
@@ -151,7 +167,6 @@ button:disabled {
     display: flex;
     flex-direction: row;
     align-items: center;
-    font-size: 25pt;
 }
 .adj_list_node_name {
     max-width: 30%;
@@ -208,7 +223,6 @@ button:disabled {
     font-family: sans-serif;
     padding: 5px;
     box-sizing: border-box;
-    /* overflow-x: auto; */
     display: flex;
     align-items: center;
     justify-content: center;
@@ -367,148 +381,45 @@ button:disabled {
     cursor: pointer;
 }
 
-/* ALGORITHM ABOUT SECTION */
-#algorithm_about_section {
-    width: 400px;
-    height: 100%;
+.width_adjuster {
+    width: var(--dimension-adjuster-thickness);
+    height: 50%;
+    border-radius: 5px;
+    background-color: rgba(5, 107, 107, 0.253);
     position: absolute;
-    left: -401px;
-    z-index: 98;
-    padding: 10px;
-    box-sizing: border-box;
-    background-color: rgba(238, 238, 238, 0.527);
-    border-right: 1px solid black;
-    transition: left 0.3s ease-in-out;
+    right: calc(-1/2 * var(--dimension-adjuster-thickness));
+    top: 25%;
+    opacity: 0;
+    pointer-events: all;
 }
-
-#algorithm_about_close_bar {
-    height: 40px;
-    padding: 5px;
-    display: flex;
-    flex-direction: row;
-    justify-content: flex-end;
-    align-items: center;
-    box-sizing: border-box;
-}
-#algorithm_about_close_bar img {
-    height: 100%;
-    border-radius: 25%;
-}
-#algorithm_about_close_bar img:hover {
-    background-color: var(--hover-color);
+.width_adjuster:hover {
+    opacity: 1;
     cursor: pointer;
 }
 
-#algorithm_name {
-    display: block;
-    color: black;
-    text-align: center;
-}
 
-.horizontal_divider_outside {
-    width: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 30px;
-}
-.horizontal_divider {
-    width: 50%;
-    height: 0px;
-    box-shadow: 0px 0px 1px 0.3px grey;
-}
+/* Once all of the menu section go into hamburger */
+@media screen and (max-width: 760px) {
+    #adj_box {
+        width: 100%;
+        height: 40%;
+        flex-direction: row;
+        justify-content: start;
+    }
 
-#algorithm_about_text {
-    display: block;
-    font-size: 14pt;
-    padding: 0px 10px;
-}
+    #adj_list_box, #adj_matrix_box {
+        width: 50%;
+        height: 100%;
+    }
 
-#pre_alg_btn_box {
-    width: 100%;
-    display: flex;
-    flex-direction: row;
-    justify-content: center;
-    align-items: center;
-    gap: 20px;
-    height: fit-content;
-}
-.pre_alg_btn {
-    font-size: 14pt;
-    padding: 5px;
-    background-color: white;
-}
-.pre_alg_btn:hover, .pre_alg_btn:disabled {
-    background-color: var(--hover-color);
-}
+    #adj_list_content {
+        height: 100%;
+    }
 
-#path_result {
-    width: 100%;
-    height: fit-content;
-    display: block;
-    text-align: center;
-    font-size: 16pt;
-    overflow-x: auto;
-}
-
-.path_unvisited {
-    color: grey;
-}
-.path_visited {
-    color: rgb(43, 139, 14);
-}
-.path_next_visit {
-    color: goldenrod;
-}
-
-#step_buttons {
-    display: block;
-    height: fit-content;
-    display: flex;
-    justify-content: center;
-    gap: 20px;
-    padding: 20px;
-    box-sizing: border-box;
-}
-.step_btn {
-    height: 40px;
-    aspect-ratio: 2/1;
-    font-size: 20pt;
-    line-height: 30px;
-
-    background-size: auto 80%;
-    background-position: center;
-    background-repeat: no-repeat;
-    background-color: white;
-}
-.step_btn:hover, .step_btn:disabled {
-    background-color: var(--hover-color);
-}
-#step_backward {
-    background-image: url("/assets/left-arrow.svg");
-}
-#reset_algorithm {
-    background-image: url("/assets/reset.svg");
-}
-#play_pause {
-    background-image: url("/assets/play.svg");
-}
-#step_forward {
-    background-image: url("/assets/right-arrow.svg");
-}
-
-#speed_slider_box {
-    width: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 30px;
-    gap: 20px;
-}
-#algorithm_speed {
-    width: 80%;
-}
-#speed_display {
-    text-align: center;
-    font-size: 12pt;
+    #adj_list_box {
+        max-height: none;
+    }
+    #prompt_box {
+        width: 75%;
+    }
 }
