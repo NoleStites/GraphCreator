@@ -1473,7 +1473,6 @@ function selectNodeforStart(event) {
 // Handles logic for choosing a start node for the selected algorithm
 function allowStartNodeSelection() {
     toggleBannerOn("<b class=\"banner_bold\">Left-click:</b> start of search | <b class=\"banner_bold\">ESC:</b> finish");
-    toggleGraphButtons(false);
     toggleStepButtons(false);
     document.addEventListener("keydown", keydown); // Listen for ESC
     resetAlgorithmNodesAndEdges();
