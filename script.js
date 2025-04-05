@@ -422,7 +422,7 @@ class Graph {
         placed_node.classList.add(`label_for_${placed_node.id}`);
         placed_node.innerText = this.getLetterLabel(node_num);
         placed_node.addEventListener("input", handleNodeLabelChange);
-        placed_node.contentEditable = true;
+        placed_node.contentEditable = false;
         // placed_node.innerHTML = num_nodes-1;
         
         // Enforce upper and lower bounds (keep node in box)
@@ -438,7 +438,6 @@ class Graph {
         placed_node.style.left = left + 'px';
         placed_node.style.pointerEvents = "none";
         document.getElementById("preview_section").appendChild(placed_node);
-        dragElement(placed_node); // make node draggable
 
         this.adjList.addNode(node_id);
         this.adjMatrix.addNode(node_id);
@@ -849,6 +848,14 @@ function toggleWeightsChangeable(on_off) {
     }
 }
 
+// Makes node labels editable (true) or uneditable (false)
+function toggleNodeLabelsChangeable(on_off) {
+    let nodes = document.getElementsByClassName("node");
+    for (const node of nodes) {
+        node.contentEditable = on_off;
+    }
+}
+
 // Disables (false) or enables (true) the graph feature checkboxes
 function toggleAdjItemsDisable(on_off) {
     document.getElementById("adj_matrix_checkbox1").disabled = !on_off;
@@ -904,6 +911,11 @@ function toggleAdjList(event) {
     }
 }
 
+// Will toggle the active class on the given element
+function toggleActiveButton(elmnt) {
+    elmnt.classList.toggle("active");
+}
+
 // "Create button" event listener
 document.getElementById("create_node_btn").addEventListener("click", function(event) {
     // For all nodes on the page, either allow or disallow pointer events
@@ -927,6 +939,7 @@ document.getElementById("create_node_btn").addEventListener("click", function(ev
     function resetCreateAction() {
         document.removeEventListener("keydown", keydown);
         document.removeEventListener("mousemove", mousemove);
+        document.getElementById("banner_close").removeEventListener("click", close);
         document.getElementById("preview_section").removeEventListener("click", click);
         toggleBannerOff();
         toggleGraphButtons(true);
@@ -942,20 +955,31 @@ document.getElementById("create_node_btn").addEventListener("click", function(ev
         userGraph.addNode(left, top);
     }
 
+    // Close the operation
+    function close() {
+        toggleActiveButton(btn);
+        resetCreateAction();
+        toggleNodeLabelsChangeable(true);
+        toggleNodesDraggable(true);
+    }
+
     // Listen for cancel "ESC"
     function keydown(event) {
         if (event.key === "Escape") {
-            resetCreateAction();
+            close();
         }
     }
 
-    toggleBannerOn("<b class=\"banner_bold\">Left-click:</b> place node | <b class=\"banner_bold\">ESC:</b> finish");
+    let btn = event.target;
+    toggleActiveButton(btn);
+    toggleBannerOn("<b class=\"banner_bold\">Left-click:</b> place node | <b class=\"banner_bold\">ESC or X:</b> finish");
     toggleGraphButtons(false);
     toggleAlgorithmButtonFunctionality(false);
+    toggleNodesDraggable(false);
 
     // Create and add a new node cursor to the page
     let new_node = document.createElement("div");
-    new_node.classList.add("node");
+    new_node.classList.add("preview_node");
     document.getElementById("page").appendChild(new_node);
 
     // Set default node position to be on cursor
@@ -970,7 +994,21 @@ document.getElementById("create_node_btn").addEventListener("click", function(ev
     document.addEventListener("mousemove", mousemove); // Listen for mouse movement
     document.getElementById("preview_section").addEventListener("click", click); // Listen for node placement
     document.addEventListener("keydown", keydown); // Listen for ESC
+    document.getElementById("banner_close").addEventListener("click", close); // Listen for banner X click
 });
+
+// Makes node draggable (true) or undraggable (false)
+function toggleNodesDraggable(on_off) {
+    let nodes = document.getElementsByClassName("node");
+    for (const node of nodes) {
+        if (on_off) {
+            dragElement(node);
+        }
+        else {
+            node.onmousedown = null;    
+        }
+    }
+}
 
 // Make the DIV element draggable
 function dragElement(elmnt) {
@@ -1122,29 +1160,39 @@ document.getElementById("create_edge_btn").addEventListener("click", function(ev
         }
     }
 
+    function close() {
+        toggleActiveButton(btn);
+        toggleOffStartNode(start_node);
+        let nodes = document.getElementsByClassName("node");
+        for (let i = 0; i < nodes.length; i++) {
+            nodes[i].removeEventListener("click", selectableForEdgeEnd);
+            nodes[i].removeEventListener("contextmenu", selectableForEdgeStart);
+            nodes[i].contentEditable = true;
+        }
+        document.removeEventListener("keydown", keydown);
+        document.getElementById("banner_close").removeEventListener("click", close);
+        toggleBannerOff();
+        toggleGraphButtons(true);
+        toggleAlgorithmButtonFunctionality(true);
+        toggleNodesDraggable(true);
+    }
+
     // Listen for cancel "ESC"
     function keydown(event) {
         if (event.key === "Escape") {
-            toggleOffStartNode(start_node);
-            let nodes = document.getElementsByClassName("node");
-            for (let i = 0; i < nodes.length; i++) {
-                nodes[i].removeEventListener("click", selectableForEdgeEnd);
-                nodes[i].removeEventListener("contextmenu", selectableForEdgeStart);
-                nodes[i].contentEditable = true;
-            }
-            document.removeEventListener("keydown", keydown);
-            toggleBannerOff();
-            toggleGraphButtons(true);
-            toggleAlgorithmButtonFunctionality(true);
+            close();
         }
     }
 
     if (userGraph.num_nodes === 0) {return;}
 
     let start_node = null; // stores the ID of a node
-    toggleBannerOn("<b class=\"banner_bold\">Right-click:</b> start of edge | <b class=\"banner_bold\">Left-click:</b> end of edge | <b class=\"banner_bold\">ESC:</b> finish");
+    let btn = event.target;
+    toggleActiveButton(btn);
+    toggleBannerOn("<b class=\"banner_bold\">Right-click:</b> start of edge | <b class=\"banner_bold\">Left-click:</b> end of edge | <b class=\"banner_bold\">ESC or X:</b> finish");
     toggleGraphButtons(false);
     toggleAlgorithmButtonFunctionality(false);
+    toggleNodesDraggable(false);
 
     // Allow every node to be selected
     let nodes = document.getElementsByClassName("node");
@@ -1154,6 +1202,7 @@ document.getElementById("create_edge_btn").addEventListener("click", function(ev
         nodes[i].contentEditable = false;
     }
     document.addEventListener("keydown", keydown);
+    document.getElementById("banner_close").addEventListener("click", close); // Listen for banner X click
 });
 
 // Displays, in the side panel, info for the given node
@@ -1244,27 +1293,39 @@ function applyClickEventOnNodes(func, doApply) {
 }
 
 document.getElementById("delete_btn").addEventListener("click", function(event) {
+    function close() {
+        toggleActiveButton(btn);
+        toggleBannerOff();
+        toggleGraphButtons(true);
+        toggleAlgorithmButtonFunctionality(true);
+        toggleNodesDraggable(true);
+        applyClassOnNodes("delete_node", false);
+        applyClickEventOnNodes(deleteOnClick, false);
+        cssSetVars.style.setProperty('--edge-hitbox-display', 'none');
+        document.removeEventListener("keydown", keydown);
+        document.getElementById("banner_close").removeEventListener("click", close);
+    }
+
     // Listen for cancel "ESC"
     function keydown(event) {
         if (event.key === "Escape") {
-            toggleBannerOff();
-            toggleGraphButtons(true);
-            toggleAlgorithmButtonFunctionality(true);
-            applyClassOnNodes("delete_node", false);
-            applyClickEventOnNodes(deleteOnClick, false);
-            cssSetVars.style.setProperty('--edge-hitbox-display', 'none');
+            close();
         }
     }
     
     // Prep screen for delete mode
-    toggleBannerOn("<b class=\"banner_bold\">Left-click:</b> delete node or edge | <b class=\"banner_bold\">ESC:</b> finish");
+    let btn = event.target;
+    toggleActiveButton(btn);
+    toggleBannerOn("<b class=\"banner_bold\">Left-click:</b> delete node or edge | <b class=\"banner_bold\">ESC or X:</b> finish");
     toggleGraphButtons(false);
     toggleAlgorithmButtonFunctionality(false);
+    toggleNodesDraggable(false);
     applyClassOnNodes("delete_node", true);
     applyClickEventOnNodes(deleteOnClick, true);
     cssSetVars.style.setProperty('--edge-hitbox-display', 'block');
     
     document.addEventListener("keydown", keydown);
+    document.getElementById("banner_close").addEventListener("click", close);
 });
 
 // Brings up a prompt box when changing graph type and applies logic to changing it
@@ -1477,27 +1538,39 @@ function selectNodeforStart(event) {
 
 // Handles logic for choosing a start node for the selected algorithm
 function allowStartNodeSelection() {
-    toggleBannerOn("<b class=\"banner_bold\">Left-click:</b> start of search | <b class=\"banner_bold\">ESC:</b> finish");
+    toggleBannerOn("<b class=\"banner_bold\">Left-click:</b> start of search | <b class=\"banner_bold\">ESC or X:</b> finish");
     toggleStepButtons(false);
+    toggleNodesDraggable(false);
+    toggleNodeLabelsChangeable(false);
+    toggleActiveButton(document.getElementById("start_node_select_btn"));
     document.addEventListener("keydown", keydown); // Listen for ESC
+    document.getElementById("banner_close").addEventListener("click", close); // Listen for X on banner
     resetAlgorithmNodesAndEdges();
     clearAlgorithmResultPath();
     applyClickEventOnNodes(selectNodeforStart, true);
     document.getElementById("start_algorithm_btn").disabled = true;
     if (isPlaying) {togglePlayButton();}
 
+    function close() {
+        toggleBannerOff();
+        document.removeEventListener("keydown", keydown);
+        document.getElementById("banner_close").removeEventListener("click", close);
+        applyClickEventOnNodes(selectNodeforStart, false);
+        toggleNodesDraggable(true);
+        toggleNodeLabelsChangeable(true);
+        toggleActiveButton(document.getElementById("start_node_select_btn"));
+        if (start_node_id !== null) {
+            document.getElementById("start_algorithm_btn").disabled = false;
+        }
+        else {
+            document.getElementById("start_algorithm_btn").disabled = true;
+        }
+    }
+
     // Listen for cancel "ESC"
     function keydown(event) {
         if (event.key === "Escape") {
-            toggleBannerOff();
-            document.removeEventListener("keydown", keydown);
-            applyClickEventOnNodes(selectNodeforStart, false);
-            if (start_node_id !== null) {
-                document.getElementById("start_algorithm_btn").disabled = false;
-            }
-            else {
-                document.getElementById("start_algorithm_btn").disabled = true;
-            }
+            close();
         }
     }
 }
@@ -1535,10 +1608,10 @@ function togglePlayButton() {
     // Change play/pause symbol
     let btn = document.getElementById("play_pause");
     if (!isPlaying) {
-        btn.style.backgroundImage = "url(\"/assets/pause.svg\")";
+        btn.style.backgroundImage = "url(\"./assets/pause.svg\")";
     } 
     else {
-        btn.style.backgroundImage = "url(\"/assets/play.svg\")";
+        btn.style.backgroundImage = "url(\"./assets/play.svg\")";
     }
 
     // Start/stop the animation
@@ -1731,8 +1804,6 @@ function DFS(node_id, visited, incoming_edge, prev_node_id) {
     return [visited, incoming_edge];
 
 }
-
-
 
 
 /* 
