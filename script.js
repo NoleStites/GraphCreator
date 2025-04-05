@@ -1038,6 +1038,7 @@ function dragElement(elmnt) {
         if (e.buttons === 2) {return;} // No right-click
 
         // Start a timer to detect if it's a drag and hold or just left-click
+        document.body.style.touchAction = "none";
         dragTimeout = setTimeout(() => {
             edge_IDs_to_move = getIncomingAndOutgoingEdges(e.target.id);
 
@@ -1052,6 +1053,7 @@ function dragElement(elmnt) {
         // If user releases mouse before the delay, it cancels drag
         document.onmouseup = () => {
             clearTimeout(dragTimeout);
+            document.body.style.touchAction = "all";
         };
     }
 
@@ -2088,7 +2090,10 @@ function checkNodesInPreviewSection() {
 }
 window.addEventListener("resize", checkNodesInPreviewSection);
 window.addEventListener("resize", positionAlgorithmSection);
-window.addEventListener("resize", function() {document.body.style.height = window.innerHeight + "px";});
+window.addEventListener("resize", function() {
+    document.body.style.height = window.innerHeight + "px";
+    node_size = css_styles.getPropertyValue("--node-size").slice(0,-2);
+});
 document.body.style.height = window.innerHeight + "px";
 
 // Import necessary styles from stylesheet
