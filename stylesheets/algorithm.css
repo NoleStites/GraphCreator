@@ -29,7 +29,6 @@
 }
 #algorithm_about_close_bar img:hover {
     background-color: var(--hover-color);
-    cursor: pointer;
 }
 
 #algorithm_name {

@@ -1733,8 +1733,6 @@ function DFS(node_id, visited, incoming_edge, prev_node_id) {
 }
 
 
-
-
 /* 
     ===== INITIALIZE VARIABLES FOR STARTUP =====
     ===== ALSO, APPLY EVENT LISTENERS TO MENU =====
