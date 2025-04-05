@@ -938,14 +938,17 @@ document.getElementById("create_node_btn").addEventListener("click", function(ev
     // Disable create node action
     function resetCreateAction() {
         document.removeEventListener("keydown", keydown);
-        document.removeEventListener("mousemove", mousemove);
         document.getElementById("banner_close").removeEventListener("click", close);
         document.getElementById("preview_section").removeEventListener("click", click);
         toggleBannerOff();
         toggleGraphButtons(true);
         toggleAlgorithmButtonFunctionality(true);
         setNodePointerEvents("all");
-        new_node.remove();
+        if (vw > 760) {
+            new_node.remove(); 
+            document.removeEventListener("mousemove", mousemove);
+        }
+        
     }
 
     // Make preview section clickable
@@ -972,26 +975,37 @@ document.getElementById("create_node_btn").addEventListener("click", function(ev
 
     let btn = event.target;
     toggleActiveButton(btn);
-    toggleBannerOn("<b class=\"banner_bold\">Left-click:</b> place node | <b class=\"banner_bold\">ESC or X:</b> finish");
+    let vw = window.innerWidth; // Less than 760 means phone screen
+    if (vw > 760) {
+        toggleBannerOn("<b class=\"banner_bold\">Left-click:</b> place node | <b class=\"banner_bold\">ESC or X:</b> finish");
+    }
+    else {
+        toggleBannerOn("<b class=\"banner_bold\">Tap Screen:</b> place node | <b class=\"banner_bold\">Tap X:</b> finish");
+    }
     toggleGraphButtons(false);
     toggleAlgorithmButtonFunctionality(false);
     toggleNodesDraggable(false);
 
-    // Create and add a new node cursor to the page
-    let new_node = document.createElement("div");
-    new_node.classList.add("preview_node");
-    document.getElementById("page").appendChild(new_node);
+    let new_node;
+    if (vw > 760) {
+        // Create and add a new node cursor to the page
+        new_node = document.createElement("div");
+        new_node.classList.add("preview_node");
+        document.getElementById("page").appendChild(new_node);
 
-    // Set default node position to be on cursor
-    let node_size = new_node.clientWidth;
-    new_node.style.top = event.clientY - node_size/2 + 'px';
-    new_node.style.left = event.clientX - node_size/2 + 'px';
+        // Set default node position to be on cursor
+        let node_size = new_node.clientWidth;
+        new_node.style.top = event.clientY - node_size/2 + 'px';
+        new_node.style.left = event.clientX - node_size/2 + 'px';
+        
+        document.addEventListener("mousemove", mousemove); // Listen for mouse movement
+    }
+    
 
     // Don't allow any nodes to be clickable at the moment
     setNodePointerEvents("none");
 
     // Apply event listeners
-    document.addEventListener("mousemove", mousemove); // Listen for mouse movement
     document.getElementById("preview_section").addEventListener("click", click); // Listen for node placement
     document.addEventListener("keydown", keydown); // Listen for ESC
     document.getElementById("banner_close").addEventListener("click", close); // Listen for banner X click
@@ -1018,6 +1032,7 @@ function dragElement(elmnt) {
     let dragTimeout;
 
     elmnt.onmousedown = dragMouseDown;
+    elmnt.ontouchstart = dragTouchStart;
 
     function dragMouseDown(e) {
         if (e.buttons === 2) {return;} // No right-click
@@ -1036,6 +1051,25 @@ function dragElement(elmnt) {
 
         // If user releases mouse before the delay, it cancels drag
         document.onmouseup = () => {
+            clearTimeout(dragTimeout);
+        };
+    }
+
+    function dragTouchStart(e) {
+        const touch = e.touches[0];
+        dragTimeout = setTimeout(() => {
+            edge_IDs_to_move = getIncomingAndOutgoingEdges(e.target.id);
+
+            document.getElementById(e.target.id).style.zIndex = node_zIndex+1; // Resolve issues with cursor detecting different node when on it
+            // Get the touch position at startup:
+            pos3 = touch.clientX;
+            pos4 = touch.clientY;
+            // startDrag(touch.clientX, touch.clientY, e.target.id);
+            document.ontouchend = closeDragElement;
+            document.ontouchmove = touchDrag;
+        }, 50);
+
+        document.ontouchend = () => {
             clearTimeout(dragTimeout);
         };
     }
@@ -1068,10 +1102,41 @@ function dragElement(elmnt) {
         }
     }
 
+    function touchDrag(e) {
+        elmnt.contentEditable = false;
+        const touch = e.touches[0];
+
+        // calculate the new cursor position:
+        pos1 = pos3 - touch.clientX;
+        pos2 = pos4 - touch.clientY;
+        pos3 = touch.clientX;
+        pos4 = touch.clientY;
+        // set the element's new position:
+        let new_top = elmnt.offsetTop - pos2;
+        let new_left = elmnt.offsetLeft - pos1;
+
+        // Do not let the node leave the preview area
+        if (new_top < 0) {new_top = 0;}
+        else if (new_top > preview_box.height - elmnt_props.width) {new_top = preview_box.height - elmnt_props.width;}
+        if (new_left < 0) {new_left = 0;}
+        else if (new_left > preview_box.width - elmnt_props.width) {new_left = preview_box.width - elmnt_props.width;}
+
+        elmnt.style.top = new_top + "px";
+        elmnt.style.left = new_left + "px";
+
+        for (let i = 0; i < edge_IDs_to_move.length; i++) {
+            let node_ids = edge_IDs_to_move[i].slice(5);
+            let node1_node2 = node_ids.split('_');
+            userGraph.moveEdge(node1_node2[0], node1_node2[1]);
+        }
+    }
+
     function closeDragElement(e) {
         // stop moving when mouse button is released:
         document.onmouseup = null;
         document.onmousemove = null;
+        document.ontouchend = null;
+        document.ontouchmove = null;
         elmnt.style.zIndex = node_zIndex;
         elmnt.contentEditable = true;
     }
@@ -1160,12 +1225,35 @@ document.getElementById("create_edge_btn").addEventListener("click", function(ev
         }
     }
 
+    function touchNode(event) {
+        if  (start_node === null) { // No start mode currently selected
+            toggleOnStartNode(event.target.id);
+        }
+        else if (event.target.id === start_node) { // Toggle off start node
+            toggleOffStartNode(start_node);
+        }
+        else { // Change start node
+            // Toggle clicked node ON or OFF (connected or not connected)
+            let selected_node = event.target;
+            console.log(selected_node.classList);
+            if (selected_node.classList.contains("create_edge_end")) { // Remove edge
+                selected_node.classList.remove("create_edge_end");
+                userGraph.removeEdge(start_node, selected_node.id);
+            }
+            else { // Add edge
+                selected_node.classList.add("create_edge_end");
+                userGraph.addEdge(start_node, selected_node.id);
+            }
+        }
+    }
+
     function close() {
         toggleActiveButton(btn);
         toggleOffStartNode(start_node);
         let nodes = document.getElementsByClassName("node");
         for (let i = 0; i < nodes.length; i++) {
             nodes[i].removeEventListener("click", selectableForEdgeEnd);
+            nodes[i].removeEventListener("touchstart", touchStartHandler, { passive: false }); // Touch for start and end
             nodes[i].removeEventListener("contextmenu", selectableForEdgeStart);
             nodes[i].contentEditable = true;
         }
@@ -1184,12 +1272,24 @@ document.getElementById("create_edge_btn").addEventListener("click", function(ev
         }
     }
 
+    function touchStartHandler(e) {
+        e.preventDefault();
+        touchNode(e);
+    }
+
     if (userGraph.num_nodes === 0) {return;}
 
     let start_node = null; // stores the ID of a node
     let btn = event.target;
     toggleActiveButton(btn);
-    toggleBannerOn("<b class=\"banner_bold\">Right-click:</b> start of edge | <b class=\"banner_bold\">Left-click:</b> end of edge | <b class=\"banner_bold\">ESC or X:</b> finish");
+
+    let vw = window.innerWidth; // Less than 760 means phone screen
+    if (vw > 760) {
+        toggleBannerOn("<b class=\"banner_bold\">Right-click:</b> start of edge | <b class=\"banner_bold\">Left-click:</b> end of edge | <b class=\"banner_bold\">ESC or X:</b> finish");
+    }
+    else {
+        toggleBannerOn("<b class=\"banner_bold\">Tap Node:</b> toggle start of edge | <b class=\"banner_bold\">2nd Tap:</b> end of edge | <b class=\"banner_bold\">Tap X:</b> finish");
+    }
     toggleGraphButtons(false);
     toggleAlgorithmButtonFunctionality(false);
     toggleNodesDraggable(false);
@@ -1198,6 +1298,7 @@ document.getElementById("create_edge_btn").addEventListener("click", function(ev
     let nodes = document.getElementsByClassName("node");
     for (let i = 0; i < nodes.length; i++) {
         nodes[i].addEventListener("click", selectableForEdgeEnd); // Edge end
+        nodes[i].addEventListener("touchstart", touchStartHandler, { passive: false }); // Touch for start and end
         nodes[i].addEventListener("contextmenu", selectableForEdgeStart); // Edge start
         nodes[i].contentEditable = false;
     }
@@ -1316,7 +1417,13 @@ document.getElementById("delete_btn").addEventListener("click", function(event) 
     // Prep screen for delete mode
     let btn = event.target;
     toggleActiveButton(btn);
-    toggleBannerOn("<b class=\"banner_bold\">Left-click:</b> delete node or edge | <b class=\"banner_bold\">ESC or X:</b> finish");
+    let vw = window.innerWidth; // Less than 760 means phone screen
+    if (vw > 760) {
+        toggleBannerOn("<b class=\"banner_bold\">Left-click:</b> delete node or edge | <b class=\"banner_bold\">ESC or X:</b> finish");
+    }
+    else {
+        toggleBannerOn("<b class=\"banner_bold\">Tap:</b> delete node or edge | <b class=\"banner_bold\">Tap X:</b> finish");
+    }
     toggleGraphButtons(false);
     toggleAlgorithmButtonFunctionality(false);
     toggleNodesDraggable(false);
@@ -1538,7 +1645,13 @@ function selectNodeforStart(event) {
 
 // Handles logic for choosing a start node for the selected algorithm
 function allowStartNodeSelection() {
-    toggleBannerOn("<b class=\"banner_bold\">Left-click:</b> start of search | <b class=\"banner_bold\">ESC or X:</b> finish");
+    let vw = window.innerWidth; // Less than 760 means phone screen
+    if (vw > 760) {
+        toggleBannerOn("<b class=\"banner_bold\">Left-click:</b> start of search | <b class=\"banner_bold\">ESC or X:</b> finish");
+    }
+    else {
+        toggleBannerOn("<b class=\"banner_bold\">Tap Node:</b> start of search | <b class=\"banner_bold\">Tap X:</b> finish");
+    }
     toggleStepButtons(false);
     toggleNodesDraggable(false);
     toggleNodeLabelsChangeable(false);
@@ -1975,6 +2088,8 @@ function checkNodesInPreviewSection() {
 }
 window.addEventListener("resize", checkNodesInPreviewSection);
 window.addEventListener("resize", positionAlgorithmSection);
+window.addEventListener("resize", function() {document.body.style.height = window.innerHeight + "px";});
+document.body.style.height = window.innerHeight + "px";
 
 // Import necessary styles from stylesheet
 const css_styles = getComputedStyle(document.documentElement); // Or any specific element
