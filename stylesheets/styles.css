@@ -93,6 +93,7 @@ button:disabled {
 
 #adj_matrix_box {
     height: 50%;
+    position: relative;
 }
 #adj_list_box {
     height: fit-content;
@@ -410,10 +411,6 @@ button:disabled {
     #adj_list_box, #adj_matrix_box {
         width: 50%;
         height: 100%;
-    }
-
-    #adj_matrix_content {
-        background-color: yellow;
     }
 
     #adj_list_content {
