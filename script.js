@@ -972,7 +972,7 @@ document.getElementById("create_node_btn").addEventListener("click", function(ev
 
     let btn = event.target;
     toggleActiveButton(btn);
-    toggleBannerOn("<b class=\"banner_bold\">Left-click:</b> place node | <b class=\"banner_bold\">ESC:</b> finish");
+    toggleBannerOn("<b class=\"banner_bold\">Left-click:</b> place node | <b class=\"banner_bold\">ESC or X:</b> finish");
     toggleGraphButtons(false);
     toggleAlgorithmButtonFunctionality(false);
     toggleNodesDraggable(false);
@@ -1189,7 +1189,7 @@ document.getElementById("create_edge_btn").addEventListener("click", function(ev
     let start_node = null; // stores the ID of a node
     let btn = event.target;
     toggleActiveButton(btn);
-    toggleBannerOn("<b class=\"banner_bold\">Right-click:</b> start of edge | <b class=\"banner_bold\">Left-click:</b> end of edge | <b class=\"banner_bold\">ESC:</b> finish");
+    toggleBannerOn("<b class=\"banner_bold\">Right-click:</b> start of edge | <b class=\"banner_bold\">Left-click:</b> end of edge | <b class=\"banner_bold\">ESC or X:</b> finish");
     toggleGraphButtons(false);
     toggleAlgorithmButtonFunctionality(false);
     toggleNodesDraggable(false);
@@ -1316,7 +1316,7 @@ document.getElementById("delete_btn").addEventListener("click", function(event) 
     // Prep screen for delete mode
     let btn = event.target;
     toggleActiveButton(btn);
-    toggleBannerOn("<b class=\"banner_bold\">Left-click:</b> delete node or edge | <b class=\"banner_bold\">ESC:</b> finish");
+    toggleBannerOn("<b class=\"banner_bold\">Left-click:</b> delete node or edge | <b class=\"banner_bold\">ESC or X:</b> finish");
     toggleGraphButtons(false);
     toggleAlgorithmButtonFunctionality(false);
     toggleNodesDraggable(false);
@@ -1538,7 +1538,7 @@ function selectNodeforStart(event) {
 
 // Handles logic for choosing a start node for the selected algorithm
 function allowStartNodeSelection() {
-    toggleBannerOn("<b class=\"banner_bold\">Left-click:</b> start of search | <b class=\"banner_bold\">ESC:</b> finish");
+    toggleBannerOn("<b class=\"banner_bold\">Left-click:</b> start of search | <b class=\"banner_bold\">ESC or X:</b> finish");
     toggleStepButtons(false);
     toggleNodesDraggable(false);
     toggleNodeLabelsChangeable(false);
@@ -1608,10 +1608,10 @@ function togglePlayButton() {
     // Change play/pause symbol
     let btn = document.getElementById("play_pause");
     if (!isPlaying) {
-        btn.style.backgroundImage = "url(\"/assets/pause.svg\")";
+        btn.style.backgroundImage = "url(\"./assets/pause.svg\")";
     } 
     else {
-        btn.style.backgroundImage = "url(\"/assets/play.svg\")";
+        btn.style.backgroundImage = "url(\"./assets/play.svg\")";
     }
 
     // Start/stop the animation
