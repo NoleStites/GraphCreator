@@ -422,7 +422,7 @@ class Graph {
         placed_node.classList.add(`label_for_${placed_node.id}`);
         placed_node.innerText = this.getLetterLabel(node_num);
         placed_node.addEventListener("input", handleNodeLabelChange);
-        placed_node.contentEditable = true;
+        placed_node.contentEditable = false;
         // placed_node.innerHTML = num_nodes-1;
         
         // Enforce upper and lower bounds (keep node in box)
@@ -438,7 +438,6 @@ class Graph {
         placed_node.style.left = left + 'px';
         placed_node.style.pointerEvents = "none";
         document.getElementById("preview_section").appendChild(placed_node);
-        dragElement(placed_node); // make node draggable
 
         this.adjList.addNode(node_id);
         this.adjMatrix.addNode(node_id);
@@ -849,6 +848,14 @@ function toggleWeightsChangeable(on_off) {
     }
 }
 
+// Makes node labels editable (true) or uneditable (false)
+function toggleNodeLabelsChangeable(on_off) {
+    let nodes = document.getElementsByClassName("node");
+    for (const node of nodes) {
+        node.contentEditable = on_off;
+    }
+}
+
 // Disables (false) or enables (true) the graph feature checkboxes
 function toggleAdjItemsDisable(on_off) {
     document.getElementById("adj_matrix_checkbox1").disabled = !on_off;
@@ -946,12 +953,15 @@ document.getElementById("create_node_btn").addEventListener("click", function(ev
     function keydown(event) {
         if (event.key === "Escape") {
             resetCreateAction();
+            toggleNodeLabelsChangeable(true);
+            toggleNodesDraggable(true);
         }
     }
 
     toggleBannerOn("<b class=\"banner_bold\">Left-click:</b> place node | <b class=\"banner_bold\">ESC:</b> finish");
     toggleGraphButtons(false);
     toggleAlgorithmButtonFunctionality(false);
+    toggleNodesDraggable(false);
 
     // Create and add a new node cursor to the page
     let new_node = document.createElement("div");
@@ -971,6 +981,19 @@ document.getElementById("create_node_btn").addEventListener("click", function(ev
     document.getElementById("preview_section").addEventListener("click", click); // Listen for node placement
     document.addEventListener("keydown", keydown); // Listen for ESC
 });
+
+// Makes node draggable (true) or undraggable (false)
+function toggleNodesDraggable(on_off) {
+    let nodes = document.getElementsByClassName("node");
+    for (const node of nodes) {
+        if (on_off) {
+            dragElement(node);
+        }
+        else {
+            node.onmousedown = null;    
+        }
+    }
+}
 
 // Make the DIV element draggable
 function dragElement(elmnt) {
@@ -1136,6 +1159,7 @@ document.getElementById("create_edge_btn").addEventListener("click", function(ev
             toggleBannerOff();
             toggleGraphButtons(true);
             toggleAlgorithmButtonFunctionality(true);
+            toggleNodesDraggable(true);
         }
     }
 
@@ -1145,6 +1169,7 @@ document.getElementById("create_edge_btn").addEventListener("click", function(ev
     toggleBannerOn("<b class=\"banner_bold\">Right-click:</b> start of edge | <b class=\"banner_bold\">Left-click:</b> end of edge | <b class=\"banner_bold\">ESC:</b> finish");
     toggleGraphButtons(false);
     toggleAlgorithmButtonFunctionality(false);
+    toggleNodesDraggable(false);
 
     // Allow every node to be selected
     let nodes = document.getElementsByClassName("node");
@@ -1250,6 +1275,7 @@ document.getElementById("delete_btn").addEventListener("click", function(event) 
             toggleBannerOff();
             toggleGraphButtons(true);
             toggleAlgorithmButtonFunctionality(true);
+            toggleNodesDraggable(true);
             applyClassOnNodes("delete_node", false);
             applyClickEventOnNodes(deleteOnClick, false);
             cssSetVars.style.setProperty('--edge-hitbox-display', 'none');
@@ -1260,6 +1286,7 @@ document.getElementById("delete_btn").addEventListener("click", function(event) 
     toggleBannerOn("<b class=\"banner_bold\">Left-click:</b> delete node or edge | <b class=\"banner_bold\">ESC:</b> finish");
     toggleGraphButtons(false);
     toggleAlgorithmButtonFunctionality(false);
+    toggleNodesDraggable(false);
     applyClassOnNodes("delete_node", true);
     applyClickEventOnNodes(deleteOnClick, true);
     cssSetVars.style.setProperty('--edge-hitbox-display', 'block');
@@ -1479,6 +1506,8 @@ function selectNodeforStart(event) {
 function allowStartNodeSelection() {
     toggleBannerOn("<b class=\"banner_bold\">Left-click:</b> start of search | <b class=\"banner_bold\">ESC:</b> finish");
     toggleStepButtons(false);
+    toggleNodesDraggable(false);
+    toggleNodeLabelsChangeable(false);
     document.addEventListener("keydown", keydown); // Listen for ESC
     resetAlgorithmNodesAndEdges();
     clearAlgorithmResultPath();
@@ -1492,6 +1521,8 @@ function allowStartNodeSelection() {
             toggleBannerOff();
             document.removeEventListener("keydown", keydown);
             applyClickEventOnNodes(selectNodeforStart, false);
+            toggleNodesDraggable(true);
+            toggleNodeLabelsChangeable(true);
             if (start_node_id !== null) {
                 document.getElementById("start_algorithm_btn").disabled = false;
             }

@@ -172,6 +172,9 @@ label {
 
 .show {display: block;}
 
+#graph_type_hamburger, #graph_features_hamburger, #algorithms_hamburger {
+    display: none;
+}
 
 .menu_dropdown, .hamburger_sub_dropdown {
     min-width: fit-content;

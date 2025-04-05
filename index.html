@@ -16,42 +16,48 @@
                     <div class="dropdown">
                         <img class="dropbtn" href="./assets/hamburger.svg" />
                         <div class="dropdown-content">
-                            <div onclick="toggleDropdown('sub_content_1')" class="dropdown_item">
-                                <label class="dropdown_label">Graph Type &rsaquo;</label>
-                            </div>
-                            <div id="sub_content_1" class="sub_dropdown-content">
-                                <div class="dropdown_item">
-                                    <input id="undirected_radio1" type="radio" name="graph_type1" value="undirected">
-                                    <label for="undirected_radio1" class="dropdown_label">Undirected</label>
+                            <div id="graph_type_hamburger">
+                                <div onclick="toggleDropdown('sub_content_1')" class="dropdown_item">
+                                    <label class="dropdown_label">Graph Type &rsaquo;</label>
                                 </div>
-                                <div class="dropdown_item">
-                                    <input id="directed_radio1" type="radio" name="graph_type1" value="directed">
-                                    <label for="directed_radio1" class="dropdown_label">Directed</label>
-                                </div>
-                            </div>
-                            <div onclick="toggleDropdown('sub_content_2')" class="dropdown_item">
-                                <label class="dropdown_label">Graph Features &rsaquo;</label>
-                            </div>
-                            <div id="sub_content_2" class="sub_dropdown-content">
-                                <div class="dropdown_item">
-                                    <input id="weights_checkbox1" type="checkbox">
-                                    <label for="weights_checkbox1" class="dropdown_label">Weights</label>
-                                </div>
-                                <div class="dropdown_item">
-                                    <input id="adj_matrix_checkbox1" type="checkbox">
-                                    <label for="adj_matrix_checkbox1" class="dropdown_label">Adj. Matrix</label>
-                                </div>
-                                <div class="dropdown_item">
-                                    <input id="adj_list_checkbox1" type="checkbox">
-                                    <label for="adj_list_checkbox1" class="dropdown_label">Adj. List</label>
+                                <div id="sub_content_1" class="sub_dropdown-content">
+                                    <div class="dropdown_item">
+                                        <input id="undirected_radio1" type="radio" name="graph_type1" value="undirected">
+                                        <label for="undirected_radio1" class="dropdown_label">Undirected</label>
+                                    </div>
+                                    <div class="dropdown_item">
+                                        <input id="directed_radio1" type="radio" name="graph_type1" value="directed">
+                                        <label for="directed_radio1" class="dropdown_label">Directed</label>
+                                    </div>
                                 </div>
                             </div>
-                            <div onclick="toggleDropdown('sub_content_3')" class="dropdown_item">
-                                <label class="dropdown_label">Algorithms &rsaquo;</label>
+                            <div id="graph_features_hamburger">
+                                <div onclick="toggleDropdown('sub_content_2')" class="dropdown_item">
+                                    <label class="dropdown_label">Graph Features &rsaquo;</label>
+                                </div>
+                                <div id="sub_content_2" class="sub_dropdown-content">
+                                    <div class="dropdown_item">
+                                        <input id="weights_checkbox1" type="checkbox">
+                                        <label for="weights_checkbox1" class="dropdown_label">Weights</label>
+                                    </div>
+                                    <div class="dropdown_item">
+                                        <input id="adj_matrix_checkbox1" type="checkbox">
+                                        <label for="adj_matrix_checkbox1" class="dropdown_label">Adj. Matrix</label>
+                                    </div>
+                                    <div class="dropdown_item">
+                                        <input id="adj_list_checkbox1" type="checkbox">
+                                        <label for="adj_list_checkbox1" class="dropdown_label">Adj. List</label>
+                                    </div>
+                                </div>
                             </div>
-                            <div id="sub_content_3" class="sub_dropdown-content">
-                                <div class="dropdown_item">
-                                    <label id="dfs_btn1" class="dropdown_label alg_btn">Depth-First Search (DFS) Tester</label>
+                            <div id="algorithms_hamburger">
+                                <div onclick="toggleDropdown('sub_content_3')" class="dropdown_item">
+                                    <label class="dropdown_label">Algorithms &rsaquo;</label>
+                                </div>
+                                <div id="sub_content_3" class="sub_dropdown-content">
+                                    <div class="dropdown_item">
+                                        <label id="dfs_btn1" class="dropdown_label alg_btn">Depth-First Search (DFS)</label>
+                                    </div>
                                 </div>
                             </div>
                             <div id="clear_btn" class="dropdown_item">
