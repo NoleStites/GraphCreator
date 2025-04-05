@@ -218,7 +218,7 @@ button:disabled {
 }
 
 /* Node Styles */
-.node {
+.node, .preview_node {
     width: var(--node-size);
     aspect-ratio: 1/1;
     background-color: rgb(218, 218, 218);
@@ -235,6 +235,11 @@ button:disabled {
     justify-content: center;
     text-wrap: nowrap;
 }
+
+.preview_node {
+    pointer-events: none;
+}
+
 .node:hover {
     background-color: rgb(170, 168, 168);
     cursor: move;

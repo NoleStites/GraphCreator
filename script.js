@@ -911,6 +911,11 @@ function toggleAdjList(event) {
     }
 }
 
+// Will toggle the active class on the given element
+function toggleActiveButton(elmnt) {
+    elmnt.classList.toggle("active");
+}
+
 // "Create button" event listener
 document.getElementById("create_node_btn").addEventListener("click", function(event) {
     // For all nodes on the page, either allow or disallow pointer events
@@ -952,12 +957,15 @@ document.getElementById("create_node_btn").addEventListener("click", function(ev
     // Listen for cancel "ESC"
     function keydown(event) {
         if (event.key === "Escape") {
+            toggleActiveButton(btn);
             resetCreateAction();
             toggleNodeLabelsChangeable(true);
             toggleNodesDraggable(true);
         }
     }
 
+    let btn = event.target;
+    toggleActiveButton(btn);
     toggleBannerOn("<b class=\"banner_bold\">Left-click:</b> place node | <b class=\"banner_bold\">ESC:</b> finish");
     toggleGraphButtons(false);
     toggleAlgorithmButtonFunctionality(false);
@@ -965,7 +973,7 @@ document.getElementById("create_node_btn").addEventListener("click", function(ev
 
     // Create and add a new node cursor to the page
     let new_node = document.createElement("div");
-    new_node.classList.add("node");
+    new_node.classList.add("preview_node");
     document.getElementById("page").appendChild(new_node);
 
     // Set default node position to be on cursor
@@ -1148,6 +1156,7 @@ document.getElementById("create_edge_btn").addEventListener("click", function(ev
     // Listen for cancel "ESC"
     function keydown(event) {
         if (event.key === "Escape") {
+            toggleActiveButton(btn);
             toggleOffStartNode(start_node);
             let nodes = document.getElementsByClassName("node");
             for (let i = 0; i < nodes.length; i++) {
@@ -1166,6 +1175,8 @@ document.getElementById("create_edge_btn").addEventListener("click", function(ev
     if (userGraph.num_nodes === 0) {return;}
 
     let start_node = null; // stores the ID of a node
+    let btn = event.target;
+    toggleActiveButton(btn);
     toggleBannerOn("<b class=\"banner_bold\">Right-click:</b> start of edge | <b class=\"banner_bold\">Left-click:</b> end of edge | <b class=\"banner_bold\">ESC:</b> finish");
     toggleGraphButtons(false);
     toggleAlgorithmButtonFunctionality(false);
@@ -1272,6 +1283,8 @@ document.getElementById("delete_btn").addEventListener("click", function(event) 
     // Listen for cancel "ESC"
     function keydown(event) {
         if (event.key === "Escape") {
+            console.log("here");
+            toggleActiveButton(btn);
             toggleBannerOff();
             toggleGraphButtons(true);
             toggleAlgorithmButtonFunctionality(true);
@@ -1279,10 +1292,13 @@ document.getElementById("delete_btn").addEventListener("click", function(event) 
             applyClassOnNodes("delete_node", false);
             applyClickEventOnNodes(deleteOnClick, false);
             cssSetVars.style.setProperty('--edge-hitbox-display', 'none');
+            document.removeEventListener("keydown", keydown);
         }
     }
     
     // Prep screen for delete mode
+    let btn = event.target;
+    toggleActiveButton(btn);
     toggleBannerOn("<b class=\"banner_bold\">Left-click:</b> delete node or edge | <b class=\"banner_bold\">ESC:</b> finish");
     toggleGraphButtons(false);
     toggleAlgorithmButtonFunctionality(false);
@@ -1508,6 +1524,7 @@ function allowStartNodeSelection() {
     toggleStepButtons(false);
     toggleNodesDraggable(false);
     toggleNodeLabelsChangeable(false);
+    toggleActiveButton(document.getElementById("start_node_select_btn"));
     document.addEventListener("keydown", keydown); // Listen for ESC
     resetAlgorithmNodesAndEdges();
     clearAlgorithmResultPath();
@@ -1523,6 +1540,7 @@ function allowStartNodeSelection() {
             applyClickEventOnNodes(selectNodeforStart, false);
             toggleNodesDraggable(true);
             toggleNodeLabelsChangeable(true);
+            toggleActiveButton(document.getElementById("start_node_select_btn"));
             if (start_node_id !== null) {
                 document.getElementById("start_algorithm_btn").disabled = false;
             }

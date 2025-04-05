@@ -279,6 +279,12 @@ label {
     background-position: center;
 }
 
+/* Style when a button is clicked */
+.active {
+    /* outline: 2px solid rgb(0, 179, 0); */
+    background-color: yellow !important;
+}
+
 
 /* Move graph type dropdown to hamburger */
 @media screen and (max-width: 1100px) {
