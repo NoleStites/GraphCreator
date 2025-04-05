@@ -59,7 +59,6 @@
     color: white;
     overflow-x: auto;
     text-wrap: nowrap;
-    text-overflow: ellipsis;
     text-align: center;
 }
 .banner_bold {
