@@ -1019,7 +1019,8 @@ function toggleNodesDraggable(on_off) {
             dragElement(node);
         }
         else {
-            node.onmousedown = null;    
+            node.onmousedown = null;  
+            node.ontouchstart = null;
         }
     }
 }
@@ -1038,7 +1039,6 @@ function dragElement(elmnt) {
         if (e.buttons === 2) {return;} // No right-click
 
         // Start a timer to detect if it's a drag and hold or just left-click
-        document.body.style.touchAction = "none";
         dragTimeout = setTimeout(() => {
             edge_IDs_to_move = getIncomingAndOutgoingEdges(e.target.id);
 
@@ -1053,11 +1053,11 @@ function dragElement(elmnt) {
         // If user releases mouse before the delay, it cancels drag
         document.onmouseup = () => {
             clearTimeout(dragTimeout);
-            document.body.style.touchAction = "all";
         };
     }
 
     function dragTouchStart(e) {
+        e.preventDefault();
         const touch = e.touches[0];
         dragTimeout = setTimeout(() => {
             edge_IDs_to_move = getIncomingAndOutgoingEdges(e.target.id);
@@ -1066,9 +1066,9 @@ function dragElement(elmnt) {
             // Get the touch position at startup:
             pos3 = touch.clientX;
             pos4 = touch.clientY;
-            // startDrag(touch.clientX, touch.clientY, e.target.id);
             document.ontouchend = closeDragElement;
-            document.ontouchmove = touchDrag;
+            // document.ontouchmove = touchDrag;
+            document.addEventListener("touchmove", touchDrag, { passive: false });
         }, 50);
 
         document.ontouchend = () => {
@@ -1138,7 +1138,8 @@ function dragElement(elmnt) {
         document.onmouseup = null;
         document.onmousemove = null;
         document.ontouchend = null;
-        document.ontouchmove = null;
+        // document.ontouchmove = null;
+        document.removeEventListener("touchmove", touchDrag, { passive: false });
         elmnt.style.zIndex = node_zIndex;
         elmnt.contentEditable = true;
     }
@@ -1237,7 +1238,6 @@ document.getElementById("create_edge_btn").addEventListener("click", function(ev
         else { // Change start node
             // Toggle clicked node ON or OFF (connected or not connected)
             let selected_node = event.target;
-            console.log(selected_node.classList);
             if (selected_node.classList.contains("create_edge_end")) { // Remove edge
                 selected_node.classList.remove("create_edge_end");
                 userGraph.removeEdge(start_node, selected_node.id);

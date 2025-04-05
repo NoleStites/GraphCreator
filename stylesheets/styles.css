@@ -412,6 +412,10 @@ button:disabled {
         height: 100%;
     }
 
+    #adj_matrix_content {
+        background-color: yellow;
+    }
+
     #adj_list_content {
         height: 100%;
     }
