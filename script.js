@@ -1336,6 +1336,18 @@ function toggleInfoPanelOff() {
     document.getElementById("label_input").removeEventListener("input", updateLabel);
 }
 
+// Enable (true) or disable (false) graph button mask
+function toggleGraphButtonMask(on_off, message="") {
+    let mask = document.getElementById("graph_button_mask");
+    document.getElementById("button_mask_text").innerText = message;
+    if (!on_off) {
+        mask.style.display = "none";
+    }
+    else {
+        mask.style.display = "inline-flex";
+    }
+}
+
 // Enable (true) or disable (false) graph buttons
 function toggleGraphButtons(on_off) {
     // Disbale graph edit buttons
@@ -1598,6 +1610,7 @@ function toggleAlgorithmAboutSection(algorithm_choice, on_off) {
         toggleGraphButtons(true);
         toggleAdjItemsDisable(true);
         toggleStepButtons(false);
+        toggleGraphButtonMask(false);
         if (document.getElementById("weights_checkbox1").checked) { toggleWeightsChangeable(true); }
         return;
     }
@@ -1628,6 +1641,7 @@ function toggleAlgorithmAboutSection(algorithm_choice, on_off) {
     toggleAdjItemsDisable(false);
     toggleWeightsChangeable(false);
     toggleStepButtons(false);
+    toggleGraphButtonMask(true, "Close algorithm panel to edit graph.");
 }
 
 // A click event to be applied to nodes for algorithms

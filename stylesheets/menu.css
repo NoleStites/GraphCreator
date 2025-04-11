@@ -270,6 +270,18 @@ label {
     cursor: not-allowed;
 }
 
+#graph_button_mask {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    /* display: inline-flex; */
+    justify-content: center;
+    align-items: center;
+    background-color: white;
+    z-index: 2;
+    display: none;
+}
+
 #create_node_btn {
     background-image: url("../assets/node.svg");
     background-size: 70% 70%;
